@@ -37,6 +37,8 @@ jobs:
           git add site/data-index.json site/health.json
           git commit -m "recovery: restore latest to ${{ inputs.version_id }}"
           git push origin HEAD:main
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
       - name: Upload validated site
         uses: actions/upload-pages-artifact@v4
         with:

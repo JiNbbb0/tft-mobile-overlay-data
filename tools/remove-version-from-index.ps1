@@ -9,6 +9,8 @@ $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
 $indexPath = Join-Path $siteRoot "data-index.json"
 $healthPath = Join-Path $siteRoot "health.json"
+$originalIndex = [IO.File]::ReadAllBytes($indexPath)
+$originalHealth = [IO.File]::ReadAllBytes($healthPath)
 $index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
 if ([string]$index.latestVersionId -eq $VersionId) { throw "Refusing to remove the current latest version; restore a production version first" }
 $remaining = @($index.versions | Where-Object { [string]$_.id -ne $VersionId })
@@ -21,6 +23,12 @@ $health = Get-Content -Raw -Encoding UTF8 -LiteralPath $healthPath | ConvertFrom
 $health.versionCount = $remaining.Count
 $health.generatedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $health.workflowRunId = $(if ($env:GITHUB_RUN_ID) { [string]$env:GITHUB_RUN_ID } else { "local-e2e-cleanup" })
-[IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
-& (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory
+try {
+    [IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+    & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory
+} catch {
+    [IO.File]::WriteAllBytes($indexPath, $originalIndex)
+    [IO.File]::WriteAllBytes($healthPath, $originalHealth)
+    throw
+}
 Write-Output "Version removed from index; immutable bundle retained: $VersionId"

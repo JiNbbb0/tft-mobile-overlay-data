@@ -1,0 +1,9 @@
+# Published bytes are content-addressed and must never be changed by Git EOL conversion.
+site/** -text
+source/** -text
+
+# Repository-authored text remains normalized and portable.
+*.md text eol=lf
+*.ps1 text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

@@ -1,0 +1,38 @@
+name: Keep scheduled automation active
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "13 17 1 * *"
+
+concurrency:
+  group: tft-data-heartbeat
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  heartbeat:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Update one small state file
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force state | Out-Null
+          $state = [ordered]@{
+            schemaVersion = 1
+            updatedAtUtc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+            purpose = 'Keep public-repository scheduled workflows active without changing released data.'
+          }
+          [IO.File]::WriteAllText((Join-Path $PWD 'state/heartbeat.json'), ($state | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/heartbeat.json
+          git commit -m "chore: monthly automation heartbeat"
+          git push origin HEAD:main
+      - name: Write summary
+        shell: pwsh
+        run: "'- Result: monthly heartbeat committed; release data unchanged' | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8"

@@ -1,0 +1,62 @@
+name: Validate and redeploy Pages
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: tft-data-refresh-and-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  DATA_INDEX_URL: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate all tracked publication content
+        shell: pwsh
+        run: ./tools/validate-site.ps1
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  deploy:
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Redeploy the validated site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify:
+    needs: deploy
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify public files
+        shell: pwsh
+        run: ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+      - name: Write summary
+        shell: pwsh
+        run: |
+          @"
+          ## Manual Pages redeploy
+
+          - Result: PASS
+          - Pages URL: https://jinbbb0.github.io/tft-mobile-overlay-data/
+          - Data index: $env:DATA_INDEX_URL
+          "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8

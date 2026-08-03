@@ -1,0 +1,119 @@
+name: Refresh and publish TFT data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+
+concurrency:
+  group: tft-data-refresh-and-pages
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  DATA_INDEX_URL: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+
+jobs:
+  refresh:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    outputs:
+      changed: ${{ steps.refresh.outputs.changed }}
+      detected_version: ${{ steps.refresh.outputs.detected_version }}
+    steps:
+      - name: Check out data repository
+        uses: actions/checkout@v6
+
+      - name: Detect, generate, validate, and stage a new version
+        id: refresh
+        shell: pwsh
+        run: ./tools/refresh-live-data.ps1
+
+      - name: Validate complete site
+        if: success()
+        shell: pwsh
+        run: ./tools/validate-site.ps1
+
+      - name: Commit append-only history only when changed
+        if: success() && steps.refresh.outputs.changed == 'true'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add source/current site
+          if (-not (git status --porcelain)) {
+            throw "Refresh reported a change but produced no tracked diff"
+          }
+          git commit -m "data: publish ${{ steps.refresh.outputs.detected_version }}"
+          git push origin HEAD:main
+
+      - name: Prepare Pages artifact
+        if: success() && steps.refresh.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Preserve concise failure report
+        if: failure() && hashFiles('build/failure-report/**') != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: refresh-failure-${{ github.run_id }}
+          path: build/failure-report
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Write Actions summary
+        if: always()
+        shell: pwsh
+        run: |
+          $result = '${{ steps.refresh.outputs.result }}'
+          if (-not $result) { $result = '${{ job.status }}' }
+          @"
+          ## TFT data refresh
+
+          - Result: $result
+          - Detected version: ${{ steps.refresh.outputs.detected_version }}
+          - Set: ${{ steps.refresh.outputs.detected_set }}
+          - Patch: ${{ steps.refresh.outputs.detected_patch }}
+          - Revision: ${{ steps.refresh.outputs.detected_revision }}
+          - Changed: ${{ steps.refresh.outputs.changed }}
+          - Published artifact prepared: ${{ steps.refresh.outputs.published }}
+          - Validation/job status: ${{ job.status }}
+          - Pages URL: https://jinbbb0.github.io/tft-mobile-overlay-data/
+          - Data index: $env:DATA_INDEX_URL
+          - Failed stage: ${{ steps.refresh.outputs.failed_stage }}
+          - Next action: Inspect the failure artifact only when this run failed.
+          "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+
+  deploy:
+    if: needs.refresh.result == 'success' && needs.refresh.outputs.changed == 'true'
+    needs: refresh
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy validated artifact atomically
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify-publication:
+    if: needs.deploy.result == 'success'
+    needs: [refresh, deploy]
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify HTTPS index, manifest, JSON, and sample blob
+        shell: pwsh
+        run: ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+      - name: Record public verification
+        shell: pwsh
+        run: |
+          "- Public E2E validation: PASS" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          "- Data index: $env:DATA_INDEX_URL" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8

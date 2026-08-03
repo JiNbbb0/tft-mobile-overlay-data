@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jinbbb0.github.io/tft-mobile-overlay-data/schema/manifest.schema.json",
+  "title": "TFT Mobile Overlay version manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "setId", "setNumber", "setName", "patch", "revision", "updateKind", "generatedAtUtc", "minimumAppVersionCode", "files"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "setId": { "type": "string", "minLength": 1 },
+    "setNumber": { "type": "integer", "minimum": 1 },
+    "setName": { "type": "string", "minLength": 1 },
+    "patch": { "type": "string", "minLength": 1 },
+    "revision": { "type": "string", "minLength": 1 },
+    "updateKind": { "enum": ["NEW_SET", "PATCH", "B_PATCH", "E2E_TEST"] },
+    "generatedAtUtc": { "type": "string", "format": "date-time" },
+    "minimumAppVersionCode": { "type": "integer", "minimum": 1 },
+    "files": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 1500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "url", "sha256", "bytes"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "url": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1, "maximum": 31457280 }
+        }
+      }
+    }
+  }
+}

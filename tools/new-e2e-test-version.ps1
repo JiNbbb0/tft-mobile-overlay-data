@@ -20,7 +20,8 @@ $meta.sourceSummary = "E2E TEST - " + [string]$meta.sourceSummary
 $firstComposition = @($meta.compositions) | Select-Object -First 1
 if (-not $firstComposition) { throw "Cannot create E2E version without compositions" }
 $originalName = [string]$firstComposition.name
-$firstComposition.name = "$originalName [更新テスト]"
+$testMarker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("44CQ5pu05paw44OG44K544OI44CR"))
+$firstComposition.name = "$originalName $testMarker"
 [IO.File]::WriteAllText($metaPath, ($meta | ConvertTo-Json -Depth 100) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 
 $sourceManifestPath = Join-Path $testRoot "metadata/DATA_SOURCE_MANIFEST.json"

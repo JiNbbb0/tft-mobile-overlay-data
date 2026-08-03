@@ -46,6 +46,7 @@ if (@($versions.id | Sort-Object -Unique).Count -ne $versions.Count) { throw "Du
 if (@($versions.id | ForEach-Object { ([string]$_).ToLowerInvariant() } | Sort-Object -Unique).Count -ne $versions.Count) { throw "Case-insensitive duplicate version ID" }
 $latest = @($versions | Where-Object { [string]$_.id -eq [string]$index.latestVersionId }) | Select-Object -First 1
 if (-not $latest) { throw "latestVersionId is not present" }
+if ([bool]$latest.hidden) { throw "latestVersionId must not point to a hidden version" }
 
 $allowedExtensions = @('.json', '.md', '.png', '.jpg', '.jpeg', '.webp')
 $checkedFiles = 0

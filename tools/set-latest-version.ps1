@@ -30,7 +30,12 @@ $health.latestPatch = [string]$version.patch
 $health.latestRevision = [string]$version.revision
 $health.generatedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $health.workflowRunId = $(if ($env:GITHUB_RUN_ID) { [string]$env:GITHUB_RUN_ID } else { "local-rollback" })
-$health.sourceUpdatedAt = [string]$version.generatedAtUtc
+$sourceUpdatedAt = $version.generatedAtUtc
+$health.sourceUpdatedAt = if ($sourceUpdatedAt -is [DateTime]) {
+    $sourceUpdatedAt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+} else {
+    [string]$sourceUpdatedAt
+}
 [IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 try {
     & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory

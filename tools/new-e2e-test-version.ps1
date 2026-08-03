@@ -48,5 +48,17 @@ $summaryMarkdown = "# E2E TEST CHANGE SUMMARY`n`n- Test only: yes`n- Original re
 
 & (Join-Path $PSScriptRoot "publish-data-history.ps1") -SiteDirectory $SiteDirectory -SourceRoot "build/e2e-source"
 $versionId = (("{0}-{1}-r{2}" -f [string]$meta.setId,[string](Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $testRoot "tft/tft_catalog.json") | ConvertFrom-Json).set.tftPatch,$testRevision).ToLowerInvariant() -replace '[^a-z0-9._-]','-')
+$siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
+$manifestPath = Join-Path $siteRoot "bundles/$versionId/manifest.json"
+$manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
+$manifest | Add-Member -NotePropertyName testOnly -NotePropertyValue $true -Force
+[IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 20) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+$indexPath = Join-Path $siteRoot "data-index.json"
+$index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
+$indexEntry = @($index.versions | Where-Object { [string]$_.id -eq $versionId }) | Select-Object -First 1
+if (-not $indexEntry) { throw "Published E2E version is missing from data-index: $versionId" }
+$indexEntry | Add-Member -NotePropertyName testOnly -NotePropertyValue $true -Force
+[IO.File]::WriteAllText($indexPath, ($index | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+& (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory
 Write-Output "E2E_VERSION_ID=$versionId"
 Write-Output "E2E_BASELINE_REVISION=$originalRevision"

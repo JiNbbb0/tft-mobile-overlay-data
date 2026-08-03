@@ -14,16 +14,30 @@ $client.DefaultRequestHeaders.UserAgent.ParseAdd("TFT-Mobile-Overlay-Data/1.0 re
 
 function Get-RemoteBytes([uri]$Uri, [int64]$Limit, [string[]]$AllowedContentTypes) {
     if ($Uri.Scheme -ne "https") { throw "Non-HTTPS URL refused: $Uri" }
-    $response = $client.GetAsync($Uri, [Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
-    if (-not $response.IsSuccessStatusCode) { throw "HTTP $([int]$response.StatusCode): $Uri" }
-    if ($response.RequestMessage.RequestUri.Scheme -ne "https") { throw "Redirect left HTTPS: $Uri" }
-    $length = $response.Content.Headers.ContentLength
-    if ($length -and $length -gt $Limit) { throw "Content-Length exceeds limit: $Uri" }
-    $contentType = [string]$response.Content.Headers.ContentType.MediaType
-    if ($AllowedContentTypes.Count -gt 0 -and $contentType -notin $AllowedContentTypes) { throw "Unexpected Content-Type '$contentType': $Uri" }
-    $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
-    if ($bytes.LongLength -gt $Limit) { throw "Downloaded content exceeds limit: $Uri" }
-    return $bytes
+    $response = $null
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $response = $client.GetAsync($Uri, [Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
+        if ($response.IsSuccessStatusCode) { break }
+        $statusCode = [int]$response.StatusCode
+        $transient = $statusCode -in @(429, 500, 502, 503, 504)
+        $response.Dispose()
+        $response = $null
+        if (-not $transient -or $attempt -eq 3) { throw "HTTP $statusCode after $attempt attempt(s): $Uri" }
+        Start-Sleep -Milliseconds (500 * $attempt)
+    }
+    try {
+        if ($null -eq $response) { throw "No HTTP response: $Uri" }
+        if ($response.RequestMessage.RequestUri.Scheme -ne "https") { throw "Redirect left HTTPS: $Uri" }
+        $length = $response.Content.Headers.ContentLength
+        if ($length -and $length -gt $Limit) { throw "Content-Length exceeds limit: $Uri" }
+        $contentType = [string]$response.Content.Headers.ContentType.MediaType
+        if ($AllowedContentTypes.Count -gt 0 -and $contentType -notin $AllowedContentTypes) { throw "Unexpected Content-Type '$contentType': $Uri" }
+        $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+        if ($bytes.LongLength -gt $Limit) { throw "Downloaded content exceeds limit: $Uri" }
+        return $bytes
+    } finally {
+        if ($null -ne $response) { $response.Dispose() }
+    }
 }
 
 function Get-Json([uri]$Uri, [int64]$Limit) {

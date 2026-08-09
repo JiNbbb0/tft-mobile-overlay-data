@@ -19,9 +19,13 @@ $meta.fetchedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $meta.sourceSummary = "E2E TEST - " + [string]$meta.sourceSummary
 $firstComposition = @($meta.compositions) | Select-Object -First 1
 if (-not $firstComposition) { throw "Cannot create E2E version without compositions" }
-$originalName = [string]$firstComposition.name
+$originalName = if ($firstComposition.PSObject.Properties['displayNameJa']) { [string]$firstComposition.displayNameJa } else { [string]$firstComposition.name }
 $testMarker = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("44CQ5pu05paw44OG44K544OI44CR"))
-$firstComposition.name = "$originalName $testMarker"
+if ($firstComposition.PSObject.Properties['displayNameJa']) {
+    $firstComposition.displayNameJa = "$originalName $testMarker"
+} else {
+    $firstComposition.name = "$originalName $testMarker"
+}
 [IO.File]::WriteAllText($metaPath, ($meta | ConvertTo-Json -Depth 100) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 
 $sourceManifestPath = Join-Path $testRoot "metadata/DATA_SOURCE_MANIFEST.json"
@@ -39,11 +43,11 @@ $summary = [ordered]@{
     notice = "Temporary safe E2E revision. It must not remain latest after verification."
     originalRevision = [string]$originalRevision
     testRevision = [string]$testRevision
-    displayChange = [ordered]@{ compositionId = [string]$firstComposition.id; before = $originalName; after = [string]$firstComposition.name }
+    displayChange = [ordered]@{ compositionId = [string]$firstComposition.id; before = $originalName; after = "$originalName $testMarker" }
 }
 $summaryJsonPath = Join-Path $testRoot "metadata/CHANGE_SUMMARY.json"
 [IO.File]::WriteAllText($summaryJsonPath, ($summary | ConvertTo-Json -Depth 10) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
-$summaryMarkdown = "# E2E TEST CHANGE SUMMARY`n`n- Test only: yes`n- Original revision: $originalRevision`n- Test revision: $testRevision`n- Safe display change: $originalName -> $($firstComposition.name)`n"
+$summaryMarkdown = "# E2E TEST CHANGE SUMMARY`n`n- Test only: yes`n- Original revision: $originalRevision`n- Test revision: $testRevision`n- Safe display change: $originalName -> $originalName $testMarker`n"
 [IO.File]::WriteAllText((Join-Path $testRoot "metadata/CHANGE_SUMMARY.md"), $summaryMarkdown, [Text.UTF8Encoding]::new($false))
 
 & (Join-Path $PSScriptRoot "publish-data-history.ps1") -SiteDirectory $SiteDirectory -SourceRoot "build/e2e-source"

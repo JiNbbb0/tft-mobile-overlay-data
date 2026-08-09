@@ -23,8 +23,11 @@
           "setName": { "type": "string", "minLength": 1 },
           "patch": { "type": "string", "minLength": 1 },
           "revision": { "type": "string", "minLength": 1 },
-          "updateKind": { "enum": ["NEW_SET", "PATCH", "B_PATCH", "E2E_TEST"] },
+          "updateKind": { "enum": ["NEW_SET", "PATCH", "B_PATCH", "META_UPDATE", "E2E_TEST"] },
           "generatedAtUtc": { "type": "string", "format": "date-time" },
+          "sourceTimestampUtc": { "type": "string", "format": "date-time" },
+          "metaFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "readiness": { "enum": ["CATALOG_READY", "META_COLLECTING", "META_STABLE"] },
           "manifestUrl": { "type": "string", "pattern": "^bundles/[a-z0-9._-]+/manifest\\.json$" },
           "hidden": { "type": "boolean" }
         }

@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-08-09
+
+- 同一set/patch/MetaTFT clusterでも、正規化した構成タイトル、Tier、順位（小数第2位）、盤面、装備順位、推奨オーグメントが変化した場合にだけ `META_UPDATE` を作る。取得時刻、URL、標本数だけの増減はfingerprintから除外し、版の大量発生を防ぐ。
+- `META_UPDATE` はcluster revisionを保持しつつfingerprint先頭10文字をversion IDへ加える。通常のNEW_SET/PATCH/B_PATCH履歴はappend-onlyで保持し、100版上限到達時も自動削除しない。
+- 新セットはCommunityDragonのカタログが検証できた時点で `META_COLLECTING` として配信できる。構成統計が不足するときは空の構成を新セット名で補わず、アプリに「構成データを集計中」と表示させる。dry-runは架空のSet 18だけを `build/` に生成し、公開siteを変更しない。
+
 ## 2026-08-04
 
 - Androidアプリ本体とは別の公開リポジトリにし、公開対象を配信用データ・画像・検証ツール・workflow・運用文書に限定する。

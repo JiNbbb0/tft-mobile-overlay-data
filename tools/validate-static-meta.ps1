@@ -32,7 +32,7 @@ $catalogEntries = @{}
 foreach ($entry in @($catalog.champions) + @($catalog.items) + @($catalog.augments)) {
     $catalogEntries[$entry.id] = $entry
 }
-if ([int]$snapshot.schemaVersion -ne 4) { throw "Unsupported static meta schema" }
+if ([int]$snapshot.schemaVersion -notin @(4,5)) { throw "Unsupported static meta schema" }
 if (-not $snapshot.setId) { throw "Missing setId" }
 if (-not $snapshot.sources.compositionItemBuilds) { throw "Missing composition item source" }
 if (-not $snapshot.sources.compositionDetails) { throw "Missing composition details source" }
@@ -40,13 +40,24 @@ if (-not $snapshot.sources.compositionAugmentTiers) { throw "Missing composition
 if ([int]$snapshot.itemStatBasis.buildSize -ne 3) { throw "Unexpected item stat build size" }
 
 $compositions = @($snapshot.compositions)
-if ($compositions.Count -lt 18) { throw "Expected at least 18 compositions, found $($compositions.Count)" }
+$readiness = if ($snapshot.PSObject.Properties['readiness']) { [string]$snapshot.readiness } else { 'META_STABLE' }
+$isPartial = $readiness -in @('CATALOG_READY', 'META_COLLECTING')
+if (-not $isPartial -and $compositions.Count -lt 18) { throw "Expected at least 18 compositions, found $($compositions.Count)" }
+if ($isPartial -and $compositions.Count -eq 0) {
+    Write-Output "Static meta catalog-only snapshot valid"
+    Write-Output "Set=$($snapshot.setId) Readiness=$readiness"
+    exit 0
+}
 
 $allItemStats = @()
 $trustedStatCount = 0
 $trustedOptionCount = 0
 foreach ($composition in $compositions) {
-    if (-not $composition.id -or -not $composition.name) { throw "Composition identity missing" }
+    $title = if ($composition.PSObject.Properties['displayNameJa']) { [string]$composition.displayNameJa } else { [string]$composition.name }
+    if (-not $composition.id -or -not $title) { throw "Composition identity missing" }
+    if ([int]$snapshot.schemaVersion -ge 5 -and (-not $composition.titleKey -or -not $composition.titleSource)) {
+        throw "Composition title provenance missing: $($composition.id)"
+    }
     if ($composition.tier -notin @('OP', 'S', 'A', 'B')) { throw "Invalid composition tier: $($composition.id)/$($composition.tier)" }
     if ([double]$composition.averagePlacement -lt 1 -or [double]$composition.averagePlacement -gt 8) {
         throw "Composition placement outside 1-8: $($composition.id)"
@@ -177,7 +188,7 @@ foreach ($composition in $compositions) {
     }
 }
 
-if ($allItemStats.Count -eq 0) { throw "No composition item statistics" }
+if ($allItemStats.Count -eq 0 -and -not $isPartial) { throw "No composition item statistics" }
 
 Write-Output "Static meta snapshot valid"
 Write-Output "Set=$($snapshot.setId) Compositions=$($compositions.Count) ItemStats=$($allItemStats.Count) MinimumSamples=$($snapshot.itemStatBasis.minimumSamples)"

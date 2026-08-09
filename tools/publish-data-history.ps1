@@ -2,6 +2,9 @@ param(
     [string]$SiteDirectory = "site",
     [string]$SourceRoot = "source/current",
     [int]$MinimumAppVersionCode = 24,
+    [string]$MetaFingerprint = "",
+    [ValidateSet("CATALOG_READY", "META_COLLECTING", "META_STABLE")]
+    [string]$Readiness = "",
     [switch]$ForceReplaceSameVersion
 )
 
@@ -29,16 +32,28 @@ if (-not (Test-Path -LiteralPath $imageSourceRoot -PathType Container)) { throw 
 
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogSource | ConvertFrom-Json
 $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaSource | ConvertFrom-Json
-if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -ne 4) { throw "Unsupported source schema" }
+if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -notin @(4,5)) { throw "Unsupported source schema" }
 if ([string]$catalog.set.id -ne [string]$meta.setId) { throw "Catalog and composition set do not match" }
 $setId = [string]$catalog.set.id
 $setNumber = [int]$catalog.set.number
 $setName = [string]$catalog.set.nameJa
 $patch = [string]$catalog.set.tftPatch
 $revision = [string]$meta.clusterId
-$versionId = (("{0}-{1}-r{2}" -f $setId,$patch,$revision).ToLowerInvariant() -replace '[^a-z0-9._-]','-')
+$baseVersionId = (("{0}-{1}-r{2}" -f $setId,$patch,$revision).ToLowerInvariant() -replace '[^a-z0-9._-]','-')
 $generatedAtUtc = [string]$meta.fetchedAtUtc
 if (-not $generatedAtUtc) { $generatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
+$sourceTimestampUtc = if ($meta.PSObject.Properties['statsUpdatedEpochMs'] -and [int64]$meta.statsUpdatedEpochMs -gt 0) {
+    [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$meta.statsUpdatedEpochMs).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")
+} else {
+    $generatedAtUtc
+}
+if (-not $MetaFingerprint) {
+    $MetaFingerprint = & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $metaSource
+}
+if ($MetaFingerprint -notmatch '^[0-9a-f]{64}$') { throw "Invalid meta fingerprint" }
+if (-not $Readiness) {
+    $Readiness = if ($meta.PSObject.Properties['readiness']) { [string]$meta.readiness } else { "META_STABLE" }
+}
 
 $stagingRoot = Join-Path $repositoryRoot "build/site-staging"
 if (Test-Path -LiteralPath $stagingRoot) { Remove-Item -Recurse -Force -LiteralPath $stagingRoot }
@@ -58,17 +73,19 @@ if (Test-Path -LiteralPath $indexPath) {
     if ([int]$existingIndex.schemaVersion -ne 1) { throw "Unsupported existing data-index schema" }
     $existingVersions = @($existingIndex.versions)
 }
-$sameVersion = @($existingVersions | Where-Object { [string]$_.id -eq $versionId }) | Select-Object -First 1
-$previous = @($existingVersions | Where-Object { [string]$_.id -ne $versionId } | Sort-Object generatedAtUtc -Descending) | Select-Object -First 1
-$updateKind = if ($sameVersion) {
-    [string]$sameVersion.updateKind
-} elseif (-not $previous -or [string]$previous.setId -ne $setId) {
+$previous = @($existingVersions | Sort-Object generatedAtUtc -Descending) | Select-Object -First 1
+$updateKind = if (-not $previous -or [string]$previous.setId -ne $setId) {
     "NEW_SET"
 } elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -ne $revision) {
     "B_PATCH"
+} elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -eq $revision -and [string]$previous.metaFingerprint -ne $MetaFingerprint) {
+    "META_UPDATE"
 } else {
     "PATCH"
 }
+$versionId = if ($updateKind -eq "META_UPDATE") { "$baseVersionId-m$($MetaFingerprint.Substring(0, 10))" } else { $baseVersionId }
+$sameVersion = @($existingVersions | Where-Object { [string]$_.id -eq $versionId }) | Select-Object -First 1
+if ($sameVersion) { $updateKind = [string]$sameVersion.updateKind }
 
 $bundleRoot = Join-Path $stagingRoot "bundles/$versionId"
 if (Test-Path -LiteralPath $bundleRoot) {
@@ -139,6 +156,9 @@ $manifest = [pscustomobject][ordered]@{
     revision = $revision
     updateKind = $updateKind
     generatedAtUtc = $generatedAtUtc
+    sourceTimestampUtc = $sourceTimestampUtc
+    metaFingerprint = $MetaFingerprint
+    readiness = $Readiness
     minimumAppVersionCode = $MinimumAppVersionCode
     files = @($entries)
 }
@@ -154,6 +174,9 @@ $record = [pscustomobject][ordered]@{
     revision = $revision
     updateKind = $updateKind
     generatedAtUtc = $generatedAtUtc
+    sourceTimestampUtc = $sourceTimestampUtc
+    metaFingerprint = $MetaFingerprint
+    readiness = $Readiness
     manifestUrl = "bundles/$versionId/manifest.json"
     hidden = $false
 }

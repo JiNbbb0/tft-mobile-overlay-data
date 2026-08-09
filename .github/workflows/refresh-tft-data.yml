@@ -84,8 +84,10 @@ jobs:
           - Set: ${{ steps.refresh.outputs.detected_set }}
           - Patch: ${{ steps.refresh.outputs.detected_patch }}
           - Revision: ${{ steps.refresh.outputs.detected_revision }}
+          - Update kind: ${{ steps.refresh.outputs.detected_kind }}
           - Changed: ${{ steps.refresh.outputs.changed }}
           - Published artifact prepared: ${{ steps.refresh.outputs.published }}
+          - No change means: sources were checked and no semantic catalog/meta change was published.
           - Validation/job status: ${{ job.status }}
           - Pages URL: https://jinbbb0.github.io/tft-mobile-overlay-data/
           - Data index: $env:DATA_INDEX_URL

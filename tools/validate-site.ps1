@@ -63,8 +63,10 @@ foreach ($version in $versions) {
     $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
     $manifestByVersion[[string]$version.id] = [pscustomobject]@{ manifest=$manifest; path=$manifestPath }
     if ([int]$manifest.schemaVersion -ne 1 -or [string]$manifest.id -ne [string]$version.id) { throw "Manifest identity mismatch: $($version.id)" }
-    foreach ($field in @('setId','patch','revision','updateKind')) {
-        if ([string]$manifest.$field -ne [string]$version.$field) { throw "Manifest/index $field mismatch: $($version.id)" }
+    foreach ($field in @('setId','patch','revision','updateKind','readiness','metaFingerprint')) {
+        $manifestValue = if ($manifest.PSObject.Properties[$field]) { [string]$manifest.$field } else { '' }
+        $indexValue = if ($version.PSObject.Properties[$field]) { [string]$version.$field } else { '' }
+        if ($manifestValue -ne $indexValue) { throw "Manifest/index $field mismatch: $($version.id)" }
     }
     $files = @($manifest.files)
     if ($files.Count -lt 5 -or $files.Count -gt 1500) { throw "Manifest file count outside 5..1500: $($version.id)" }
@@ -105,11 +107,13 @@ foreach ($version in $versions) {
     $metaPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$metaEntry.url)))
     $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath | ConvertFrom-Json
     $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaPath | ConvertFrom-Json
-    if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -ne 4) { throw "Unsupported content schema: $($version.id)" }
+    if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -notin @(4,5)) { throw "Unsupported content schema: $($version.id)" }
     if ([string]$catalog.set.id -ne [string]$version.setId -or [string]$meta.setId -ne [string]$version.setId) { throw "Set mismatch: $($version.id)" }
     if ([string]$catalog.set.tftPatch -ne [string]$version.patch) { throw "Patch mismatch: $($version.id)" }
     if ([string]$meta.clusterId -ne [string]$version.revision) { throw "Revision mismatch: $($version.id)" }
-    $groups = @($catalog.champions), @($catalog.traits), @($catalog.items), @($catalog.augments), @($meta.compositions)
+    $groups = @($catalog.champions), @($catalog.traits), @($catalog.items), @($catalog.augments)
+    $versionReadiness = if ($version.PSObject.Properties['readiness']) { [string]$version.readiness } else { 'META_STABLE' }
+    if ($versionReadiness -eq 'META_STABLE') { $groups += ,@($meta.compositions) }
     if (@($groups | Where-Object { @($_).Count -eq 0 }).Count -gt 0) { throw "Zero-record category: $($version.id)" }
     $records = @($catalog.champions) + @($catalog.traits) + @($catalog.items) + @($catalog.augments)
     if (@($records | Where-Object { [string]::IsNullOrWhiteSpace([string]$_.nameJa) }).Count -gt 0) { throw "Empty Japanese name: $($version.id)" }
@@ -141,6 +145,8 @@ if ($orderedVersions.Count -ge 2) {
     $currentCounts = Get-VersionCounts $currentInfo
     $previousCounts = Get-VersionCounts $previousInfo
     foreach ($category in @('champions','items','augments','compositions')) {
+        $currentReadiness = if ($currentInfo.manifest.PSObject.Properties['readiness']) { [string]$currentInfo.manifest.readiness } else { 'META_STABLE' }
+        if ([string]$currentVersion.setId -ne [string]$previousVersion.setId -or $currentReadiness -ne 'META_STABLE') { continue }
         if ([int]$previousCounts.$category -gt 0 -and [double]$currentCounts.$category -lt ([double]$previousCounts.$category * 0.70)) {
             throw "Abnormal record loss in ${category}: $($previousCounts.$category) -> $($currentCounts.$category)"
         }

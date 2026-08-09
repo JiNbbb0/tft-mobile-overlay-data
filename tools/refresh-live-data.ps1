@@ -61,23 +61,25 @@ try {
     Set-ActionOutput "detected_revision" $revision
 
     $indexPath = Join-Path $siteRoot "data-index.json"
-    if ((Test-Path -LiteralPath $indexPath) -and -not $Force) {
+    $existingVersion = $null
+    if (Test-Path -LiteralPath $indexPath) {
         $index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
-        $alreadyPublished = @($index.versions | Where-Object {
+        $existingVersion = @($index.versions | Where-Object {
             [string]$_.setId -eq $setId -and [string]$_.patch -eq $patch -and [string]$_.revision -eq $revision
-        }).Count -gt 0
-        if ($alreadyPublished) {
-            Set-ActionOutput "changed" "false"
-            Set-ActionOutput "published" "false"
-            Set-ActionOutput "result" "NO_CHANGE"
-            Write-Output "No change: Version=$versionId"
-            exit 0
-        }
+        } | Sort-Object generatedAtUtc -Descending | Select-Object -First 1)
     }
 
     $stage = "prepare"
     if (Test-Path -LiteralPath $backupRoot) { Remove-Item -Recurse -Force -LiteralPath $backupRoot }
     Copy-Item -Recurse -Force -LiteralPath $sourceRoot -Destination $backupRoot
+    $previousMetaPath = Join-Path $backupRoot "tft_static_snapshot.json"
+    $previousFingerprint = if ($existingVersion -and $existingVersion.metaFingerprint) {
+        [string]$existingVersion.metaFingerprint
+    } elseif (Test-Path -LiteralPath $previousMetaPath) {
+        & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $previousMetaPath
+    } else {
+        ""
+    }
     $observationRoot = Join-Path $buildRoot "source-observations"
     if (Test-Path -LiteralPath $observationRoot) { Remove-Item -Recurse -Force -LiteralPath $observationRoot }
 
@@ -94,7 +96,27 @@ try {
     $stage = "catalog"
     & (Join-Path $PSScriptRoot "refresh-catalog.ps1") -SetId $setId -SetNumber $setNumber -SetNameJa $setNameJa -SetNameEn $setNameEn -TftPatch $patch
     $stage = "statistics"
-    & (Join-Path $PSScriptRoot "refresh-static-meta.ps1")
+    $isNewSet = -not $existingVersion -or [string]$existingVersion.setId -ne $setId
+    if ($isNewSet) {
+        & (Join-Path $PSScriptRoot "refresh-static-meta.ps1") -AllowPartial
+    } else {
+        & (Join-Path $PSScriptRoot "refresh-static-meta.ps1")
+    }
+    $currentMetaPath = Join-Path $sourceRoot "tft_static_snapshot.json"
+    $metaFingerprint = & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $currentMetaPath
+    if (-not $Force -and $existingVersion -and $previousFingerprint -and $metaFingerprint -eq $previousFingerprint) {
+        Remove-Item -Recurse -Force -LiteralPath $sourceRoot
+        Move-Item -LiteralPath $backupRoot -Destination $sourceRoot
+        Set-ActionOutput "changed" "false"
+        Set-ActionOutput "published" "false"
+        Set-ActionOutput "result" "NO_CHANGE"
+        Set-ActionOutput "detected_version" ([string]$existingVersion.id)
+        Set-ActionOutput "detected_kind" ([string]$existingVersion.updateKind)
+        Write-Output "No semantic meta change: Version=$($existingVersion.id) Fingerprint=$metaFingerprint"
+        exit 0
+    }
+    $readiness = (Get-Content -Raw -Encoding UTF8 -LiteralPath $currentMetaPath | ConvertFrom-Json).readiness
+    if (-not $readiness) { $readiness = "META_STABLE" }
     $stage = "source-manifest"
     & (Join-Path $PSScriptRoot "new-data-source-manifest.ps1")
     $stage = "source-validation"
@@ -103,7 +125,11 @@ try {
     $stage = "change-summary"
     & (Join-Path $PSScriptRoot "new-change-summary.ps1") -SiteDirectory $SiteDirectory
     $stage = "publish"
-    & (Join-Path $PSScriptRoot "publish-data-history.ps1") -SiteDirectory $SiteDirectory
+    & (Join-Path $PSScriptRoot "publish-data-history.ps1") -SiteDirectory $SiteDirectory -MetaFingerprint $metaFingerprint -Readiness $readiness
+    $publishedIndex = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $siteRoot "data-index.json") | ConvertFrom-Json
+    $publishedVersion = @($publishedIndex.versions | Where-Object { [string]$_.id -eq [string]$publishedIndex.latestVersionId }) | Select-Object -First 1
+    Set-ActionOutput "detected_version" ([string]$publishedVersion.id)
+    Set-ActionOutput "detected_kind" ([string]$publishedVersion.updateKind)
     $stage = "final-validation"
     & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory
 

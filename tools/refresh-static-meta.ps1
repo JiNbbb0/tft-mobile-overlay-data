@@ -3,7 +3,8 @@
     [string]$Locale = "ja_jp",
     [int]$MinimumCompSamples = 5000,
     [int]$MinimumItemSamples = 50,
-    [int]$CompositionLimit = 18
+    [int]$CompositionLimit = 18,
+    [switch]$AllowPartial
 )
 
 $ErrorActionPreference = "Stop"
@@ -419,9 +420,7 @@ $compositionCandidates = foreach ($property in $compOptions.results.overall.PSOb
         }
     }
     $name = (@($nameParts | Where-Object { $_ } | Select-Object -Unique) -join ' / ')
-    if (-not $name) {
-        $name = "Composition $clusterId"
-    }
+    if (-not $name) { continue }
 
     $boardUnitIds = @(
         ([string]$cluster.units_string -split ',\s*') |
@@ -431,7 +430,9 @@ $compositionCandidates = foreach ($property in $compOptions.results.overall.PSOb
 
     [pscustomobject][ordered]@{
         id = $clusterId
-        name = $name
+        displayNameJa = $name
+        titleSource = 'CommunityDragon localized composition-key resolution'
+        titleKey = (@($cluster.name) | ForEach-Object { [string]$_.name } | Where-Object { $_ } | Sort-Object) -join '|'
         averagePlacement = [Math]::Round([double]$stats.avg, 4)
         sampleCount = $sampleCount
         boardUnitIds = @($boardUnitIds)
@@ -449,7 +450,7 @@ $compositionCandidates = @(
         Sort-Object averagePlacement, @{ Expression = { -$_.sampleCount } } |
         Select-Object -First $CompositionLimit
 )
-if ($compositionCandidates.Count -eq 0) {
+if ($compositionCandidates.Count -eq 0 -and -not $AllowPartial) {
     throw "No compositions met the minimum sample threshold of $MinimumCompSamples."
 }
 for ($compositionIndex = 0; $compositionIndex -lt $compositionCandidates.Count; $compositionIndex++) {
@@ -472,6 +473,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
     $detailsResponse = Get-Json -Url $compDetailsUrl
     $details = $detailsResponse.results
     if (-not $details -or -not $details.positioning -or -not $details.early_options -or -not $details.options) {
+        if ($AllowPartial) { continue }
         throw "MetaTFT comp_details response is incomplete for composition $($composition.id)."
     }
     $starTargets = New-StarTargets -Details $details -UnitMap $unitMap
@@ -505,7 +507,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
                 }
         }
     )
-    if ($recommendedAugments.Count -lt 3) {
+    if ($recommendedAugments.Count -lt 3 -and -not $AllowPartial) {
         throw "Too few comp-specific augments for composition $($composition.id): $($recommendedAugments.Count)"
     }
     $buildProperty = $compBuilds.results.PSObject.Properties[[string]$composition.id]
@@ -662,7 +664,9 @@ $compositions = foreach ($composition in $compositionCandidates) {
 
     [pscustomobject][ordered]@{
         id = [string]$composition.id
-        name = [string]$composition.name
+        displayNameJa = [string]$composition.displayNameJa
+        titleSource = [string]$composition.titleSource
+        titleKey = [string]$composition.titleKey
         tier = [string]$composition.tier
         averagePlacement = [double]$composition.averagePlacement
         sampleCount = [int]$composition.sampleCount
@@ -674,12 +678,21 @@ $compositions = foreach ($composition in $compositionCandidates) {
     }
 }
 
+$readiness = if (@($compositions).Count -eq 0) {
+    'META_COLLECTING'
+} elseif (@($compositions).Count -lt $CompositionLimit -or $MinimumCompSamples -lt 5000) {
+    'META_COLLECTING'
+} else {
+    'META_STABLE'
+}
+
 $snapshot = [pscustomobject][ordered]@{
-    schemaVersion = 4
+    schemaVersion = 5
     fetchedAtUtc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
     setId = [string]$clusterInfo.tft_set
     clusterId = [int]$clusterInfo.cluster_id
     statsUpdatedEpochMs = [int64]$compOptions.updated
+    readiness = $readiness
     locale = $Locale
     sourceSummary = 'MetaTFT public statistics + CommunityDragon Japanese names'
     disclaimer = 'Static pre-game reference only. Item ranks are correlations aggregated from complete three-item builds inside the selected composition.'

@@ -4,11 +4,13 @@
     [int]$MinimumCompSamples = 5000,
     [int]$MinimumItemSamples = 50,
     [int]$CompositionLimit = 18,
+    [int]$MinimumPreferredCompositions = 12,
     [switch]$AllowPartial
 )
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -380,12 +382,49 @@ if (-not $compsData.results.data.cluster_details -or
 }
 
 Start-Sleep -Milliseconds 350
-$compsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true"
-$compsStats = Get-Json -Url $compsStatsUrl
+$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true"
+$compsStatsUrl = $preferredCompsStatsUrl
+$compsStats = Get-Json -Url $preferredCompsStatsUrl
 if ([int]$compsStats.cluster_id -ne [int]$clusterInfo.cluster_id -or
     [string]$compsStats.tft_set -ne [string]$clusterInfo.tft_set) {
     throw "MetaTFT comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
 }
+$requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
+$preferredQualifiedCompositions = Get-QualifiedCompositionCount -Stats $compsStats -MinimumSamples $MinimumCompSamples
+$fallbackQualifiedCompositions = -1
+$fallbackAttempted = $false
+if ($preferredQualifiedCompositions -lt $requiredPreferredCompositions) {
+    $fallbackAttempted = $true
+    Start-Sleep -Milliseconds 350
+    $fallbackCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&permit_filter_adjustment=true"
+    $fallbackCompsStats = Get-Json -Url $fallbackCompsStatsUrl
+    if ([int]$fallbackCompsStats.cluster_id -ne [int]$clusterInfo.cluster_id -or
+        [string]$fallbackCompsStats.tft_set -ne [string]$clusterInfo.tft_set) {
+        throw "MetaTFT fallback comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
+    }
+    $fallbackQualifiedCompositions = Get-QualifiedCompositionCount -Stats $fallbackCompsStats -MinimumSamples $MinimumCompSamples
+    $rankScopeDecision = Resolve-RankScopeDecision `
+        -PreferredQualified $preferredQualifiedCompositions `
+        -FallbackQualified $fallbackQualifiedCompositions `
+        -RequiredCompositions $requiredPreferredCompositions `
+        -FallbackAttempted $true
+    if ($rankScopeDecision.useFallback) {
+        $compsStats = $fallbackCompsStats
+        $compsStatsUrl = $fallbackCompsStatsUrl
+    }
+} else {
+    $rankScopeDecision = Resolve-RankScopeDecision `
+        -PreferredQualified $preferredQualifiedCompositions `
+        -FallbackQualified $fallbackQualifiedCompositions `
+        -RequiredCompositions $requiredPreferredCompositions `
+        -FallbackAttempted $false
+}
+$effectiveQualifiedCompositions = if ($rankScopeDecision.useFallback) {
+    $fallbackQualifiedCompositions
+} else {
+    $preferredQualifiedCompositions
+}
+Write-Output "Composition rank scope: $($rankScopeDecision.effectiveScope) Preferred=$preferredQualifiedCompositions Effective=$effectiveQualifiedCompositions Required=$requiredPreferredCompositions"
 
 Start-Sleep -Milliseconds 350
 $compOptionsUrl = "https://api-hc.metatft.com/tft-comps-api/comp_options?cluster_id=$($clusterInfo.cluster_id)"
@@ -783,6 +822,16 @@ $snapshot = [pscustomobject][ordered]@{
     readiness = $readiness
     locale = $Locale
     sourceSummary = 'MetaTFT public statistics + CommunityDragon Japanese names'
+    statisticsScope = [ordered]@{
+        preferred = 'PLATINUM_PLUS'
+        effective = [string]$rankScopeDecision.effectiveScope
+        minimumCompositionSamples = $MinimumCompSamples
+        minimumPreferredCompositions = $requiredPreferredCompositions
+        qualifiedPreferredCompositions = $preferredQualifiedCompositions
+        qualifiedEffectiveCompositions = $effectiveQualifiedCompositions
+        fallbackAttempted = $fallbackAttempted
+        fallbackReason = [string]$rankScopeDecision.reason
+    }
     disclaimer = 'Static pre-game reference only. Item ranks are correlations aggregated from complete three-item builds inside the selected composition.'
     itemStatBasis = [ordered]@{
         source = 'MetaTFT comp_builds public endpoint'

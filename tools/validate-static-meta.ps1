@@ -38,6 +38,17 @@ if (-not $snapshot.sources.compositionItemBuilds) { throw "Missing composition i
 if (-not $snapshot.sources.compositionDetails) { throw "Missing composition details source" }
 if (-not $snapshot.sources.compositionAugmentTiers) { throw "Missing composition augment source" }
 if ([int]$snapshot.itemStatBasis.buildSize -ne 3) { throw "Unexpected item stat build size" }
+if ($snapshot.PSObject.Properties['statisticsScope']) {
+    $scope = $snapshot.statisticsScope
+    if ([string]$scope.preferred -ne 'PLATINUM_PLUS') { throw "Unexpected preferred rank scope" }
+    if ([string]$scope.effective -notin @('PLATINUM_PLUS', 'ALL_RANKS_FALLBACK', 'PLATINUM_PLUS_LIMITED')) {
+        throw "Unexpected effective rank scope"
+    }
+    if ([int]$scope.minimumCompositionSamples -lt 1 -or [int]$scope.minimumPreferredCompositions -lt 1) {
+        throw "Invalid rank fallback thresholds"
+    }
+    if ([bool]$scope.fallbackAttempted -and -not $scope.fallbackReason) { throw "Rank fallback reason missing" }
+}
 
 $compositions = @($snapshot.compositions)
 $readiness = if ($snapshot.PSObject.Properties['readiness']) { [string]$snapshot.readiness } else { 'META_STABLE' }

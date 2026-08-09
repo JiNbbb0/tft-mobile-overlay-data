@@ -28,6 +28,10 @@ jobs:
       - name: Check out data repository
         uses: actions/checkout@v6
 
+      - name: Test bounded new-set rank fallback policy
+        shell: pwsh
+        run: ./tools/test-rank-scope-policy.ps1
+
       - name: Detect, generate, validate, and stage a new version
         id: refresh
         shell: pwsh

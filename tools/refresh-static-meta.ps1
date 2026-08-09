@@ -507,8 +507,11 @@ $compositions = foreach ($composition in $compositionCandidates) {
                 }
         }
     )
-    if ($recommendedAugments.Count -lt 3 -and -not $AllowPartial) {
-        throw "Too few comp-specific augments for composition $($composition.id): $($recommendedAugments.Count)"
+    if ($recommendedAugments.Count -eq 0 -and -not $AllowPartial) {
+        throw "No comp-specific augments for composition $($composition.id)."
+    }
+    if ($recommendedAugments.Count -lt 3) {
+        Write-Warning "MetaTFT currently exposes only $($recommendedAugments.Count) comp-specific augment(s) for composition $($composition.id); preserving the source result without generic padding."
     }
     $buildProperty = $compBuilds.results.PSObject.Properties[[string]$composition.id]
     $buildRows = if ($buildProperty) { @($buildProperty.Value.builds) } else { @() }

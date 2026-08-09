@@ -73,7 +73,7 @@ foreach ($composition in $compositions) {
         throw "Composition reroll count or level timing missing: $($composition.id)"
     }
     $recommendedAugments = @($composition.recommendedAugments)
-    if ($recommendedAugments.Count -lt 3) { throw "Too few recommended augments: $($composition.id)" }
+    if ($recommendedAugments.Count -eq 0) { throw "No recommended augments: $($composition.id)" }
     foreach ($augment in $recommendedAugments) {
         if ($augment.tier -notin @('S', 'A', 'B')) { throw "Unexpected recommended augment tier: $($composition.id)/$($augment.id)/$($augment.tier)" }
         if (-not $catalogEntries.ContainsKey($augment.id)) { throw "Recommended augment missing from catalog: $($composition.id)/$($augment.id)" }

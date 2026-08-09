@@ -1,85 +1,83 @@
 {
-    "generatedAtUtc":  "2026-08-09T16:38:40Z",
-    "targetSet":  {
-                      "id":  "TFTSet17",
-                      "number":  17,
-                      "nameJa":  "Set17",
-                      "nameEn":  "Set17",
-                      "tftPatch":  "17.8",
-                      "dataDragonVersion":  "16.15.1",
-                      "modes":  [
-                                    "通常",
-                                    "ハイパーロール",
-                                    "ダブルアップ",
-                                    "トッカーの試練を含むPvE"
-                                ],
-                      "mechanics":  [
-
-                                    ]
-                  },
-    "sources":  [
-                    {
-                        "name":  "Riot Data Dragon versions",
-                        "url":  "https://ddragon.leagueoflegends.com/api/versions.json",
-                        "type":  "Riot公式",
-                        "use":  "最新配布版番号",
-                        "terms":  "Riot Developer Policy / Legal Notices"
-                    },
-                    {
-                        "name":  "TFT patch 17.8",
-                        "url":  "https://teamfighttactics.leagueoflegends.com/en-us/news/tags/patch-notes/",
-                        "type":  "Riot公式",
-                        "use":  "現行パッチ確認",
-                        "terms":  "Riot website terms"
-                    },
-                    {
-                        "name":  "TFT Set 17 news",
-                        "url":  "https://teamfighttactics.leagueoflegends.com/en-us/news/",
-                        "type":  "Riot公式",
-                        "use":  "セット情報の確認先",
-                        "terms":  "Riot website terms"
-                    },
-                    {
-                        "name":  "Riot TFT Developer Policy",
-                        "url":  "https://developer.riotgames.com/docs/tft",
-                        "type":  "Riot公式",
-                        "use":  "製品登録・許容機能・ゲーム整合性の確認",
-                        "terms":  "Riot Developer Policy"
-                    },
-                    {
-                        "name":  "Riot Legal",
-                        "url":  "https://www.riotgames.com/en/legal",
-                        "type":  "Riot公式",
-                        "use":  "知的財産・利用条件へのリンク",
-                        "terms":  "Riot Legal Notices"
-                    },
-                    {
-                        "name":  "CommunityDragon asset documentation",
-                        "url":  "https://communitydragon.org/documentation/assets",
-                        "type":  "CommunityDragon公式文書",
-                        "use":  "静的JSON・画像の取得規則",
-                        "terms":  "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
-                    },
-                    {
-                        "name":  "CommunityDragon TFT ja_jp",
-                        "url":  "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json",
-                        "type":  "Riotクライアント抽出コミュニティ配布",
-                        "use":  "日本語静的データと画像パス",
-                        "terms":  "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
-                    },
-                    {
-                        "name":  "CommunityDragon TFT en_us",
-                        "url":  "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json",
-                        "type":  "Riotクライアント抽出コミュニティ配布",
-                        "use":  "英語名",
-                        "terms":  "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
-                    },
-                    {
-                        "name":  "CommunityDragon champion calculation bins",
-                        "url":  "https://raw.communitydragon.org/latest/game/characters/{0}.cdtb.bin.json",
-                        "type":  "Riotクライアント抽出コミュニティ配布",
-                        "use":  "チャンピオンスキル数式の現在値解決",
-                        "terms":  "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
-                    }
-                ]
+  "generatedAtUtc": "2026-08-09T16:47:38Z",
+  "targetSet": {
+    "id": "TFTSet17",
+    "number": 17,
+    "nameJa": "Set17",
+    "nameEn": "Set17",
+    "tftPatch": "17.8",
+    "dataDragonVersion": "16.15.1",
+    "modes": [
+      "通常",
+      "ハイパーロール",
+      "ダブルアップ",
+      "トッカーの試練を含むPvE"
+    ],
+    "mechanics": []
+  },
+  "sources": [
+    {
+      "name": "Riot Data Dragon versions",
+      "url": "https://ddragon.leagueoflegends.com/api/versions.json",
+      "type": "Riot公式",
+      "use": "最新配布版番号",
+      "terms": "Riot Developer Policy / Legal Notices"
+    },
+    {
+      "name": "TFT patch 17.8",
+      "url": "https://teamfighttactics.leagueoflegends.com/en-us/news/tags/patch-notes/",
+      "type": "Riot公式",
+      "use": "現行パッチ確認",
+      "terms": "Riot website terms"
+    },
+    {
+      "name": "TFT Set 17 news",
+      "url": "https://teamfighttactics.leagueoflegends.com/en-us/news/",
+      "type": "Riot公式",
+      "use": "セット情報の確認先",
+      "terms": "Riot website terms"
+    },
+    {
+      "name": "Riot TFT Developer Policy",
+      "url": "https://developer.riotgames.com/docs/tft",
+      "type": "Riot公式",
+      "use": "製品登録・許容機能・ゲーム整合性の確認",
+      "terms": "Riot Developer Policy"
+    },
+    {
+      "name": "Riot Legal",
+      "url": "https://www.riotgames.com/en/legal",
+      "type": "Riot公式",
+      "use": "知的財産・利用条件へのリンク",
+      "terms": "Riot Legal Notices"
+    },
+    {
+      "name": "CommunityDragon asset documentation",
+      "url": "https://communitydragon.org/documentation/assets",
+      "type": "CommunityDragon公式文書",
+      "use": "静的JSON・画像の取得規則",
+      "terms": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
+    },
+    {
+      "name": "CommunityDragon TFT ja_jp",
+      "url": "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json",
+      "type": "Riotクライアント抽出コミュニティ配布",
+      "use": "日本語静的データと画像パス",
+      "terms": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
+    },
+    {
+      "name": "CommunityDragon TFT en_us",
+      "url": "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json",
+      "type": "Riotクライアント抽出コミュニティ配布",
+      "use": "英語名",
+      "terms": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
+    },
+    {
+      "name": "CommunityDragon champion calculation bins",
+      "url": "https://raw.communitydragon.org/latest/game/characters/{0}.cdtb.bin.json",
+      "type": "Riotクライアント抽出コミュニティ配布",
+      "use": "チャンピオンスキル数式の現在値解決",
+      "terms": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"
+    }
+  ]
 }

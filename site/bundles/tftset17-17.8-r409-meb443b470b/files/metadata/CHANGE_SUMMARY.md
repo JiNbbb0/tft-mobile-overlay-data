@@ -1,12 +1,12 @@
 # Change Summary
 
-- Generated: 2026-08-09T16:57:55Z
-- From: tftset17-17.8-r409-meb443b470b
+- Generated: 2026-08-09T16:48:42Z
+- From: tftset17-17.8-r409-mcf18d3b784
 - To: TFTSet17 / patch 17.8 / revision 409
 
 | Category | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| Champions | 63 | 63 | 0 | 0 | 0 |
+| Champions | 63 | 63 | 0 | 0 | 63 |
 | Traits | 36 | 36 | 0 | 0 | 0 |
 | Items | 663 | 663 | 0 | 0 | 0 |
 | Augments | 273 | 273 | 0 | 0 | 0 |

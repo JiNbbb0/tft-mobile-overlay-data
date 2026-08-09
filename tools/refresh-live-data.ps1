@@ -77,8 +77,13 @@ try {
     if (Test-Path -LiteralPath $backupRoot) { Remove-Item -Recurse -Force -LiteralPath $backupRoot }
     Copy-Item -Recurse -Force -LiteralPath $sourceRoot -Destination $backupRoot
     $previousMetaPath = Join-Path $backupRoot "tft_static_snapshot.json"
-    $previousFingerprint = if ($existingVersion -and $existingVersion.metaFingerprint) {
-        [string]$existingVersion.metaFingerprint
+    $existingFingerprintProperty = if ($existingVersion) {
+        $existingVersion.PSObject.Properties['metaFingerprint']
+    } else {
+        $null
+    }
+    $previousFingerprint = if ($existingFingerprintProperty -and [string]$existingFingerprintProperty.Value) {
+        [string]$existingFingerprintProperty.Value
     } elseif (Test-Path -LiteralPath $previousMetaPath) {
         & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $previousMetaPath
     } else {

@@ -74,11 +74,16 @@ if (Test-Path -LiteralPath $indexPath) {
     $existingVersions = @($existingIndex.versions)
 }
 $previous = @($existingVersions | Sort-Object generatedAtUtc -Descending) | Select-Object -First 1
+$previousMetaFingerprint = if ($previous -and $previous.PSObject.Properties['metaFingerprint']) {
+    [string]$previous.PSObject.Properties['metaFingerprint'].Value
+} else {
+    ""
+}
 $updateKind = if (-not $previous -or [string]$previous.setId -ne $setId) {
     "NEW_SET"
 } elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -ne $revision) {
     "B_PATCH"
-} elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -eq $revision -and [string]$previous.metaFingerprint -ne $MetaFingerprint) {
+} elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -eq $revision -and $previousMetaFingerprint -ne $MetaFingerprint) {
     "META_UPDATE"
 } else {
     "PATCH"

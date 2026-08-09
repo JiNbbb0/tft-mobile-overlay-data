@@ -21,6 +21,14 @@ The live MetaTFT public `latest_cluster_info` endpoint returned published `TFTSe
 
 The pre-existing Set 17 historical artifact is schema 4 and retains its historical `name` values. New pipeline output is schema 5 and requires `displayNameJa`, `titleKey`, and `titleSource`; the Android reader treats schema 4 only as an explicit historical compatibility case.
 
-## Publication status
+## Production publication
 
-All checks above ran locally. No Git push, GitHub Pages deployment, or production data refresh was performed.
+- Public repository: `https://github.com/JiNbbb0/tft-mobile-overlay-data`
+- GitHub Pages: `https://jinbbb0.github.io/tft-mobile-overlay-data/`
+- Fixed index: `https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json`
+- Production refresh run: `31321327489` — refresh, atomic Pages deploy, and public HTTPS verification all PASS.
+- Published latest: `tftset17-17.8-r409-m9b4918c2df` (`META_UPDATE`, `META_STABLE`)
+- Public history: 2 versions, 913 site files, 901 files in the latest manifest.
+- Immediate no-change run: `31321528142` — PASS with `Changed=false`; commit, artifact upload, and deploy were skipped.
+
+The first production run exposed three fail-safe compatibility cases before publication: a legacy index without `metaFingerprint`, a valid composition with only one MetaTFT-specific augment, and ambiguous PowerShell interpolation for observed query URLs. Each was fixed and validated without changing the previously published latest version. Sparse augment results remain source-accurate and are not padded with unrelated global recommendations.

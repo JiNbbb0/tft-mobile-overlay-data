@@ -62,8 +62,12 @@ try {
 
     $indexPath = Join-Path $siteRoot "data-index.json"
     $existingVersion = $null
+    $existingSetVersion = $null
     if (Test-Path -LiteralPath $indexPath) {
         $index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
+        $existingSetVersion = @($index.versions | Where-Object {
+            [string]$_.setId -eq $setId
+        } | Sort-Object generatedAtUtc -Descending | Select-Object -First 1)
         $existingVersion = @($index.versions | Where-Object {
             [string]$_.setId -eq $setId -and [string]$_.patch -eq $patch -and [string]$_.revision -eq $revision
         } | Sort-Object generatedAtUtc -Descending | Select-Object -First 1)
@@ -96,7 +100,9 @@ try {
     $stage = "catalog"
     & (Join-Path $PSScriptRoot "refresh-catalog.ps1") -SetId $setId -SetNumber $setNumber -SetNameJa $setNameJa -SetNameEn $setNameEn -TftPatch $patch
     $stage = "statistics"
-    $isNewSet = -not $existingVersion -or [string]$existingVersion.setId -ne $setId
+    # A new patch/revision of an existing set must keep the normal statistics
+    # criteria. Only a never-before-published set is allowed to enter catalog-first readiness.
+    $isNewSet = -not $existingSetVersion
     if ($isNewSet) {
         & (Join-Path $PSScriptRoot "refresh-static-meta.ps1") -AllowPartial
     } else {

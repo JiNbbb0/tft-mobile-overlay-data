@@ -13,6 +13,8 @@ Set-StrictMode -Version Latest
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
 $ClusterInfoUrl = "https://api-hc.metatft.com/tft-comps-api/latest_cluster_info"
+$CompsDataUrl = "https://api-hc.metatft.com/tft-comps-api/comps_data"
+$CompsStatsBaseUrl = "https://api-hc.metatft.com/tft-comps-api/comps_stats"
 $AugmentTiersUrl = "https://api-hc.metatft.com/tft-stat-api/augments_tiers"
 $CompAugmentTiersBaseUrl = "https://api-hc.metatft.com/tft-comps-api/comp_augment_tiers"
 $CommunityDragonUrl = "https://raw.communitydragon.org/latest/cdragon/tft/$Locale.json"
@@ -75,6 +77,42 @@ function ConvertTo-ReadableName {
     return (($name -creplace '([a-z])([A-Z])', '$1 $2') -replace '\s+', ' ').Trim()
 }
 
+function ConvertTo-MetaTftTitlePart {
+    param(
+        [Parameter(Mandatory = $true)][string]$ApiName,
+        [Parameter(Mandatory = $true)][hashtable]$UnitMap,
+        [Parameter(Mandatory = $true)][hashtable]$TraitMap,
+        [Parameter(Mandatory = $true)][hashtable]$ItemMap
+    )
+
+    if ($UnitMap.ContainsKey($ApiName)) {
+        return [string]$UnitMap[$ApiName].name
+    }
+    if ($TraitMap.ContainsKey($ApiName)) {
+        $localizedName = [string]$TraitMap[$ApiName].name
+        # CommunityDragon intentionally gives all Stargazer variants the same
+        # base trait name. MetaTFT's composition list appends the variant name.
+        $stargazerVariant = switch ($ApiName) {
+            'TFT17_Stargazer_Wolf' { '狼' }
+            'TFT17_Stargazer_Medallion' { 'メダリオン' }
+            'TFT17_Stargazer_Huntress' { '女狩人' }
+            'TFT17_Stargazer_Serpent' { '蛇' }
+            'TFT17_Stargazer_Shield' { '盾' }
+            'TFT17_Stargazer_Fountain' { '泉' }
+            'TFT17_Stargazer_Mountain' { '山' }
+            default { $null }
+        }
+        if ($stargazerVariant) {
+            return "$localizedName - $stargazerVariant"
+        }
+        return $localizedName
+    }
+    if ($ItemMap.ContainsKey($ApiName)) {
+        return [string]$ItemMap[$ApiName].name
+    }
+    return ConvertTo-ReadableName -ApiName $ApiName
+}
+
 function ConvertTo-BoardPosition {
     param([Parameter(Mandatory = $true)][string]$Cell)
 
@@ -100,23 +138,25 @@ function New-BoardUnits {
             $UnitMap.ContainsKey([string]$_) -and @($UnitMap[[string]$_].traits).Count -gt 0
         }
     )
-    $candidatesByUnit = @{}
-    foreach ($unitId in @($eligibleUnitIds | Select-Object -Unique)) {
-        $property = $positioningUnits.PSObject.Properties[[string]$unitId]
-        $candidates = if ($property) {
-            @(
-                $property.Value.positions |
-                    ForEach-Object {
-                        [pscustomobject]@{
-                            position = ConvertTo-BoardPosition -Cell ([string]$_.cell)
-                            count = [int]$_.count
-                        }
-                    } |
-                    Where-Object { $_.position -ge 0 } |
-                    Sort-Object @{ Expression = { -$_.count } }, position
-            )
-        } else { @() }
-        $candidatesByUnit[$unitId] = $candidates
+    $positionCandidatesByUnit = @{}
+    foreach ($uniqueUnitIdValue in @($eligibleUnitIds | Select-Object -Unique)) {
+        $uniqueUnitId = [string]$uniqueUnitIdValue
+        $property = $positioningUnits.PSObject.Properties[$uniqueUnitId]
+        $candidateList = [System.Collections.Generic.List[object]]::new()
+        if ($property) {
+            foreach ($positionRow in @($property.Value.positions)) {
+                $boardPosition = ConvertTo-BoardPosition -Cell ([string]$positionRow.cell)
+                if ($boardPosition -ge 0) {
+                    $candidateList.Add([pscustomobject]@{
+                        position = [int]$boardPosition
+                        count = [int]$positionRow.count
+                    })
+                }
+            }
+        }
+        $positionCandidatesByUnit[$uniqueUnitId] = @(
+            $candidateList.ToArray() | Sort-Object @{ Expression = { -[int]$_.count } }, position
+        )
     }
 
     # MetaTFT includes duplicate champion IDs when a completed board fields
@@ -134,19 +174,33 @@ function New-BoardUnits {
             }
         }
     )
+    $priorityRows = [System.Collections.Generic.List[object]]::new()
+    foreach ($instance in $instances) {
+        $unitCandidateRows = @($positionCandidatesByUnit[[string]$instance.unitId])
+        $firstCandidate = if ($unitCandidateRows.Count -gt 0) { $unitCandidateRows[0] } else { $null }
+        $priorityCount = if ($null -ne $firstCandidate) { [int]$firstCandidate.count } else { 0 }
+        $priorityRows.Add([pscustomobject]@{
+            instance = $instance
+            priorityCount = $priorityCount
+        })
+    }
     $priority = @(
-        $instances |
-            Sort-Object @{ Expression = {
-                $rows = @($candidatesByUnit[[string]$_.unitId])
-                if ($rows.Count -gt 0) { -[int]$rows[0].count } else { 0 }
-            } }, occurrence
+        $priorityRows.ToArray() |
+            Sort-Object @{ Expression = { -[int]$_.priorityCount } }, @{ Expression = { [int]$_.instance.occurrence } } |
+            ForEach-Object { $_.instance }
     )
     $occupied = @{}
     $assigned = @{}
     foreach ($instance in $priority) {
         $unitId = [string]$instance.unitId
-        $choice = @($candidatesByUnit[[string]$unitId] | Where-Object { -not $occupied.ContainsKey([string]$_.position) }) |
-            Select-Object -First 1
+        $choice = $null
+        foreach ($candidate in @($positionCandidatesByUnit[$unitId])) {
+            $candidatePosition = [int]$candidate.position
+            if (-not $occupied.ContainsKey([string]$candidatePosition)) {
+                $choice = $candidate
+                break
+            }
+        }
         if ($choice) {
             $assigned[[string]$instance.key] = [int]$choice.position
             $occupied[[string]$choice.position] = $true
@@ -316,6 +370,24 @@ if (-not $clusterInfo -or -not $clusterInfo.cluster_id -or -not $clusterInfo.tft
 }
 
 Start-Sleep -Milliseconds 350
+$compsData = Get-Json -Url $CompsDataUrl
+$compsDataSet = [string]$compsData.results.data.tft_set
+$compsDataClusterId = [int]$compsData.results.data.cluster_id
+if (-not $compsData.results.data.cluster_details -or
+    $compsDataSet -ne [string]$clusterInfo.tft_set -or
+    $compsDataClusterId -ne [int]$clusterInfo.cluster_id) {
+    throw "MetaTFT comps_data does not match latest_cluster_info. Refusing a mixed-version snapshot."
+}
+
+Start-Sleep -Milliseconds 350
+$compsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true"
+$compsStats = Get-Json -Url $compsStatsUrl
+if ([int]$compsStats.cluster_id -ne [int]$clusterInfo.cluster_id -or
+    [string]$compsStats.tft_set -ne [string]$clusterInfo.tft_set) {
+    throw "MetaTFT comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
+}
+
+Start-Sleep -Milliseconds 350
 $compOptionsUrl = "https://api-hc.metatft.com/tft-comps-api/comp_options?cluster_id=$($clusterInfo.cluster_id)"
 $compOptions = Get-Json -Url $compOptionsUrl
 
@@ -387,12 +459,16 @@ if ($augments.Count -eq 0) {
 }
 
 $clusters = @{}
-foreach ($cluster in $clusterInfo.cluster_details.clusters) {
-    $clusters[[string]$cluster.Cluster] = $cluster
+foreach ($property in $compsData.results.data.cluster_details.PSObject.Properties) {
+    $cluster = $property.Value
+    $clusters[[string]$property.Name] = $cluster
 }
 
-$compositionCandidates = foreach ($property in $compOptions.results.overall.PSObject.Properties) {
-    $clusterId = [string]$property.Name
+$compositionCandidates = foreach ($stats in @($compsStats.results)) {
+    $clusterId = [string]$stats.cluster
+    if (-not $clusterId -or $clusterId -eq '-1') {
+        continue
+    }
     if (-not $clusters.ContainsKey($clusterId)) {
         continue
     }
@@ -400,26 +476,29 @@ $compositionCandidates = foreach ($property in $compOptions.results.overall.PSOb
         continue
     }
 
-    $stats = @($property.Value)[0]
-    $sampleCount = [int]$stats.count
+    $places = @($stats.places)
+    if ($places.Count -lt 9) {
+        continue
+    }
+    $sampleCount = [int]$places[8]
     if ($sampleCount -lt $MinimumCompSamples) {
         continue
     }
+    $placementSum = 0.0
+    for ($placeIndex = 0; $placeIndex -lt 8; $placeIndex++) {
+        $placementSum += ($placeIndex + 1) * [double]$places[$placeIndex]
+    }
+    $averagePlacement = $placementSum / $sampleCount
 
     $cluster = $clusters[$clusterId]
     $nameParts = foreach ($part in @($cluster.name)) {
         $id = [string]$part.name
-        if ($unitMap.ContainsKey($id)) {
-            [string]$unitMap[$id].name
-        } elseif ($traitMap.ContainsKey($id)) {
-            [string]$traitMap[$id].name
-        } elseif ($itemMap.ContainsKey($id)) {
-            [string]$itemMap[$id].name
-        } else {
-            ConvertTo-ReadableName -ApiName $id
-        }
+        ConvertTo-MetaTftTitlePart -ApiName $id -UnitMap $unitMap -TraitMap $traitMap -ItemMap $itemMap
     }
-    $name = (@($nameParts | Where-Object { $_ } | Select-Object -Unique) -join ' / ')
+    # comps_data is the source used by MetaTFT's live composition list. Preserve
+    # its current title-part order; latest_cluster_info can lag behind these
+    # user-facing names even when the cluster id has not changed.
+    $name = (@($nameParts | Where-Object { $_ } | Select-Object -Unique) -join ' ')
     if (-not $name) { continue }
 
     $boardUnitIds = @(
@@ -431,9 +510,9 @@ $compositionCandidates = foreach ($property in $compOptions.results.overall.PSOb
     [pscustomobject][ordered]@{
         id = $clusterId
         displayNameJa = $name
-        titleSource = 'CommunityDragon localized composition-key resolution'
-        titleKey = (@($cluster.name) | ForEach-Object { [string]$_.name } | Where-Object { $_ } | Sort-Object) -join '|'
-        averagePlacement = [Math]::Round([double]$stats.avg, 4)
+        titleSource = 'MetaTFT comps_data title localized with CommunityDragon'
+        titleKey = (@($cluster.name) | ForEach-Object { [string]$_.name } | Where-Object { $_ }) -join '|'
+        averagePlacement = [Math]::Round($averagePlacement, 4)
         sampleCount = $sampleCount
         boardUnitIds = @($boardUnitIds)
         unitIds = @($boardUnitIds | Select-Object -Unique)
@@ -454,14 +533,20 @@ if ($compositionCandidates.Count -eq 0 -and -not $AllowPartial) {
     throw "No compositions met the minimum sample threshold of $MinimumCompSamples."
 }
 for ($compositionIndex = 0; $compositionIndex -lt $compositionCandidates.Count; $compositionIndex++) {
-    $tier = if ($compositionIndex -lt 2) {
-        'OP'
-    } elseif ($compositionIndex -lt 6) {
+    # Mirrors MetaTFT's unadjusted Avg Placement tier bands. Conditional item,
+    # augment, portal, or supporter filters can change the website tier for an
+    # individual browser session; the public default list uses these bands.
+    $averagePlacement = [double]$compositionCandidates[$compositionIndex].averagePlacement
+    $tier = if ($averagePlacement -lt 4.25) {
         'S'
-    } elseif ($compositionIndex -lt 12) {
+    } elseif ($averagePlacement -lt 4.5) {
         'A'
-    } else {
+    } elseif ($averagePlacement -lt 4.75) {
         'B'
+    } elseif ($averagePlacement -lt 5.0) {
+        'C'
+    } else {
+        'D'
     }
     $compositionCandidates[$compositionIndex] | Add-Member -NotePropertyName tier -NotePropertyValue $tier
 }
@@ -694,7 +779,7 @@ $snapshot = [pscustomobject][ordered]@{
     fetchedAtUtc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
     setId = [string]$clusterInfo.tft_set
     clusterId = [int]$clusterInfo.cluster_id
-    statsUpdatedEpochMs = [int64]$compOptions.updated
+    statsUpdatedEpochMs = [int64]$compsStats.updated
     readiness = $readiness
     locale = $Locale
     sourceSummary = 'MetaTFT public statistics + CommunityDragon Japanese names'
@@ -710,7 +795,9 @@ $snapshot = [pscustomobject][ordered]@{
         metaTftRobots = $MetaTftRobotsUrl
         augmentTiers = $AugmentTiersUrl
         clusterInfo = $ClusterInfoUrl
-        compositionStats = $compOptionsUrl
+        compositionCatalog = $CompsDataUrl
+        compositionStats = $compsStatsUrl
+        compositionOptions = $compOptionsUrl
         compositionItemBuilds = $compBuildsUrl
         compositionAugmentTiers = $compAugmentTiersUrl
         compositionDetails = 'https://api-hc.metatft.com/tft-comps-api/comp_details'

@@ -58,9 +58,32 @@ foreach ($composition in $compositions) {
     if ([int]$snapshot.schemaVersion -ge 5 -and (-not $composition.titleKey -or -not $composition.titleSource)) {
         throw "Composition title provenance missing: $($composition.id)"
     }
-    if ($composition.tier -notin @('OP', 'S', 'A', 'B')) { throw "Invalid composition tier: $($composition.id)/$($composition.tier)" }
+    if ($composition.tier -notin @('OP', 'S', 'A', 'B', 'C', 'D')) { throw "Invalid composition tier: $($composition.id)/$($composition.tier)" }
     if ([double]$composition.averagePlacement -lt 1 -or [double]$composition.averagePlacement -gt 8) {
         throw "Composition placement outside 1-8: $($composition.id)"
+    }
+    if ([int]$snapshot.schemaVersion -ge 5 -and -not $isPartial) {
+        if ([string]$composition.titleSource -ne 'MetaTFT comps_data title localized with CommunityDragon') {
+            throw "Composition title is not sourced from MetaTFT comps_data: $($composition.id)"
+        }
+        if ($title -match '\s/\s') {
+            throw "Composition title still uses the legacy separator: $($composition.id)/$title"
+        }
+        $averagePlacement = [double]$composition.averagePlacement
+        $expectedTier = if ($averagePlacement -lt 4.25) {
+            'S'
+        } elseif ($averagePlacement -lt 4.5) {
+            'A'
+        } elseif ($averagePlacement -lt 4.75) {
+            'B'
+        } elseif ($averagePlacement -lt 5.0) {
+            'C'
+        } else {
+            'D'
+        }
+        if ([string]$composition.tier -ne $expectedTier) {
+            throw "Composition tier does not match MetaTFT Avg Placement band: $($composition.id)/$($composition.tier)/expected=$expectedTier"
+        }
     }
     if ([int]$composition.sampleCount -le 0) { throw "Composition sample count missing: $($composition.id)" }
     if (-not $composition.rollPlan.label -or [int]$composition.rollPlan.targetLevel -lt 5 -or [int]$composition.rollPlan.targetLevel -gt 9) {

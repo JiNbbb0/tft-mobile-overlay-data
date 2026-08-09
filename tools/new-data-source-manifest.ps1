@@ -35,7 +35,7 @@ function Get-ObservationAggregate {
         [Parameter(Mandatory = $true)][string]$Url,
         [Parameter(Mandatory = $true)][string]$FallbackPath
     )
-    $matching = @($observations | Where-Object { [string]$_.sourceUrl -eq $Url -or [string]$_.sourceUrl -like "$Url?*" })
+    $matching = @($observations | Where-Object { [string]$_.sourceUrl -eq $Url -or [string]$_.sourceUrl -like "${Url}?*" })
     if ($matching.Count -gt 0) {
         $joined = (@($matching.responseHash | Sort-Object) -join "`n")
         return [pscustomobject]@{

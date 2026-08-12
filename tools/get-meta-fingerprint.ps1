@@ -47,7 +47,11 @@ $normalized = [ordered]@{
                     @($composition.units) | Sort-Object id | ForEach-Object {
                         [ordered]@{
                             id = [string]$_.id
-                            recommendedBuild = Names @($_.recommendedBuild | ForEach-Object { [pscustomobject]@{ id = $_.itemId } })
+                            recommendedBuild = Names @(
+                                if ($_.PSObject.Properties['recommendedBuild']) {
+                                    @($_.recommendedBuild) | ForEach-Object { [pscustomobject]@{ id = $_.itemId } }
+                                }
+                            )
                             items = @(
                                 @($_.itemStats) | Sort-Object itemId | ForEach-Object {
                                     [ordered]@{

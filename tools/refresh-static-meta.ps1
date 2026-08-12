@@ -562,6 +562,10 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
                 Where-Object { $unitMap.ContainsKey([string]$_) } |
                 Select-Object -Unique
         )
+        # Exact per-unit builds rendered by MetaTFT's composition overview.
+        # These are intentionally separate from the full item-stat rows used
+        # by the optimizer and ranking screens.
+        overviewBuilds = @($cluster.builds)
     }
 }
 $compositionCandidates = @(
@@ -709,9 +713,31 @@ $compositions = foreach ($composition in $compositionCandidates) {
         )
         $totalItemStats += $itemStats.Count
 
+        $overviewBuildRow = @(
+            @($composition.overviewBuilds) |
+                Where-Object {
+                    [string]$_.unit -eq $unitId -and
+                    [int]$_.num_items -eq 3
+                } |
+                Select-Object -First 1
+        )
+        $recommendedBuild = @(
+            if ($overviewBuildRow.Count -gt 0) {
+                @($overviewBuildRow[0].buildName) |
+                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            itemId = [string]$_
+                            itemName = [string]$itemMap[[string]$_].name
+                        }
+                    }
+            }
+        )
+
         [pscustomobject][ordered]@{
             id = [string]$unitId
             name = [string]$unitMap[$unitId].name
+            recommendedBuild = @($recommendedBuild)
             itemStats = $itemStats
         }
     }

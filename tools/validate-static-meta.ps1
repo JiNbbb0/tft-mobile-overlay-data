@@ -178,6 +178,15 @@ foreach ($composition in $compositions) {
         if (-not $unitCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $unitCatalogEntry.image))) {
             throw "Composition unit image missing: $($composition.id)/$($unit.id)"
         }
+        foreach ($recommendedItem in @($unit.recommendedBuild)) {
+            if (-not $recommendedItem.itemId -or -not $catalogEntries.ContainsKey([string]$recommendedItem.itemId)) {
+                throw "Recommended overview item missing from catalog: $($composition.id)/$($unit.id)/$($recommendedItem.itemId)"
+            }
+            $recommendedCatalogEntry = $catalogEntries[[string]$recommendedItem.itemId]
+            if (-not $recommendedCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $recommendedCatalogEntry.image))) {
+                throw "Recommended overview item image missing: $($composition.id)/$($unit.id)/$($recommendedItem.itemId)"
+            }
+        }
         foreach ($stat in @($unit.itemStats)) {
             if (-not $stat.itemId -or -not $stat.itemName) { throw "Item identity missing for $($unit.id)" }
             if ([double]$stat.averagePlacement -lt 1 -or [double]$stat.averagePlacement -gt 8) {

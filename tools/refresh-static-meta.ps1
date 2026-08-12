@@ -4,7 +4,7 @@
     [int]$MinimumCompSamples = 5000,
     [int]$MinimumItemSamples = 50,
     [int]$CompositionLimit = 18,
-    [int]$MinimumPreferredCompositions = 12,
+    [int]$MinimumPreferredCompositions = 18,
     [switch]$AllowPartial
 )
 
@@ -390,10 +390,20 @@ if ([int]$compsStats.cluster_id -ne [int]$clusterInfo.cluster_id -or
     throw "MetaTFT comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
 }
 $requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
-$preferredQualifiedCompositions = Get-QualifiedCompositionCount -Stats $compsStats -MinimumSamples $MinimumCompSamples
-$fallbackQualifiedCompositions = -1
-$fallbackAttempted = $false
-if ($preferredQualifiedCompositions -lt $requiredPreferredCompositions) {
+$candidatePoolTarget = [Math]::Max($requiredPreferredCompositions, $CompositionLimit * 2)
+$preferredCompsStats = $compsStats
+$sampleThresholds = @(
+    @($MinimumCompSamples, 3000, 2000, 1000, 500, 250) |
+        Where-Object { $_ -le $MinimumCompSamples } |
+        Sort-Object -Descending -Unique
+)
+$preferredCoverage = Resolve-SampleCoverage `
+    -Stats $compsStats `
+    -RequiredCompositions $candidatePoolTarget `
+    -Thresholds $sampleThresholds
+$fallbackCompsStats = $null
+$fallbackAttempted = $preferredCoverage.qualified -lt $candidatePoolTarget
+if ($fallbackAttempted) {
     $fallbackAttempted = $true
     Start-Sleep -Milliseconds 350
     $fallbackCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&permit_filter_adjustment=true"
@@ -402,29 +412,20 @@ if ($preferredQualifiedCompositions -lt $requiredPreferredCompositions) {
         [string]$fallbackCompsStats.tft_set -ne [string]$clusterInfo.tft_set) {
         throw "MetaTFT fallback comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
     }
-    $fallbackQualifiedCompositions = Get-QualifiedCompositionCount -Stats $fallbackCompsStats -MinimumSamples $MinimumCompSamples
-    $rankScopeDecision = Resolve-RankScopeDecision `
-        -PreferredQualified $preferredQualifiedCompositions `
-        -FallbackQualified $fallbackQualifiedCompositions `
-        -RequiredCompositions $requiredPreferredCompositions `
-        -FallbackAttempted $true
-    if ($rankScopeDecision.useFallback) {
-        $compsStats = $fallbackCompsStats
-        $compsStatsUrl = $fallbackCompsStatsUrl
-    }
-} else {
-    $rankScopeDecision = Resolve-RankScopeDecision `
-        -PreferredQualified $preferredQualifiedCompositions `
-        -FallbackQualified $fallbackQualifiedCompositions `
-        -RequiredCompositions $requiredPreferredCompositions `
-        -FallbackAttempted $false
 }
-$effectiveQualifiedCompositions = if ($rankScopeDecision.useFallback) {
-    $fallbackQualifiedCompositions
-} else {
-    $preferredQualifiedCompositions
+$rankScopeDecision = Resolve-CompositionCoveragePolicy `
+    -PreferredStats $preferredCompsStats `
+    -FallbackStats $fallbackCompsStats `
+    -RequiredCompositions $candidatePoolTarget `
+    -Thresholds $sampleThresholds
+if ($rankScopeDecision.useFallback) {
+    $compsStats = $fallbackCompsStats
+    $compsStatsUrl = $fallbackCompsStatsUrl
 }
-Write-Output "Composition rank scope: $($rankScopeDecision.effectiveScope) Preferred=$preferredQualifiedCompositions Effective=$effectiveQualifiedCompositions Required=$requiredPreferredCompositions"
+$effectiveMinimumCompSamples = [int]$rankScopeDecision.minimumSamples
+$preferredQualifiedCompositions = Get-QualifiedCompositionCount -Stats $preferredCompsStats -MinimumSamples $effectiveMinimumCompSamples
+$effectiveQualifiedCompositions = [int]$rankScopeDecision.qualified
+Write-Output "Composition rank scope: $($rankScopeDecision.effectiveScope) Threshold=$effectiveMinimumCompSamples Effective=$effectiveQualifiedCompositions Display=$requiredPreferredCompositions PoolTarget=$candidatePoolTarget"
 
 Start-Sleep -Milliseconds 350
 $compOptionsUrl = "https://api-hc.metatft.com/tft-comps-api/comp_options?cluster_id=$($clusterInfo.cluster_id)"
@@ -520,7 +521,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
         continue
     }
     $sampleCount = [int]$places[8]
-    if ($sampleCount -lt $MinimumCompSamples) {
+    if ($sampleCount -lt $effectiveMinimumCompSamples) {
         continue
     }
     $placementSum = 0.0
@@ -569,7 +570,7 @@ $compositionCandidates = @(
         Select-Object -First $CompositionLimit
 )
 if ($compositionCandidates.Count -eq 0 -and -not $AllowPartial) {
-    throw "No compositions met the minimum sample threshold of $MinimumCompSamples."
+    throw "No compositions met the adaptive minimum sample threshold of $effectiveMinimumCompSamples."
 }
 for ($compositionIndex = 0; $compositionIndex -lt $compositionCandidates.Count; $compositionIndex++) {
     # Mirrors MetaTFT's unadjusted Avg Placement tier bands. Conditional item,
@@ -807,7 +808,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
 
 $readiness = if (@($compositions).Count -eq 0) {
     'META_COLLECTING'
-} elseif (@($compositions).Count -lt $CompositionLimit -or $MinimumCompSamples -lt 5000) {
+} elseif (@($compositions).Count -lt $requiredPreferredCompositions) {
     'META_COLLECTING'
 } else {
     'META_STABLE'
@@ -825,8 +826,9 @@ $snapshot = [pscustomobject][ordered]@{
     statisticsScope = [ordered]@{
         preferred = 'PLATINUM_PLUS'
         effective = [string]$rankScopeDecision.effectiveScope
-        minimumCompositionSamples = $MinimumCompSamples
+        minimumCompositionSamples = $effectiveMinimumCompSamples
         minimumPreferredCompositions = $requiredPreferredCompositions
+        candidatePoolTarget = $candidatePoolTarget
         qualifiedPreferredCompositions = $preferredQualifiedCompositions
         qualifiedEffectiveCompositions = $effectiveQualifiedCompositions
         fallbackAttempted = $fallbackAttempted

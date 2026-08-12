@@ -10,6 +10,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot "data-history-policy.ps1")
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
@@ -68,27 +69,22 @@ New-Item -ItemType Directory -Force -Path (Join-Path $stagingRoot "bundles"),(Jo
 
 $indexPath = Join-Path $stagingRoot "data-index.json"
 $existingVersions = @()
+$existingIndex = $null
 if (Test-Path -LiteralPath $indexPath) {
     $existingIndex = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
     if ([int]$existingIndex.schemaVersion -ne 1) { throw "Unsupported existing data-index schema" }
-    $existingVersions = @($existingIndex.versions)
+    $existingVersions = @(Normalize-DataVersionTimestamps -Versions @($existingIndex.versions))
 }
-$previous = @($existingVersions | Sort-Object generatedAtUtc -Descending) | Select-Object -First 1
-$previousMetaFingerprint = if ($previous -and $previous.PSObject.Properties['metaFingerprint']) {
-    [string]$previous.PSObject.Properties['metaFingerprint'].Value
-} else {
-    ""
-}
-$updateKind = if (-not $previous -or [string]$previous.setId -ne $setId) {
-    "NEW_SET"
-} elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -ne $revision) {
-    "B_PATCH"
-} elseif ([string]$previous.patch -eq $patch -and [string]$previous.revision -eq $revision -and $previousMetaFingerprint -ne $MetaFingerprint) {
-    "META_UPDATE"
-} else {
-    "PATCH"
-}
-$versionId = if ($updateKind -eq "META_UPDATE") { "$baseVersionId-m$($MetaFingerprint.Substring(0, 10))" } else { $baseVersionId }
+$previous = Get-PreviousDataVersion -Index $existingIndex -Versions $existingVersions
+$publicationIdentity = Resolve-DataPublicationIdentity `
+    -Previous $previous `
+    -SetId $setId `
+    -Patch $patch `
+    -Revision $revision `
+    -MetaFingerprint $MetaFingerprint `
+    -BaseVersionId $baseVersionId
+$updateKind = [string]$publicationIdentity.updateKind
+$versionId = [string]$publicationIdentity.versionId
 $sameVersion = @($existingVersions | Where-Object { [string]$_.id -eq $versionId }) | Select-Object -First 1
 if ($sameVersion) { $updateKind = [string]$sameVersion.updateKind }
 
@@ -186,7 +182,7 @@ $record = [pscustomobject][ordered]@{
     hidden = $false
 }
 $versions = @($record) + @($existingVersions | Where-Object { [string]$_.id -ne $versionId })
-$versions = @($versions | Sort-Object generatedAtUtc -Descending)
+$versions = @($versions | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
 if ($versions.Count -gt 100) { throw "Version limit 100 reached; automatic deletion is forbidden" }
 $index = [pscustomobject][ordered]@{
     schemaVersion = 1
@@ -201,7 +197,7 @@ Move-Item -Force -LiteralPath $indexTempPath -Destination $indexPath
 
 [IO.File]::WriteAllText((Join-Path $stagingRoot ".nojekyll"), "", [Text.UTF8Encoding]::new($false))
 $indexHtml = @"
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TFT Mobile Overlay Data</title></head><body><main><h1>TFT Mobile Overlay Data</h1><p>個人用TFT戦術参照アプリの検証済みデータ配信先です。Riot Games、MetaTFT、Overwolfの公式サービスではありません。</p><p><a href="data-index.json">data-index.json</a> · <a href="health.json">health.json</a></p></main></body></html>
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TFT Overlay Data</title></head><body><main><h1>TFT Overlay Data</h1><p>&#20491;&#20154;&#29992;TFT&#25126;&#34899;&#21442;&#29031;&#12450;&#12503;&#12522;&#12398;&#26908;&#35388;&#28168;&#12415;&#12487;&#12540;&#12479;&#37197;&#20449;&#20808;&#12391;&#12377;&#12290;Riot Games&#12289;MetaTFT&#12289;Overwolf&#12398;&#20844;&#24335;&#12469;&#12540;&#12499;&#12473;&#12391;&#12399;&#12354;&#12426;&#12414;&#12379;&#12435;&#12290;</p><p><a href="data-index.json">data-index.json</a> &middot; <a href="health.json">health.json</a></p></main></body></html>
 "@
 [IO.File]::WriteAllText((Join-Path $stagingRoot "index.html"), $indexHtml, [Text.UTF8Encoding]::new($false))
 

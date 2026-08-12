@@ -320,7 +320,10 @@ function Resolve-AbilityDescription {
         } elseif ($baseToken -match '^Augmented') {
             $replacement = ''
         } else {
-            $replacement = '未取得'
+            # CommunityDragon can expose a new playable unit before every derived
+            # tooltip value is available in the champion bin. Never invent a
+            # number and never block the entire live-meta publication for it.
+            $replacement = '戦闘中に変動'
         }
         $description = $description.Replace([string]$match.Value, [string]$replacement)
     }

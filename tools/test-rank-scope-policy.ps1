@@ -32,16 +32,41 @@ $stillSparse = Resolve-RankScopeDecision -PreferredQualified 3 -FallbackQualifie
 Assert-Equal 'PLATINUM_PLUS_LIMITED' $stillSparse.effectiveScope 'A worse fallback must not replace preferred data.'
 Assert-Equal $false $stillSparse.useFallback 'Fallback must not loop or reduce coverage.'
 
+$adaptiveFixture = [pscustomobject]@{
+    results = @(
+        1..40 | ForEach-Object {
+            $samples = if ($_ -le 6) { 5000 } elseif ($_ -le 20) { 3000 } else { 1000 }
+            [pscustomobject]@{ cluster = [string](200 + $_); places = @(1, 1, 1, 1, 1, 1, 1, 1, $samples) }
+        }
+    )
+}
+$adaptive = Resolve-CompositionCoveragePolicy `
+    -PreferredStats $adaptiveFixture `
+    -FallbackStats $null `
+    -RequiredCompositions 36 `
+    -Thresholds @(5000, 3000, 2000, 1000, 500, 250)
+Assert-Equal 'PLATINUM_PLUS' $adaptive.effectiveScope 'Adaptive threshold must preserve the preferred rank scope.'
+Assert-Equal 1000 $adaptive.minimumSamples 'Adaptive threshold should retain a broad candidate pool before selecting the visible leaderboard.'
+Assert-Equal 40 $adaptive.qualified 'Adaptive threshold composition count mismatch.'
+
+$emptyPreferred = [pscustomobject]@{ results = @() }
+$fallbackAdaptive = Resolve-CompositionCoveragePolicy `
+    -PreferredStats $emptyPreferred `
+    -FallbackStats $adaptiveFixture `
+    -RequiredCompositions 36 `
+    -Thresholds @(5000, 3000, 2000, 1000, 500, 250)
+Assert-Equal 'ALL_RANKS_FALLBACK' $fallbackAdaptive.effectiveScope 'A new set without high-rank data must use the bounded fallback.'
+Assert-Equal 1000 $fallbackAdaptive.minimumSamples 'Fallback should use the highest sufficient candidate-pool threshold.'
+
 if ($Live) {
     $url = 'https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true'
     $stats = Invoke-RestMethod -Uri $url -Headers @{ 'User-Agent' = 'TFT-Mobile-Overlay-Data/1.0' }
-    $qualified = Get-QualifiedCompositionCount -Stats $stats -MinimumSamples 5000
-    $decision = Resolve-RankScopeDecision `
-        -PreferredQualified $qualified `
-        -FallbackQualified -1 `
-        -RequiredCompositions 12 `
-        -FallbackAttempted $false
-    Write-Output "Live Platinum+ coverage: Qualified=$qualified Effective=$($decision.effectiveScope)"
+    $decision = Resolve-CompositionCoveragePolicy `
+        -PreferredStats $stats `
+        -FallbackStats $null `
+        -RequiredCompositions 36 `
+        -Thresholds @(5000, 3000, 2000, 1000, 500, 250)
+    Write-Output "Live Platinum+ coverage: Qualified=$($decision.qualified) MinimumSamples=$($decision.minimumSamples) Effective=$($decision.effectiveScope)"
 }
 
 Write-Output 'Rank scope policy tests passed.'

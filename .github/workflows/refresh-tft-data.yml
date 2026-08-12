@@ -32,6 +32,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-rank-scope-policy.ps1
 
+      - name: Test append-only data history policy
+        shell: pwsh
+        run: ./tools/test-data-history-policy.ps1
+
       - name: Detect, generate, validate, and stage a new version
         id: refresh
         shell: pwsh

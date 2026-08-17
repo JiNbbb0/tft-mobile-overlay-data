@@ -133,7 +133,7 @@ $summary = [pscustomobject][ordered]@{
 New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
 $jsonPath = Join-Path $outputRoot "CHANGE_SUMMARY.json"
 $mdPath = Join-Path $outputRoot "CHANGE_SUMMARY.md"
-[IO.File]::WriteAllText($jsonPath, ($summary | ConvertTo-Json -Depth 12) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($jsonPath, (($summary | ConvertTo-Json -Depth 12).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 $markdown = @"
 # Change Summary
 
@@ -154,5 +154,5 @@ $markdown = @"
 - Average-placement changes: $(@($placementChanges).Count)
 - Missing names/descriptions/images: $($currentMissing.names) / $($currentMissing.descriptions) / $($currentMissing.images)
 "@
-[IO.File]::WriteAllText($mdPath, $markdown + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($mdPath, ($markdown.Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 Write-Output "Change summary: $jsonPath"

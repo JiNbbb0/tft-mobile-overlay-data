@@ -17,6 +17,7 @@
     "generatedAtUtc": { "type": "string", "format": "date-time" },
     "sourceTimestampUtc": { "type": "string", "format": "date-time" },
     "metaFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "sourceQueryHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "readiness": { "enum": ["CATALOG_READY", "META_COLLECTING", "META_STABLE"] },
     "minimumAppVersionCode": { "type": "integer", "minimum": 1 },
     "files": {

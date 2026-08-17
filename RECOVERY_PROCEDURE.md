@@ -22,7 +22,11 @@ Run Summaryの `Failed stage` と14日保持の failure Artifactを確認しま�
 
 ## 250MiB上限接近
 
-自動削除しません。70/85/95%の警告を受け、履歴保持、別リポジトリ、Release asset、オブジェクトストレージ等を比較します。ユーザー承認なしに古い版を消しません。
+通常のMETA_UPDATE公開時に、active履歴を最新5件＋基準版、総数20件以内へ整理します。整理対象は `archive-map.json` にmanifest SHAと元commitを残し、Git履歴から復旧できます。基準版とlatestは整理前の選定対象から保護されます。整理後も70/85/95%へ達した場合は自動上限拡張せず、画像増加や未参照blobを調査します。
+
+## archive-mapから旧版を復旧
+
+`archive-map.json` で対象IDと `archivedFromCommit` を確認します。該当commitからbundleを一時領域へ取り出し、manifest SHAを台帳と照合してからactive indexへ追加します。`validate-site.ps1` に合格するまでPagesへ公開しません。端末へ既に保存済みの版は、Pagesから外れた後もオフラインで利用できます。
 
 ## データ提供元の形式変更
 

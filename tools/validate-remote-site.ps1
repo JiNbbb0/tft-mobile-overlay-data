@@ -58,8 +58,11 @@ try {
     $latest = @($index.versions | Where-Object { [string]$_.id -eq [string]$index.latestVersionId }) | Select-Object -First 1
     if (-not $latest) { throw "Latest version is missing" }
     $manifestUri = [uri]::new($indexUri, [string]$latest.manifestUrl)
-    $manifest = Get-Json $manifestUri $MaximumIndexBytes
+    $manifestBytes = Get-RemoteBytes $manifestUri $MaximumIndexBytes @('application/json','text/json','text/plain','application/octet-stream')
+    $manifest = [Text.Encoding]::UTF8.GetString($manifestBytes) | ConvertFrom-Json
     if ([string]$manifest.id -ne [string]$latest.id -or [string]$manifest.setId -ne [string]$latest.setId -or [string]$manifest.patch -ne [string]$latest.patch -or [string]$manifest.revision -ne [string]$latest.revision) { throw "Index and manifest identity mismatch" }
+    if ($latest.PSObject.Properties['manifestSha256'] -and (Get-Sha256 $manifestBytes) -ne [string]$latest.manifestSha256) { throw "Manifest SHA-256 mismatch" }
+    if ($latest.PSObject.Properties['sourceQueryHash'] -and [string]$latest.sourceQueryHash -ne [string]$manifest.sourceQueryHash) { throw "Source query identity mismatch" }
     if (@($manifest.files).Count -lt 1 -or @($manifest.files).Count -gt 1500) { throw "Manifest file count is invalid" }
     $checks = @($manifest.files | Where-Object { $_.path -in @('tft/tft_catalog.json','tft_static_snapshot.json') })
     $image = @($manifest.files | Where-Object { [string]$_.path -like 'tft/images/*' }) | Select-Object -First 1

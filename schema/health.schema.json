@@ -4,16 +4,24 @@
   "title": "TFT Mobile Overlay data health",
   "type": "object",
   "additionalProperties": false,
-  "required": ["status", "generatedAt", "latestSetId", "latestPatch", "latestRevision", "versionCount", "fileCount", "workflowRunId", "sourceUpdatedAt"],
+  "required": ["status", "freshnessStatus", "freshnessSlaSeconds", "generatedAt", "publishedAtUtc", "latestSetId", "latestPatch", "latestRevision", "versionCount", "fileCount", "workflowRunId", "lastSuccessfulRunId", "consecutiveFailures", "sourceUpdatedAt", "latestMetaFingerprint", "latestManifestSha256", "sourceQueryHash"],
   "properties": {
     "status": { "const": "ok" },
+    "freshnessStatus": { "enum": ["FRESH", "STALE"] },
+    "freshnessSlaSeconds": { "type": "integer", "minimum": 900, "maximum": 86400 },
     "generatedAt": { "type": "string", "format": "date-time" },
+    "publishedAtUtc": { "type": "string", "format": "date-time" },
     "latestSetId": { "type": "string", "minLength": 1 },
     "latestPatch": { "type": "string", "minLength": 1 },
     "latestRevision": { "type": "string", "minLength": 1 },
     "versionCount": { "type": "integer", "minimum": 1, "maximum": 100 },
     "fileCount": { "type": "integer", "minimum": 1 },
     "workflowRunId": { "type": "string", "minLength": 1 },
-    "sourceUpdatedAt": { "type": "string", "format": "date-time" }
+    "lastSuccessfulRunId": { "type": "string", "minLength": 1 },
+    "consecutiveFailures": { "type": "integer", "minimum": 0 },
+    "sourceUpdatedAt": { "type": "string", "format": "date-time" },
+    "latestMetaFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "latestManifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "sourceQueryHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
   }
 }

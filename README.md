@@ -10,14 +10,15 @@ TFT Mobile Overlay の個人利用版へ、検証済み戦術データと画像�
 
 ## 自動運用
 
-`refresh-tft-data.yml` が UTC の毎時 7・22・37・52分に最新版を確認します。`setId + patch + revisionId` が既存版と同じなら、コミットも再配信もしません。新しい版だけを一時領域で生成し、全検証に合格した後に履歴へ追加し、GitHub Pagesへ公開します。
+`refresh-tft-data.yml` が UTC の毎時 7・22・37・52分にMetaTFTの Platinum+・現行パッチ・直近3日を確認します。画面に出る構成名、順位、Tier、盤面、レベル別編成、装備、オーグメント等のcontent fingerprintが同じなら、コミットも再配信もしません。新しい版だけを一時領域で生成し、全検証に合格した後にGitHub Pagesへ公開します。
 
-公開単位は不変の `bundles/<version-id>/` とSHA-256名の共有 `blobs/` です。最新版ポインタは全ファイルの検証後に `data-index.json` へ反映します。古い版は自動削除しません。
+公開単位は不変の `bundles/<version-id>/` とSHA-256名の共有 `blobs/` です。最新版ポインタは全ファイルの検証後に `data-index.json` へ反映します。Pagesのactive履歴は最新META_UPDATE 5件と新セット・パッチ・Bパッチの基準版を合わせて最大20件に制限します。外れた版は `archive-map.json` に復旧情報を残し、Git履歴から戻せます。
 
 ## 安全性
 
 - HTTPSのみをアプリで受け入れます。
-- 最大100版、1版1,500ファイル、単一30MiB、全体250MiBを配信ゲートとします。
+- active履歴最大20版、1版1,500ファイル、単一30MiB、全体250MiBを配信ゲートとします。
+- manifest SHA、表示内容fingerprint、集計条件hashを別々に検証し、同一IDの内容差し替えを拒否します。
 - SHA-256、サイズ、JSON、ID、参照、セット・パッチ・改訂の整合性を公開前に検証します。
 - 異常な件数減少や画像欠損増加時は公開せず、Actions Artifactへ簡潔な失敗レポートだけを保存します。
 - APIキー、Cookie、トークン、APK、Androidソースは置きません。

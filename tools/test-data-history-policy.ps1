@@ -49,4 +49,28 @@ $metaUpdate = Resolve-DataPublicationIdentity -Previous $publishedMeta -SetId 'T
 Assert-Equal 'META_UPDATE' $metaUpdate.updateKind 'Changed fingerprint in the same revision must be META_UPDATE.'
 Assert-Equal 'tftset17-17.9-r409-m2222222222' $metaUpdate.versionId 'META_UPDATE id must include the new fingerprint.'
 
+$rolling = @(
+    [pscustomobject]@{ id='set17-17.8'; setId='TFTSet17'; patch='17.8'; revision='408'; updateKind='PATCH'; generatedAtUtc='2026-08-01T00:00:00Z' },
+    [pscustomobject]@{ id='set17-17.9'; setId='TFTSet17'; patch='17.9'; revision='409'; updateKind='PATCH'; generatedAtUtc='2026-08-02T00:00:00Z' }
+)
+for ($number = 1; $number -le 200; $number++) {
+    $rolling = @(
+        [pscustomobject]@{
+            id = ('set17-17.9-m{0:d3}' -f $number)
+            setId = 'TFTSet17'
+            patch = '17.9'
+            revision = '409'
+            updateKind = 'META_UPDATE'
+            generatedAtUtc = ([DateTime]'2026-08-02T00:00:00Z').AddMinutes($number).ToString('yyyy-MM-ddTHH:mm:ssZ')
+        }
+    ) + $rolling
+    $selection = Select-ActiveDataHistory -Versions $rolling -LatestVersionId $rolling[0].id -MaxActiveVersions 20 -MaxRecentMetaUpdates 5
+    $rolling = @($selection.retained)
+    Assert-Equal $true ($rolling.Count -le 20) 'Rolling history must never exceed its active bound.'
+    Assert-Equal $true ($rolling.id -contains ('set17-17.9-m{0:d3}' -f $number)) 'Latest version must survive retention.'
+}
+Assert-Equal 5 @($rolling | Where-Object updateKind -eq 'META_UPDATE').Count 'Only five live META_UPDATE snapshots must remain active.'
+Assert-Equal $true ($rolling.id -contains 'set17-17.8') 'Recent patch anchor must remain recoverable from the active window.'
+Assert-Equal $true ($rolling.id -contains 'set17-17.9') 'Current patch anchor must remain recoverable from the active window.'
+
 Write-Output "Data history policy tests passed."

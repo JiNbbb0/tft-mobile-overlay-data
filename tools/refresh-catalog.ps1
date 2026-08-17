@@ -43,9 +43,16 @@ $Client.DefaultRequestHeaders.UserAgent.ParseAdd($UserAgent)
 
 function Get-Text {
     param([Parameter(Mandatory = $true)][string]$Url)
-    $text = $Client.GetStringAsync($Url).GetAwaiter().GetResult()
-    Write-SourceObservation -Url $Url -Text $text
-    return $text
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        try {
+            $text = $Client.GetStringAsync($Url).GetAwaiter().GetResult()
+            Write-SourceObservation -Url $Url -Text $text
+            return $text
+        } catch {
+            if ($attempt -eq 3) { throw }
+            Start-Sleep -Seconds $attempt
+        }
+    }
 }
 
 function Write-SourceObservation {
@@ -68,7 +75,7 @@ function Write-SourceObservation {
     }
     [IO.File]::WriteAllText(
         (Join-Path $ObservationRoot "$urlKey.json"),
-        ($record | ConvertTo-Json) + [Environment]::NewLine,
+        (($record | ConvertTo-Json).Replace("`r`n", "`n") + "`n"),
         [Text.UTF8Encoding]::new($false)
     )
 }
@@ -670,7 +677,7 @@ $catalog = [pscustomobject][ordered]@{
 }
 
 $json = $catalog | ConvertTo-Json -Depth 30
-[IO.File]::WriteAllText($CatalogPath, $json + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($CatalogPath, ($json.Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 $allRecords = @($champions) + @($traits) + @($items) + @($augments)
 $missingName = @($allRecords | Where-Object { -not $_.nameJa })
@@ -786,7 +793,7 @@ $sourceManifest = [pscustomobject][ordered]@{
         [ordered]@{ name = "CommunityDragon champion calculation bins"; url = $Sources.communityDragonChampionBinTemplate; type = "Riotクライアント抽出コミュニティ配布"; use = "チャンピオンスキル数式の現在値解決"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
     )
 }
-[IO.File]::WriteAllText($ManifestPath, ($sourceManifest | ConvertTo-Json -Depth 10) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($ManifestPath, (($sourceManifest | ConvertTo-Json -Depth 10).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 $missing = @"
 # MISSING DATA REPORT

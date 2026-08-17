@@ -100,3 +100,43 @@ function Resolve-DataPublicationIdentity {
         samePublishedContent = $false
     }
 }
+
+function Select-ActiveDataHistory {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Versions,
+        [Parameter(Mandatory = $true)][string]$LatestVersionId,
+        [int]$MaxActiveVersions = 20,
+        [int]$MaxRecentMetaUpdates = 5
+    )
+
+    if ($MaxActiveVersions -lt 2) { throw "MaxActiveVersions must be at least 2" }
+    if ($MaxRecentMetaUpdates -lt 1 -or $MaxRecentMetaUpdates -ge $MaxActiveVersions) {
+        throw "MaxRecentMetaUpdates must be inside 1..MaxActiveVersions-1"
+    }
+
+    $ordered = @($Versions | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
+    $latest = @($ordered | Where-Object { [string]$_.id -eq $LatestVersionId }) | Select-Object -First 1
+    if (-not $latest) { throw "Latest version is missing before retention: $LatestVersionId" }
+
+    $keep = [ordered]@{}
+    $keep[[string]$latest.id] = $latest
+
+    # Frequent META_UPDATE snapshots are a rolling live window. Their immutable
+    # IDs remain cache-safe while the public site stays bounded.
+    @($ordered | Where-Object { [string]$_.updateKind -eq 'META_UPDATE' } | Select-Object -First $MaxRecentMetaUpdates) |
+        ForEach-Object { $keep[[string]$_.id] = $_ }
+
+    # NEW_SET/PATCH/B_PATCH records are recovery anchors. Keep the newest ones
+    # that fit in the active window; older anchors remain recoverable from Git.
+    foreach ($anchor in @($ordered | Where-Object { [string]$_.updateKind -ne 'META_UPDATE' })) {
+        if ($keep.Count -ge $MaxActiveVersions) { break }
+        $keep[[string]$anchor.id] = $anchor
+    }
+
+    $retained = @($keep.Values | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
+    $archived = @($ordered | Where-Object { -not $keep.Contains([string]$_.id) })
+    return [pscustomobject][ordered]@{
+        retained = $retained
+        archived = $archived
+    }
+}

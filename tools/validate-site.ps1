@@ -61,9 +61,13 @@ foreach ($version in $versions) {
     $manifestRelative = $manifestPath.Substring($root.Length).TrimStart('\', '/').Replace('\', '/')
     if ($relativeFileMap[$manifestRelative.ToLowerInvariant()] -cne $manifestRelative) { throw "Manifest path case mismatch: $manifestRelative" }
     $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
+    $manifestSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $manifestPath).Hash.ToLowerInvariant()
+    if ($version.PSObject.Properties['manifestSha256'] -and [string]$version.manifestSha256 -ne $manifestSha256) {
+        throw "Manifest SHA/index mismatch: $($version.id)"
+    }
     $manifestByVersion[[string]$version.id] = [pscustomobject]@{ manifest=$manifest; path=$manifestPath }
     if ([int]$manifest.schemaVersion -ne 1 -or [string]$manifest.id -ne [string]$version.id) { throw "Manifest identity mismatch: $($version.id)" }
-    foreach ($field in @('setId','patch','revision','updateKind','readiness','metaFingerprint')) {
+    foreach ($field in @('setId','patch','revision','updateKind','readiness','metaFingerprint','sourceQueryHash')) {
         $manifestValue = if ($manifest.PSObject.Properties[$field]) { [string]$manifest.$field } else { '' }
         $indexValue = if ($version.PSObject.Properties[$field]) { [string]$version.$field } else { '' }
         if ($manifestValue -ne $indexValue) { throw "Manifest/index $field mismatch: $($version.id)" }
@@ -129,6 +133,24 @@ foreach ($version in $versions) {
     if ($unresolvedRecords.Count -gt 0) { throw "Unresolved token or user-facing precision leak: $($version.id) Count=$($unresolvedRecords.Count)" }
 }
 
+$bundleDirectories = @(Get-ChildItem -LiteralPath (Join-Path $root 'bundles') -Directory | Select-Object -ExpandProperty Name)
+if (@($bundleDirectories | Where-Object { $_ -notin @($versions.id) }).Count -gt 0) {
+    throw "Unreferenced bundle directory remains after retention"
+}
+$archiveMapPath = Join-Path $root 'archive-map.json'
+if (Test-Path -LiteralPath $archiveMapPath) {
+    $archiveMap = Get-Content -Raw -Encoding UTF8 -LiteralPath $archiveMapPath | ConvertFrom-Json
+    if ([int]$archiveMap.schemaVersion -ne 1) { throw "Unsupported archive-map schema" }
+    $archiveEntries = @($archiveMap.entries)
+    if (@($archiveEntries.id | Sort-Object -Unique).Count -ne $archiveEntries.Count) { throw "Duplicate archived version ID" }
+    if (@($archiveEntries | Where-Object { [string]$_.id -in @($versions.id) }).Count -gt 0) { throw "Active version also appears in archive-map" }
+    foreach ($archiveEntry in $archiveEntries) {
+        if ([string]$archiveEntry.id -notmatch '^[a-z0-9._-]+$') { throw "Unsafe archived version ID" }
+        if ([string]$archiveEntry.manifestSha256 -and [string]$archiveEntry.manifestSha256 -notmatch '^[0-9a-f]{64}$') { throw "Invalid archived manifest SHA" }
+        if ([string]::IsNullOrWhiteSpace([string]$archiveEntry.archivedFromCommit)) { throw "Archive recovery commit is missing" }
+    }
+}
+
 $orderedVersions = @($versions | Sort-Object generatedAtUtc -Descending)
 if ($orderedVersions.Count -ge 2) {
     $currentVersion = $orderedVersions[0]
@@ -154,13 +176,16 @@ if ($orderedVersions.Count -ge 2) {
 }
 
 $health = Get-Content -Raw -Encoding UTF8 -LiteralPath $healthPath | ConvertFrom-Json
-foreach ($field in @('status','generatedAt','latestSetId','latestPatch','latestRevision','versionCount','fileCount','workflowRunId','sourceUpdatedAt')) {
+foreach ($field in @('status','freshnessStatus','freshnessSlaSeconds','generatedAt','publishedAtUtc','latestSetId','latestPatch','latestRevision','versionCount','fileCount','workflowRunId','lastSuccessfulRunId','consecutiveFailures','sourceUpdatedAt','latestMetaFingerprint','latestManifestSha256','sourceQueryHash')) {
     if (-not $health.PSObject.Properties[$field]) { throw "health.json missing $field" }
 }
 if ([string]$health.status -ne 'ok') { throw "health status is not ok" }
 if ([string]$health.latestSetId -ne [string]$latest.setId -or [string]$health.latestPatch -ne [string]$latest.patch -or [string]$health.latestRevision -ne [string]$latest.revision) { throw "health latest fields mismatch" }
 if ([int]$health.versionCount -ne $versions.Count) { throw "health version count mismatch" }
 if ([int]$health.fileCount -ne $allFiles.Count) { throw "health file count mismatch" }
+if ([string]$health.latestMetaFingerprint -ne [string]$latest.metaFingerprint) { throw "health meta fingerprint mismatch" }
+if ([string]$health.latestManifestSha256 -ne [string]$latest.manifestSha256) { throw "health manifest SHA mismatch" }
+if ([string]$health.sourceQueryHash -ne [string]$latest.sourceQueryHash) { throw "health source query hash mismatch" }
 
 Write-Output "Site validation passed"
 Write-Output "Versions=$($versions.Count) CheckedManifestFiles=$checkedFiles SiteFiles=$($allFiles.Count) Bytes=$siteBytes UsagePercent=$usagePercent Capacity=$capacityWarning Latest=$($index.latestVersionId)"

@@ -92,5 +92,5 @@ $manifest = [pscustomobject][ordered]@{
     sources = @($sourceRecords)
 }
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $resolvedOutput) | Out-Null
-[IO.File]::WriteAllText($resolvedOutput, ($manifest | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($resolvedOutput, (($manifest | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 Write-Output "Data source manifest: $resolvedOutput Sources=$($sourceRecords.Count)"

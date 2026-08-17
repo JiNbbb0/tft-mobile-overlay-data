@@ -5,6 +5,8 @@ param(
     [string]$MetaFingerprint = "",
     [ValidateSet("CATALOG_READY", "META_COLLECTING", "META_STABLE")]
     [string]$Readiness = "",
+    [int]$MaxActiveVersions = 20,
+    [int]$MaxRecentMetaUpdates = 5,
     [switch]$ForceReplaceSameVersion
 )
 
@@ -47,6 +49,16 @@ $sourceTimestampUtc = if ($meta.PSObject.Properties['statsUpdatedEpochMs'] -and 
     [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$meta.statsUpdatedEpochMs).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")
 } else {
     $generatedAtUtc
+}
+$sourceQueryJson = if ($meta.PSObject.Properties['statisticsScope']) {
+    $meta.statisticsScope | ConvertTo-Json -Depth 12 -Compress
+} else { '{}' }
+$sourceQuerySha = [Security.Cryptography.SHA256]::Create()
+try {
+    $sourceQueryHash = ($sourceQuerySha.ComputeHash([Text.Encoding]::UTF8.GetBytes($sourceQueryJson)) |
+        ForEach-Object { $_.ToString('x2') }) -join ''
+} finally {
+    $sourceQuerySha.Dispose()
 }
 if (-not $MetaFingerprint) {
     $MetaFingerprint = & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $metaSource
@@ -115,7 +127,7 @@ $statsBasis = [pscustomobject][ordered]@{
     compositionCount = @($meta.compositions).Count
     itemStatCount = @($meta.compositions | ForEach-Object { @($_.units | ForEach-Object { @($_.itemStats) }) }).Count
 }
-[IO.File]::WriteAllText((Join-Path $statsRoot "STATS_BASIS.json"), ($statsBasis | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $statsRoot "STATS_BASIS.json"), (($statsBasis | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 function New-FileEntry {
     param([string]$LogicalPath,[string]$RelativeUrl,[string]$PhysicalPath)
@@ -159,12 +171,14 @@ $manifest = [pscustomobject][ordered]@{
     generatedAtUtc = $generatedAtUtc
     sourceTimestampUtc = $sourceTimestampUtc
     metaFingerprint = $MetaFingerprint
+    sourceQueryHash = $sourceQueryHash
     readiness = $Readiness
     minimumAppVersionCode = $MinimumAppVersionCode
     files = @($entries)
 }
 $manifestPath = Join-Path $bundleRoot "manifest.json"
-[IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($manifestPath, (($manifest | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+$manifestSha256 = (Get-FileHash -Algorithm SHA256 -LiteralPath $manifestPath).Hash.ToLowerInvariant()
 
 $record = [pscustomobject][ordered]@{
     id = $versionId
@@ -177,13 +191,95 @@ $record = [pscustomobject][ordered]@{
     generatedAtUtc = $generatedAtUtc
     sourceTimestampUtc = $sourceTimestampUtc
     metaFingerprint = $MetaFingerprint
+    manifestSha256 = $manifestSha256
+    sourceQueryHash = $sourceQueryHash
     readiness = $Readiness
     manifestUrl = "bundles/$versionId/manifest.json"
     hidden = $false
 }
 $versions = @($record) + @($existingVersions | Where-Object { [string]$_.id -ne $versionId })
 $versions = @($versions | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
-if ($versions.Count -gt 100) { throw "Version limit 100 reached; automatic deletion is forbidden" }
+$retention = Select-ActiveDataHistory `
+    -Versions $versions `
+    -LatestVersionId $versionId `
+    -MaxActiveVersions $MaxActiveVersions `
+    -MaxRecentMetaUpdates $MaxRecentMetaUpdates
+$versions = @($retention.retained)
+
+$archivePath = Join-Path $stagingRoot "archive-map.json"
+$existingArchiveEntries = @()
+if (Test-Path -LiteralPath $archivePath) {
+    $existingArchive = Get-Content -Raw -Encoding UTF8 -LiteralPath $archivePath | ConvertFrom-Json
+    $existingArchiveEntries = @($existingArchive.entries)
+}
+$archiveById = [ordered]@{}
+foreach ($entry in $existingArchiveEntries) { $archiveById[[string]$entry.id] = $entry }
+$archiveCommit = if ($env:GITHUB_SHA) {
+    [string]$env:GITHUB_SHA
+} else {
+    $gitCommand = Get-Command git -ErrorAction SilentlyContinue
+    if (-not $gitCommand -and (Test-Path -LiteralPath 'C:\Program Files\Git\cmd\git.exe')) {
+        $gitCommand = Get-Item -LiteralPath 'C:\Program Files\Git\cmd\git.exe'
+    }
+    if ($gitCommand) { (& $gitCommand.Source -C $repositoryRoot rev-parse HEAD).Trim() } else { "HEAD-before-publication" }
+}
+$archiveCommit = $archiveCommit.Trim()
+foreach ($entry in $existingArchiveEntries) {
+    if ([string]$entry.archivedFromCommit -in @("local-before-publication", "HEAD-before-publication") -and
+        $archiveCommit -notin @("local-before-publication", "HEAD-before-publication")) {
+        $entry.archivedFromCommit = $archiveCommit
+    }
+}
+foreach ($archivedVersion in @($retention.archived)) {
+    $archivedBundle = Join-Path $stagingRoot "bundles/$($archivedVersion.id)"
+    $archivedManifest = Join-Path $archivedBundle "manifest.json"
+    $archivedManifestSha = if ($archivedVersion.PSObject.Properties['manifestSha256'] -and [string]$archivedVersion.manifestSha256) {
+        [string]$archivedVersion.manifestSha256
+    } elseif (Test-Path -LiteralPath $archivedManifest) {
+        (Get-FileHash -Algorithm SHA256 -LiteralPath $archivedManifest).Hash.ToLowerInvariant()
+    } else { "" }
+    $archiveById[[string]$archivedVersion.id] = [pscustomobject][ordered]@{
+        id = [string]$archivedVersion.id
+        setId = [string]$archivedVersion.setId
+        patch = [string]$archivedVersion.patch
+        revision = [string]$archivedVersion.revision
+        updateKind = [string]$archivedVersion.updateKind
+        generatedAtUtc = ConvertTo-DataUtcTimestamp $archivedVersion.generatedAtUtc
+        sourceTimestampUtc = if ($archivedVersion.PSObject.Properties['sourceTimestampUtc']) {
+            ConvertTo-DataUtcTimestamp $archivedVersion.sourceTimestampUtc
+        } else { "" }
+        metaFingerprint = if ($archivedVersion.PSObject.Properties['metaFingerprint']) { [string]$archivedVersion.metaFingerprint } else { "" }
+        manifestSha256 = $archivedManifestSha
+        archivedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+        archivedFromCommit = $archiveCommit
+        reason = "bounded-active-history"
+    }
+    if (Test-Path -LiteralPath $archivedBundle) { Remove-Item -Recurse -Force -LiteralPath $archivedBundle }
+}
+foreach ($activeVersion in $versions) { $archiveById.Remove([string]$activeVersion.id) }
+$archiveDocument = [pscustomobject][ordered]@{
+    schemaVersion = 1
+    generatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+    recoveryNote = "Archived bundles remain recoverable from the recorded Git commit history."
+    entries = @($archiveById.Values | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
+}
+[IO.File]::WriteAllText($archivePath, (($archiveDocument | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+
+# Blobs are content-addressed. Remove only blobs that are no longer referenced
+# by any manifest in the bounded active window.
+$referencedBlobs = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($retainedVersion in $versions) {
+    $retainedManifestPath = Join-Path $stagingRoot ([string]$retainedVersion.manifestUrl)
+    $retainedManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $retainedManifestPath | ConvertFrom-Json
+    foreach ($fileEntry in @($retainedManifest.files)) {
+        if ([string]$fileEntry.url -match '^\.\./\.\./blobs/([0-9a-f]{64}\.[a-z0-9]+)$') {
+            $null = $referencedBlobs.Add($Matches[1])
+        }
+    }
+}
+foreach ($blob in @(Get-ChildItem -LiteralPath $blobsRoot -File)) {
+    if (-not $referencedBlobs.Contains($blob.Name)) { Remove-Item -Force -LiteralPath $blob.FullName }
+}
 $index = [pscustomobject][ordered]@{
     schemaVersion = 1
     latestVersionId = $versionId
@@ -192,7 +288,7 @@ $index = [pscustomobject][ordered]@{
 }
 
 $indexTempPath = Join-Path $stagingRoot "data-index.next.json"
-[IO.File]::WriteAllText($indexTempPath, ($index | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($indexTempPath, (($index | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 Move-Item -Force -LiteralPath $indexTempPath -Destination $indexPath
 
 [IO.File]::WriteAllText((Join-Path $stagingRoot ".nojekyll"), "", [Text.UTF8Encoding]::new($false))
@@ -202,21 +298,36 @@ $indexHtml = @"
 [IO.File]::WriteAllText((Join-Path $stagingRoot "index.html"), $indexHtml, [Text.UTF8Encoding]::new($false))
 
 $workflowRunId = if ($env:GITHUB_RUN_ID) { [string]$env:GITHUB_RUN_ID } else { "local" }
+$freshnessSlaSeconds = 21600
+$sourceAgeSeconds = ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse(
+    $sourceTimestampUtc,
+    [Globalization.CultureInfo]::InvariantCulture,
+    [Globalization.DateTimeStyles]::AssumeUniversal
+)).TotalSeconds
+$freshnessStatus = if ($sourceAgeSeconds -le $freshnessSlaSeconds -and $sourceAgeSeconds -ge -60) { "FRESH" } else { "STALE" }
 $health = [pscustomobject][ordered]@{
     status = "ok"
+    freshnessStatus = $freshnessStatus
+    freshnessSlaSeconds = $freshnessSlaSeconds
     generatedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+    publishedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
     latestSetId = $setId
     latestPatch = $patch
     latestRevision = $revision
     versionCount = $versions.Count
     fileCount = 0
     workflowRunId = $workflowRunId
-    sourceUpdatedAt = $generatedAtUtc
+    lastSuccessfulRunId = $workflowRunId
+    consecutiveFailures = 0
+    sourceUpdatedAt = $sourceTimestampUtc
+    latestMetaFingerprint = $MetaFingerprint
+    latestManifestSha256 = $manifestSha256
+    sourceQueryHash = $sourceQueryHash
 }
 $healthPath = Join-Path $stagingRoot "health.json"
-[IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($healthPath, (($health | ConvertTo-Json).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 $health.fileCount = @(Get-ChildItem -LiteralPath $stagingRoot -File -Recurse).Count
-[IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($healthPath, (($health | ConvertTo-Json).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $stagingRoot
 

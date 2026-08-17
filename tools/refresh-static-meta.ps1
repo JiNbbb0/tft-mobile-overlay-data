@@ -894,7 +894,7 @@ $outputDirectory = Split-Path -Parent $resolvedOutput
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
 
 $json = $snapshot | ConvertTo-Json -Depth 20 -Compress
-[IO.File]::WriteAllText($resolvedOutput, $json + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText($resolvedOutput, ($json.Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 Write-Output "Wrote $resolvedOutput"
 Write-Output "Set=$($snapshot.setId) Cluster=$($snapshot.clusterId) Augments=$($augments.Count) Compositions=$($compositions.Count) ItemStats=$totalItemStats"

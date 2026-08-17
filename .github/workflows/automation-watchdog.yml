@@ -41,7 +41,7 @@ jobs:
         id: reconcile
         shell: pwsh
         run: |
-          $checkUrl = "$env:DATA_INDEX_URL?watchdog=${{ github.run_id }}-inspect"
+          $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-inspect"
           ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl
 
       - name: Validate tracked last-known-good site before repair
@@ -86,7 +86,7 @@ jobs:
         run: |
           for ($attempt = 1; $attempt -le 6; $attempt++) {
             try {
-              $checkUrl = "$env:DATA_INDEX_URL?watchdog=${{ github.run_id }}-$attempt"
+              $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-$attempt"
               ./tools/validate-remote-site.ps1 -DataIndexUrl $checkUrl
               ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl -FailWhenOutOfSync
               exit 0
@@ -112,7 +112,7 @@ jobs:
         continue-on-error: true
         shell: pwsh
         run: |
-          $checkUrl = "$env:DATA_INDEX_URL?watchdog=${{ github.run_id }}-final"
+          $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-final"
           ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl
 
       - name: Upsert or close one sanitized automation health issue

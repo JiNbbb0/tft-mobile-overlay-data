@@ -1,18 +1,18 @@
 # Change Summary
 
-- Generated: 2026-08-14T07:42:58Z
-- From: tftset17-17.9-r409-mb6f7c037a1
+- Generated: 2026-08-17T13:46:24Z
+- From: tftset17-17.9-r409-mefc8b54798
 - To: TFTSet17 / patch 17.9 / revision 409
 
 | Category | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| Champions | 63 | 63 | 0 | 0 | 0 |
+| Champions | 63 | 63 | 0 | 0 | 63 |
 | Traits | 36 | 36 | 0 | 0 | 0 |
 | Items | 663 | 663 | 0 | 0 | 0 |
 | Augments | 272 | 272 | 0 | 0 | 0 |
 | Compositions | 18 | 18 | 0 | 0 | 18 |
-| Images | 895 | 895 | - | - | 0 delta |
+| Images | 895 | 894 | - | - | -1 delta |
 
-- Tier changes: 0
-- Average-placement changes: 17
+- Tier changes: 1
+- Average-placement changes: 18
 - Missing names/descriptions/images: 0 / 0 / 0

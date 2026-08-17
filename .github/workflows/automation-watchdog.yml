@@ -30,6 +30,8 @@ jobs:
       publish_required: ${{ steps.reconcile.outputs.publish_required }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
 
       - name: Test watchdog and publication reconciliation policy
         shell: pwsh
@@ -47,11 +49,11 @@ jobs:
 
       - name: Configure Pages repair
         if: steps.reconcile.outputs.publish_required == 'true'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload tracked site for repair
         if: steps.reconcile.outputs.publish_required == 'true'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -66,7 +68,7 @@ jobs:
     steps:
       - name: Atomically redeploy tracked last-known-good site
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   verify-repair:
     if: always() && needs.inspect.result == 'success' && (needs.inspect.outputs.publish_required != 'true' || needs.repair-publication.result == 'success')
@@ -75,6 +77,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
       - name: Verify public index, manifest, data, and sample image
         shell: pwsh
         run: |
@@ -90,15 +94,19 @@ jobs:
           }
 
   report-health:
-    if: always() && needs.inspect.result == 'success'
+    if: always()
     needs: [inspect, repair-publication, verify-repair]
     runs-on: windows-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
 
       - name: Recheck final public state after any repair attempt
         id: final-reconcile
+        if: needs.inspect.result == 'success'
+        continue-on-error: true
         shell: pwsh
         run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
 
@@ -106,7 +114,7 @@ jobs:
         shell: pwsh
         env:
           GH_AUTOMATION_TOKEN: ${{ github.token }}
-          PUBLIC_OUT_OF_SYNC: ${{ steps.final-reconcile.outputs.publish_required }}
+          PUBLIC_OUT_OF_SYNC: ${{ needs.inspect.result != 'success' || steps.final-reconcile.outcome != 'success' || steps.final-reconcile.outputs.publish_required == 'true' }}
         run: |
           $outOfSync = $env:PUBLIC_OUT_OF_SYNC -eq 'true'
           ./tools/watch-automation-health.ps1 `

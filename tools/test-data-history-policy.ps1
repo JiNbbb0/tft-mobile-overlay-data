@@ -19,6 +19,7 @@ Assert-Equal 'latest-localized' $previous.id 'Declared latest must win over stri
 $normalized = @(Normalize-DataVersionTimestamps -Versions $versions)
 Assert-Equal '2026-08-11T19:49:44Z' $normalized[1].generatedAtUtc 'Localized GitHub timestamp must normalize to UTC ISO.'
 Assert-Equal '2026-08-11T19:48:00Z' $normalized[1].sourceTimestampUtc 'Source timestamp must normalize to UTC ISO.'
+Assert-Equal '2026-08-17T13:46:20Z' (ConvertTo-DataUtcTimestamp ([DateTime]'2026-08-17T13:46:20Z')) 'PowerShell 7 auto-parsed JSON dates must remain invariant ISO UTC.'
 
 $fallback = Get-PreviousDataVersion -Index ([pscustomobject]@{}) -Versions $normalized
 Assert-Equal 'latest-localized' $fallback.id 'Timestamp fallback must compare normalized instants.'

@@ -26,6 +26,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
       - name: Validate target and change latest atomically
         shell: pwsh
         run: ./tools/set-latest-version.ps1 -VersionId '${{ inputs.version_id }}'
@@ -51,9 +53,9 @@ jobs:
             throw "Rollback push failed after 3 bounded attempts."
           }
       - name: Configure Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Upload validated site
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
@@ -66,7 +68,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   verify:
     needs: deploy
@@ -74,6 +76,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
       - name: Verify restored public latest
         shell: pwsh
         run: |

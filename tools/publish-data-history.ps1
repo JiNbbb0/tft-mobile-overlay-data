@@ -43,7 +43,7 @@ $setName = [string]$catalog.set.nameJa
 $patch = [string]$catalog.set.tftPatch
 $revision = [string]$meta.clusterId
 $baseVersionId = (("{0}-{1}-r{2}" -f $setId,$patch,$revision).ToLowerInvariant() -replace '[^a-z0-9._-]','-')
-$generatedAtUtc = [string]$meta.fetchedAtUtc
+$generatedAtUtc = ConvertTo-DataUtcTimestamp $meta.fetchedAtUtc
 if (-not $generatedAtUtc) { $generatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ") }
 $sourceTimestampUtc = if ($meta.PSObject.Properties['statsUpdatedEpochMs'] -and [int64]$meta.statsUpdatedEpochMs -gt 0) {
     [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$meta.statsUpdatedEpochMs).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ")

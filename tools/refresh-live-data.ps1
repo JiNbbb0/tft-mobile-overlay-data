@@ -14,6 +14,7 @@ $failureRoot = Join-Path $buildRoot "failure-report"
 $sourceRoot = Join-Path $repositoryRoot "source/current"
 $userAgent = "TFT-Mobile-Overlay-Data/1.0 scheduled-version-check"
 . (Join-Path $PSScriptRoot 'material-publication-policy.ps1')
+. (Join-Path $PSScriptRoot 'patch-detection-policy.ps1')
 
 function Set-ActionOutput([string]$Name, [string]$Value) {
     if ($env:GITHUB_OUTPUT) { Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "$Name=$Value" -Encoding UTF8 }
@@ -58,10 +59,18 @@ try {
     $setId = [string]$cluster.tft_set
     $revision = [string]$cluster.cluster_id
 
-    $patchHtml = Get-WebText "https://teamfighttactics.leagueoflegends.com/en-us/news/tags/patch-notes/"
-    $patchMatch = [regex]::Match($patchHtml, 'Teamfight Tactics patch\s+([0-9]+\.[0-9]+)', 'IgnoreCase')
-    if (-not $patchMatch.Success) { throw "Latest TFT patch could not be read from Riot patch notes" }
-    $patch = $patchMatch.Groups[1].Value
+    # Riot occasionally changes localized title text while keeping the article
+    # slug stable. Read two official locale indexes and accept URL slugs,
+    # English titles, or Japanese titles. A total format break fails closed and
+    # leaves the last-known-good publication active.
+    $patchDocuments = @()
+    foreach ($patchIndexUrl in @(
+        'https://teamfighttactics.leagueoflegends.com/en-us/news/tags/patch-notes/',
+        'https://teamfighttactics.leagueoflegends.com/ja-jp/news/tags/patch-notes/'
+    )) {
+        try { $patchDocuments += Get-WebText $patchIndexUrl } catch { Write-Warning "Official patch index unavailable: $patchIndexUrl" }
+    }
+    $patch = Resolve-LatestTftPatch -Documents $patchDocuments
     $versionId = (("{0}-{1}-r{2}" -f $setId,$patch,$revision).ToLowerInvariant() -replace '[^a-z0-9._-]','-')
 
     Set-ActionOutput "detected_version" $versionId

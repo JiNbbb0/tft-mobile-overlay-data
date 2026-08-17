@@ -446,7 +446,7 @@ function Get-ItemCategory {
     if ($id -match 'Support') { return "サポート" }
     if (@($Item.from).Count -eq 2) { return "通常完成アイテム" }
     if ($id -match '^TFT_Item_(BFSword|RecurveBow|NeedlesslyLargeRod|TearOfTheGoddess|ChainVest|NegatronCloak|GiantsBelt|SparringGloves|Spatula)$') { return "素材アイテム" }
-    if ($id -match '^TFT17_') { return "セット固有" }
+    if ($id -match ("^TFT{0}_" -f $SetNumber)) { return "セット固有" }
     return "その他"
 }
 

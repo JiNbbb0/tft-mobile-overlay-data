@@ -28,10 +28,16 @@ jobs:
     steps:
       - name: Check out data repository
         uses: actions/checkout@v6
+        with:
+          ref: main
 
       - name: Test bounded new-set rank fallback policy
         shell: pwsh
         run: ./tools/test-rank-scope-policy.ps1
+
+      - name: Test resilient official patch detection policy
+        shell: pwsh
+        run: ./tools/test-patch-detection-policy.ps1
 
       - name: Test append-only data history policy
         shell: pwsh
@@ -92,17 +98,17 @@ jobs:
 
       - name: Configure Pages
         if: success() && steps.reconcile.outputs.publish_required == 'true'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload Pages artifact
         if: success() && steps.reconcile.outputs.publish_required == 'true'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
       - name: Preserve concise failure report
         if: failure() && hashFiles('build/failure-report/**') != ''
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: refresh-failure-${{ github.run_id }}
           path: build/failure-report
@@ -147,7 +153,7 @@ jobs:
     steps:
       - name: Deploy validated artifact atomically
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   verify-publication:
     if: needs.deploy.result == 'success'
@@ -156,6 +162,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: main
       - name: Verify HTTPS index, manifest, JSON, and sample blob
         shell: pwsh
         run: |

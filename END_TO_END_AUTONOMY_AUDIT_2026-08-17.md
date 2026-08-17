@@ -73,6 +73,8 @@ TFT Overlayの通常運用は「ユーザーPC、Codex、手動push、パッチ�
 7. Androidのオーバーレイ監視が「自動更新OFF」を無視していた。既定ONを維持しながら設定を正しく尊重する。
 8. 予備indexのlatestに完全identityがなくても候補になれた。manifest SHA、meta fingerprint、query hashの3点を必須にした。
 9. Pages ActionsがNode.js 20世代の旧majorだった。公式のNode.js 24対応majorへ更新した。
+10. watchdogのGitHub Issues 0件応答が空要素として解釈され、正常時でもhealth報告が落ちていた。空・欠損要素を安全に無視する選択関数とfixtureを追加した。
+11. Pages配信直後に地域別CDN edgeが一時的に旧indexを返し、watchdogが誤検知する場合があった。監査要求だけcache-busting queryを使い、固定公開URLと不変bundleの契約は維持した。
 
 ## 人間対応が残る例外
 

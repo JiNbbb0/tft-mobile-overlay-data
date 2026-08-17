@@ -51,4 +51,10 @@ $publicBroken = Resolve-AutomationHealth -CompletedRuns @([pscustomobject]@{ con
 Assert-Equal $true $publicBroken.requiresAttention 'A remaining public mismatch must require attention.'
 Assert-Equal 'PUBLIC_OUT_OF_SYNC' $publicBroken.reason 'Public mismatch reason mismatch.'
 
+$issueTitle = '[automation-health] TFT data publication requires attention'
+Assert-Equal $null (Select-AutomationHealthIssue -Issues @() -Title $issueTitle) 'An empty issue response must be safe.'
+Assert-Equal $null (Select-AutomationHealthIssue -Issues @($null, [pscustomobject]@{ number = 1 }) -Title $issueTitle) 'Malformed issue entries must be ignored.'
+$matchingIssue = [pscustomobject]@{ number = 7; title = $issueTitle }
+Assert-Equal 7 (Select-AutomationHealthIssue -Issues @([pscustomobject]@{ number = 2; title = 'other' }, $matchingIssue) -Title $issueTitle).number 'The matching health issue must be selected.'
+
 Write-Output 'Publication reconciliation and automation health policy tests passed.'

@@ -38,3 +38,17 @@ function Resolve-AutomationHealth {
         publicOutOfSync = $PublicOutOfSync
     }
 }
+
+function Select-AutomationHealthIssue {
+    param(
+        [AllowNull()][object[]]$Issues,
+        [Parameter(Mandatory = $true)][string]$Title
+    )
+
+    foreach ($issue in @($Issues)) {
+        if ($null -eq $issue) { continue }
+        if (-not $issue.PSObject.Properties['title']) { continue }
+        if ([string]$issue.title -eq $Title) { return $issue }
+    }
+    return $null
+}

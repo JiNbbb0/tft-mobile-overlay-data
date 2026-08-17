@@ -40,7 +40,9 @@ jobs:
       - name: Compare tracked publication with public Pages
         id: reconcile
         shell: pwsh
-        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+        run: |
+          $checkUrl = "$env:DATA_INDEX_URL?watchdog=${{ github.run_id }}-inspect"
+          ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl
 
       - name: Validate tracked last-known-good site before repair
         if: steps.reconcile.outputs.publish_required == 'true'
@@ -84,8 +86,9 @@ jobs:
         run: |
           for ($attempt = 1; $attempt -le 6; $attempt++) {
             try {
-              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
-              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
+              $checkUrl = "$env:DATA_INDEX_URL?watchdog=${{ github.run_id }}-$attempt"
+              ./tools/validate-remote-site.ps1 -DataIndexUrl $checkUrl
+              ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl -FailWhenOutOfSync
               exit 0
             } catch {
               if ($attempt -eq 6) { throw }
@@ -108,7 +111,9 @@ jobs:
         if: needs.inspect.result == 'success'
         continue-on-error: true
         shell: pwsh
-        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+        run: |
+          $checkUrl = "$env:DATA_INDEX_URL?watchdog=${{ github.run_id }}-final"
+          ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl
 
       - name: Upsert or close one sanitized automation health issue
         shell: pwsh

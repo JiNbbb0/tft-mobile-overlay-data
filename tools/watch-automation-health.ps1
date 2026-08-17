@@ -53,7 +53,7 @@ $health = Resolve-AutomationHealth `
     -PublicOutOfSync $PublicOutOfSync
 
 $openIssues = @(Invoke-GitHubApi -Method Get -Uri "$apiRoot/issues?state=open&per_page=100")
-$existingIssue = @($openIssues | Where-Object { [string]$_.title -eq $issueTitle }) | Select-Object -First 1
+$existingIssue = Select-AutomationHealthIssue -Issues $openIssues -Title $issueTitle
 
 if ($health.requiresAttention) {
     if (-not $existingIssue) {

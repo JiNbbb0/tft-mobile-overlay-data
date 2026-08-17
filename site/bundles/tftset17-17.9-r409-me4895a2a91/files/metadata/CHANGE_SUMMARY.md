@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-08-17T14:48:32Z
-- From: tftset17-17.9-r409-mfb76c836f9
+- Generated: 2026-08-17T16:49:37Z
+- From: tftset17-17.9-r409-mb830121a35
 - To: TFTSet17 / patch 17.9 / revision 409
 
 | Category | Previous | Current | Added | Removed | Changed |

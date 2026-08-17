@@ -61,4 +61,19 @@ $rollback = @($index.versions | Where-Object { [string]$_.setId -ne $newSetId } 
 if (-not $rollback) { throw 'No prior version available for rollback check.' }
 & (Join-Path $PSScriptRoot 'set-latest-version.ps1') -SiteDirectory $testSite -VersionId ([string]$rollback.id)
 & (Join-Path $PSScriptRoot 'validate-site.ps1') -SiteDirectory $testSite
-Write-Output "New-set readiness E2E passed: $newVersion then rollback to $($rollback.id)"
+$postRollbackIndex = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $testSite 'data-index.json') | ConvertFrom-Json
+$legacy = @($postRollbackIndex.versions | Where-Object {
+    -not $_.PSObject.Properties['metaFingerprint']
+} | Select-Object -First 1)
+if (-not $legacy) {
+    $legacy = @($postRollbackIndex.versions | Where-Object {
+        -not $_.PSObject.Properties['sourceQueryHash']
+    } | Select-Object -First 1)
+}
+if ($legacy) {
+    & (Join-Path $PSScriptRoot 'set-latest-version.ps1') -SiteDirectory $testSite -VersionId ([string]$legacy.id)
+    & (Join-Path $PSScriptRoot 'validate-site.ps1') -SiteDirectory $testSite
+    & (Join-Path $PSScriptRoot 'set-latest-version.ps1') -SiteDirectory $testSite -VersionId ([string]$rollback.id)
+    & (Join-Path $PSScriptRoot 'validate-site.ps1') -SiteDirectory $testSite
+}
+Write-Output "New-set readiness E2E passed: $newVersion then rollback to $($rollback.id); legacy identity compatibility checked=$([bool]$legacy)"

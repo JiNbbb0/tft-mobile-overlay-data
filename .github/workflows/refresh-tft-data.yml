@@ -6,7 +6,7 @@ on:
     - cron: "7,22,37,52 * * * *"
 
 concurrency:
-  group: tft-data-refresh-and-pages
+  group: tft-data-publication
   cancel-in-progress: false
 
 permissions:
@@ -23,6 +23,7 @@ jobs:
     timeout-minutes: 50
     outputs:
       changed: ${{ steps.refresh.outputs.changed }}
+      publish_required: ${{ steps.reconcile.outputs.publish_required }}
       detected_version: ${{ steps.refresh.outputs.detected_version }}
     steps:
       - name: Check out data repository
@@ -36,6 +37,14 @@ jobs:
         shell: pwsh
         run: ./tools/test-data-history-policy.ps1
 
+      - name: Test unattended publication reconciliation policy
+        shell: pwsh
+        run: ./tools/test-publication-state.ps1
+
+      - name: Test new-set catalog-first readiness and rollback
+        shell: pwsh
+        run: ./tools/test-new-set-readiness.ps1
+
       - name: Detect, generate, validate, and stage a new version
         id: refresh
         shell: pwsh
@@ -46,7 +55,7 @@ jobs:
         shell: pwsh
         run: ./tools/validate-site.ps1
 
-      - name: Commit append-only history only when changed
+      - name: Commit validated history only when changed
         if: success() && steps.refresh.outputs.changed == 'true'
         shell: pwsh
         run: |
@@ -57,14 +66,36 @@ jobs:
             throw "Refresh reported a change but produced no tracked diff"
           }
           git commit -m "data: publish ${{ steps.refresh.outputs.detected_version }}"
-          git push origin HEAD:main
+          $pushed = $false
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            git push origin HEAD:main
+            if ($LASTEXITCODE -eq 0) {
+              $pushed = $true
+              break
+            }
+            if ($attempt -lt 3) { Start-Sleep -Seconds (5 * $attempt) }
+          }
+          if (-not $pushed) {
+            git fetch origin main
+            git merge-base --is-ancestor origin/main HEAD
+            if ($LASTEXITCODE -ne 0) {
+              throw "Remote main advanced during publication; the next scheduled run will regenerate from that commit."
+            }
+            throw "Push failed after 3 bounded attempts; the next scheduled run will retry."
+          }
+
+      - name: Reconcile tracked latest with public Pages
+        id: reconcile
+        if: success()
+        shell: pwsh
+        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
 
       - name: Configure Pages
-        if: success() && steps.refresh.outputs.changed == 'true'
+        if: success() && steps.reconcile.outputs.publish_required == 'true'
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        if: success() && steps.refresh.outputs.changed == 'true'
+        if: success() && steps.reconcile.outputs.publish_required == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: site
@@ -94,6 +125,8 @@ jobs:
           - Revision: ${{ steps.refresh.outputs.detected_revision }}
           - Update kind: ${{ steps.refresh.outputs.detected_kind }}
           - Changed: ${{ steps.refresh.outputs.changed }}
+          - Publication required: ${{ steps.reconcile.outputs.publish_required }}
+          - Public state before deployment: ${{ steps.reconcile.outputs.public_state }}
           - Published artifact prepared: ${{ steps.refresh.outputs.published }}
           - No change means: sources were checked and no semantic catalog/meta change was published.
           - Validation/job status: ${{ job.status }}
@@ -104,7 +137,7 @@ jobs:
           "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
 
   deploy:
-    if: needs.refresh.result == 'success' && needs.refresh.outputs.changed == 'true'
+    if: needs.refresh.result == 'success' && needs.refresh.outputs.publish_required == 'true'
     needs: refresh
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -125,7 +158,21 @@ jobs:
       - uses: actions/checkout@v6
       - name: Verify HTTPS index, manifest, JSON, and sample blob
         shell: pwsh
-        run: ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+        run: |
+          $verified = $false
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try {
+              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
+              $verified = $true
+              break
+            } catch {
+              if ($attempt -eq 6) { throw }
+              Write-Warning "Public verification attempt $attempt failed while Pages propagates."
+              Start-Sleep -Seconds (10 * $attempt)
+            }
+          }
+          if (-not $verified) { throw "Public Pages validation did not converge." }
       - name: Record public verification
         shell: pwsh
         run: |

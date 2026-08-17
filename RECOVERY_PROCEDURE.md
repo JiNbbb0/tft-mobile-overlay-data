@@ -2,11 +2,11 @@
 
 ## GitHub Actions失敗時
 
-Run Summaryの `Failed stage` と14日保持の failure Artifactを確認します。再実行は一時障害のときだけ1回行います。同じ失敗を3回繰り返しません。失敗runはsiteをコミット・配信しないため、公開中の正常版は維持されます。
+一時的なHTTP、runner、push失敗は次の15分実行で自動再試行します。失敗runは未検証siteをコミット・配信しないため、公開中の正常版は維持されます。4回連続失敗または6時間成功なしの場合、watchdogが重複しない `automation-health` Issueを1件作成します。その時だけRun Summaryの `Failed stage` と14日保持のfailure Artifactを確認します。回復するとIssueは自動で閉じます。
 
 ## GitHub Pages停止時
 
-`Validate and redeploy Pages` を手動実行します。追跡済みsiteを全検証してから再デプロイし、固定HTTPS URLを確認します。
+毎時watchdogと更新workflow終了後の監視が、GitHub mainのlatest ID・manifest SHAとPagesを比較します。404、旧版、同一IDの異なるSHAを検出すると、取得処理とは独立して追跡済みsiteを全検証し、自動再デプロイして公開URLを再確認します。GitHub PagesまたはActions自体が停止して自動修復できない場合だけ、復旧後に `Validate and redeploy Pages` を手動実行します。
 
 ## data-index.json破損・誤ったlatest・壊れたbundle
 

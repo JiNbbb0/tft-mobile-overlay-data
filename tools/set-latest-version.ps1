@@ -8,13 +8,26 @@ Set-StrictMode -Version Latest
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
 $indexPath = Join-Path $siteRoot "data-index.json"
-$index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
+$oldIndexText = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath
+$index = $oldIndexText | ConvertFrom-Json
 $version = @($index.versions | Where-Object { [string]$_.id -eq $VersionId }) | Select-Object -First 1
 if (-not $version) { throw "Version does not exist in data-index: $VersionId" }
 $manifestPath = [IO.Path]::GetFullPath((Join-Path $siteRoot ([string]$version.manifestUrl)))
 $sitePrefix = $siteRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 if (-not $manifestPath.StartsWith($sitePrefix, [StringComparison]::OrdinalIgnoreCase)) { throw "Manifest path escaped site root" }
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw "Manifest missing for version: $VersionId" }
+$manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
+if ([string]$manifest.id -ne $VersionId) { throw "Manifest identity mismatch for version: $VersionId" }
+$manifestFingerprint = if ($manifest.PSObject.Properties['metaFingerprint']) { [string]$manifest.metaFingerprint } else { '' }
+$manifestQueryHash = if ($manifest.PSObject.Properties['sourceQueryHash']) { [string]$manifest.sourceQueryHash } else { '' }
+$manifestSourceTimestamp = if ($manifest.PSObject.Properties['sourceTimestampUtc']) { [string]$manifest.sourceTimestampUtc } else { [string]$manifest.generatedAtUtc }
+$calculatedManifestSha = (Get-FileHash -Algorithm SHA256 -LiteralPath $manifestPath).Hash.ToLowerInvariant()
+# Normalize legacy index records in place. Empty optional identity values match
+# legacy manifests, while a calculated manifest SHA is always available.
+if (-not $version.PSObject.Properties['metaFingerprint']) { $version | Add-Member -NotePropertyName metaFingerprint -NotePropertyValue $manifestFingerprint }
+if (-not $version.PSObject.Properties['sourceQueryHash']) { $version | Add-Member -NotePropertyName sourceQueryHash -NotePropertyValue $manifestQueryHash }
+if (-not $version.PSObject.Properties['manifestSha256']) { $version | Add-Member -NotePropertyName manifestSha256 -NotePropertyValue $calculatedManifestSha }
+if (-not $version.PSObject.Properties['sourceTimestampUtc']) { $version | Add-Member -NotePropertyName sourceTimestampUtc -NotePropertyValue $manifestSourceTimestamp }
 
 $oldLatest = [string]$index.latestVersionId
 $healthPath = Join-Path $siteRoot "health.json"
@@ -29,19 +42,42 @@ $health.latestSetId = [string]$version.setId
 $health.latestPatch = [string]$version.patch
 $health.latestRevision = [string]$version.revision
 $health.generatedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+$health.publishedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $health.workflowRunId = $(if ($env:GITHUB_RUN_ID) { [string]$env:GITHUB_RUN_ID } else { "local-rollback" })
-$sourceUpdatedAt = $version.generatedAtUtc
+$health.lastSuccessfulRunId = $health.workflowRunId
+$health.consecutiveFailures = 0
+$health.status = 'ok'
+$health.latestMetaFingerprint = if ($version.PSObject.Properties['metaFingerprint']) { [string]$version.metaFingerprint } else { $manifestFingerprint }
+$health.latestManifestSha256 = if ($version.PSObject.Properties['manifestSha256'] -and [string]$version.manifestSha256) {
+    [string]$version.manifestSha256
+} else {
+    $calculatedManifestSha
+}
+$health.sourceQueryHash = if ($version.PSObject.Properties['sourceQueryHash']) { [string]$version.sourceQueryHash } else { $manifestQueryHash }
+$sourceUpdatedAt = if ($version.PSObject.Properties['sourceTimestampUtc'] -and $version.sourceTimestampUtc) {
+    $version.sourceTimestampUtc
+} elseif ($manifest.PSObject.Properties['sourceTimestampUtc'] -and $manifest.sourceTimestampUtc) {
+    $manifest.sourceTimestampUtc
+} else {
+    $version.generatedAtUtc
+}
 $health.sourceUpdatedAt = if ($sourceUpdatedAt -is [DateTime]) {
     $sourceUpdatedAt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
 } else {
     [string]$sourceUpdatedAt
 }
+$freshnessSlaSeconds = if ($health.PSObject.Properties['freshnessSlaSeconds']) { [int]$health.freshnessSlaSeconds } else { 21600 }
+$sourceAgeSeconds = ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse(
+    [string]$health.sourceUpdatedAt,
+    [Globalization.CultureInfo]::InvariantCulture,
+    [Globalization.DateTimeStyles]::AssumeUniversal
+)).TotalSeconds
+$health.freshnessStatus = if ($sourceAgeSeconds -le $freshnessSlaSeconds -and $sourceAgeSeconds -ge -60) { 'FRESH' } else { 'STALE' }
 [IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 try {
     & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory
 } catch {
-    $index.latestVersionId = $oldLatest
-    [IO.File]::WriteAllText($indexPath, ($index | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($indexPath, $oldIndexText, [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText($healthPath, $oldHealthText, [Text.UTF8Encoding]::new($false))
     throw
 }

@@ -15,15 +15,38 @@ function Names([object[]]$Rows) {
     return @($Rows | ForEach-Object { [string]$_.id } | Sort-Object)
 }
 
+function IdsInOrder([object[]]$Rows) {
+    return @($Rows | ForEach-Object { [string]$_.id })
+}
+
 function Optional([object]$Row, [string]$Property, [object]$Default = $null) {
     if ($null -ne $Row -and $Row.PSObject.Properties[$Property]) { return $Row.$Property }
     return $Default
 }
 
 $snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $SnapshotPath | ConvertFrom-Json
+$scope = Optional $snapshot 'statisticsScope' $null
 $normalized = [ordered]@{
     schema = 1
     setId = [string]$snapshot.setId
+    readiness = [string](Optional $snapshot 'readiness' 'META_STABLE')
+    statisticsScope = if ($scope) {
+        [ordered]@{
+            preferred = [string](Optional $scope 'preferred' '')
+            effective = [string](Optional $scope 'effective' '')
+            minimumCompositionSamples = [int](Optional $scope 'minimumCompositionSamples' 0)
+            minimumPreferredCompositions = [int](Optional $scope 'minimumPreferredCompositions' 0)
+            fallbackAttempted = [bool](Optional $scope 'fallbackAttempted' $false)
+            implicitFilterAdjustmentAllowed = [bool](Optional $scope 'implicitFilterAdjustmentAllowed' $false)
+            preferredRankFilter = [string](Optional $scope 'preferredRankFilter' '')
+            fallbackRankFilter = [string](Optional $scope 'fallbackRankFilter' '')
+        }
+    } else { $null }
+    augments = @(
+        @(Optional $snapshot 'augments' @()) | Sort-Object id | ForEach-Object {
+            [ordered]@{ id = [string]$_.id; name = [string](Optional $_ 'name' ''); tier = [string]$_.tier }
+        }
+    )
     compositions = @(
         @($snapshot.compositions) | Sort-Object id | ForEach-Object {
             $composition = $_
@@ -37,10 +60,9 @@ $normalized = [ordered]@{
                 displayNameJa = $title
                 tier = [string]$composition.tier
                 averagePlacement = Round-Semantic $composition.averagePlacement
-                sampleCount = [int64]$composition.sampleCount
                 rollPlan = $composition.rollPlan
                 recommendedAugments = @(
-                    @($composition.recommendedAugments) | Sort-Object id | ForEach-Object {
+                    @($composition.recommendedAugments) | ForEach-Object {
                         [ordered]@{
                             id = [string]$_.id
                             name = [string](Optional $_ 'name' '')
@@ -73,7 +95,7 @@ $normalized = [ordered]@{
                         [ordered]@{
                             id = [string]$_.id
                             name = [string]$_.name
-                            recommendedBuild = Names @(
+                            recommendedBuild = IdsInOrder @(
                                 if ($_.PSObject.Properties['recommendedBuild']) {
                                     @($_.recommendedBuild) | ForEach-Object { [pscustomobject]@{ id = $_.itemId } }
                                 }
@@ -84,7 +106,6 @@ $normalized = [ordered]@{
                                         id = [string]$_.itemId
                                         averagePlacement = Round-Semantic $_.averagePlacement
                                         placementDelta = Round-Semantic $_.placementDelta
-                                        sampleCount = [int64]$_.sampleCount
                                         bestBuild = Names @($_.bestBuild | ForEach-Object { [pscustomobject]@{ id = $_.itemId } })
                                     }
                                 }

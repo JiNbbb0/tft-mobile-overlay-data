@@ -6,7 +6,7 @@ on:
     - cron: "13 17 1 * *"
 
 concurrency:
-  group: tft-data-heartbeat
+  group: tft-data-publication
   cancel-in-progress: false
 
 permissions:
@@ -32,7 +32,20 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add state/heartbeat.json
           git commit -m "chore: monthly automation heartbeat"
-          git push origin HEAD:main
+          $pushed = $false
+          for ($attempt = 1; $attempt -le 3; $attempt++) {
+            git push origin HEAD:main
+            if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+            if ($attempt -lt 3) { Start-Sleep -Seconds (5 * $attempt) }
+          }
+          if (-not $pushed) {
+            git fetch origin main
+            git merge-base --is-ancestor origin/main HEAD
+            if ($LASTEXITCODE -ne 0) {
+              throw "Remote main advanced; a later heartbeat or data refresh will safely retry."
+            }
+            throw "Heartbeat push failed after 3 bounded attempts."
+          }
       - name: Write summary
         shell: pwsh
         run: "'- Result: monthly heartbeat committed; release data unchanged' | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8"

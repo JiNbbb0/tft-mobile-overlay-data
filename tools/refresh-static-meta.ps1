@@ -11,6 +11,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
+. (Join-Path $PSScriptRoot 'source-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -50,14 +51,17 @@ function Write-SourceObservation {
 function Get-Text {
     param([Parameter(Mandatory = $true)][string]$Url)
 
-    $lines = & curl.exe -L --fail --silent --show-error --max-time 120 `
-        -A $UserAgent $Url
-    if ($LASTEXITCODE -ne 0) {
-        throw "Request failed ($LASTEXITCODE): $Url"
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        $lines = & curl.exe -L --fail --silent --show-error --max-time 120 `
+            -A $UserAgent $Url
+        if ($LASTEXITCODE -eq 0) {
+            $text = ($lines -join "`n")
+            Write-SourceObservation -Url $Url -Text $text
+            return $text
+        }
+        if ($attempt -lt 3) { Start-Sleep -Seconds ([Math]::Pow(2, $attempt - 1)) }
     }
-    $text = ($lines -join "`n")
-    Write-SourceObservation -Url $Url -Text $text
-    return $text
+    throw "Request failed after 3 attempts ($LASTEXITCODE): $Url"
 }
 
 function Get-Json {
@@ -356,13 +360,9 @@ function New-RollPlan {
 }
 
 $robots = Get-Text -Url $MetaTftRobotsUrl
-$blockedPaths = @(
-    [regex]::Matches($robots, '(?im)^Disallow:\s*(\S+)') |
-        ForEach-Object { $_.Groups[1].Value } |
-        Where-Object { $_ -and $_ -ne '/' }
-)
-if ($blockedPaths.Count -gt 0) {
-    throw "MetaTFT robots.txt now contains blocked paths. Review before refreshing: $($blockedPaths -join ', ')"
+$siteWideBlock = Test-RobotsSiteWideBlock -RobotsText $robots -UserAgent '*'
+if ($siteWideBlock) {
+    throw 'MetaTFT robots.txt now contains a site-wide block. Review before refreshing.'
 }
 
 $clusterResponse = Get-Json -Url $ClusterInfoUrl
@@ -382,13 +382,15 @@ if (-not $compsData.results.data.cluster_details -or
 }
 
 Start-Sleep -Milliseconds 350
-$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true"
+$preferredRankFilter = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=false"
 $compsStatsUrl = $preferredCompsStatsUrl
 $compsStats = Get-Json -Url $preferredCompsStatsUrl
-if ([int]$compsStats.cluster_id -ne [int]$clusterInfo.cluster_id -or
-    [string]$compsStats.tft_set -ne [string]$clusterInfo.tft_set) {
-    throw "MetaTFT comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
-}
+Assert-MetaTftStatsContract -Stats $compsStats `
+    -ExpectedSetId ([string]$clusterInfo.tft_set) `
+    -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
+    -ExpectedRankFilter $preferredRankFilter `
+    -Context 'MetaTFT Platinum+ comps_stats'
 $requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
 $candidatePoolTarget = [Math]::Max($requiredPreferredCompositions, $CompositionLimit * 2)
 $preferredCompsStats = $compsStats
@@ -406,12 +408,16 @@ $fallbackAttempted = $preferredCoverage.qualified -lt $candidatePoolTarget
 if ($fallbackAttempted) {
     $fallbackAttempted = $true
     Start-Sleep -Milliseconds 350
-    $fallbackCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&permit_filter_adjustment=true"
+    # Omitting rank is MetaTFT's public all-rank query. `rank=ALL` is not
+    # equivalent on this endpoint, so the absence itself is part of the
+    # contract and implicit adjustment remains disabled.
+    $fallbackCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&permit_filter_adjustment=false"
     $fallbackCompsStats = Get-Json -Url $fallbackCompsStatsUrl
-    if ([int]$fallbackCompsStats.cluster_id -ne [int]$clusterInfo.cluster_id -or
-        [string]$fallbackCompsStats.tft_set -ne [string]$clusterInfo.tft_set) {
-        throw "MetaTFT fallback comps_stats does not match latest_cluster_info. Refusing a mixed-version snapshot."
-    }
+    Assert-MetaTftStatsContract -Stats $fallbackCompsStats `
+        -ExpectedSetId ([string]$clusterInfo.tft_set) `
+        -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
+        -ExpectedRankFilter '' `
+        -Context 'MetaTFT all-rank fallback comps_stats'
 }
 $rankScopeDecision = Resolve-CompositionCoveragePolicy `
     -PreferredStats $preferredCompsStats `
@@ -859,6 +865,9 @@ $snapshot = [pscustomobject][ordered]@{
         qualifiedEffectiveCompositions = $effectiveQualifiedCompositions
         fallbackAttempted = $fallbackAttempted
         fallbackReason = [string]$rankScopeDecision.reason
+        implicitFilterAdjustmentAllowed = $false
+        preferredRankFilter = $preferredRankFilter
+        fallbackRankFilter = $(if ($rankScopeDecision.useFallback) { 'ALL_RANKS_EXPLICIT' } else { '' })
     }
     disclaimer = 'Static pre-game reference only. Item ranks are correlations aggregated from complete three-item builds inside the selected composition.'
     itemStatBasis = [ordered]@{

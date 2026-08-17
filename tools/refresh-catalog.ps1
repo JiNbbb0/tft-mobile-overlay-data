@@ -10,6 +10,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.Net.Http
+. (Join-Path $PSScriptRoot 'catalog-image-policy.ps1')
 
 $RepositoryRoot = if ($RepositoryRootOverride) {
     [IO.Path]::GetFullPath($RepositoryRootOverride)
@@ -691,6 +692,19 @@ $missingImage = @(
         -not (Test-Path -LiteralPath (Join-Path $AssetRoot ([string]$_.image -replace '^tft/', '')))
     }
 )
+$referencedImagePaths = @(
+    @($champions.image) + @($champions | ForEach-Object { $_.ability.icon }) +
+    @($traits.image) + @($items.image) + @($augments.image)
+) | Where-Object { $_ } | Sort-Object -Unique
+
+# Reuse unchanged assets during generation, then remove only files that the
+# newly generated catalog no longer references. The refresh coordinator keeps
+# a complete source backup, so a later validation failure still restores the
+# previous known-good set atomically.
+if ($missingImage.Count -gt 0 -or $DownloadFailures.Count -gt 0) {
+    throw "Catalog images are incomplete; refusing to prune the previous asset set. Missing=$($missingImage.Count) Downloads=$($DownloadFailures.Count)"
+}
+$prunedImageNames = @(Remove-UnreferencedCatalogImages -ImageRoot $ImageRoot -ReferencedImagePaths $referencedImagePaths)
 $assetFiles = @(Get-ChildItem -LiteralPath $ImageRoot -File -Filter *.png)
 $badPng = [Collections.Generic.List[string]]::new()
 foreach ($file in $assetFiles) {
@@ -742,10 +756,6 @@ $invalidRecipeReferences = @(
     }
 )
 $outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })
-$referencedImagePaths = @(
-    @($champions.image) + @($champions | ForEach-Object { $_.ability.icon }) +
-    @($traits.image) + @($items.image) + @($augments.image)
-) | Where-Object { $_ } | Sort-Object -Unique
 $missingReferencedImagePaths = @(
     $referencedImagePaths | Where-Object {
         -not (Test-Path -LiteralPath (Join-Path $AssetRoot ([string]$_ -replace '^tft/', '')))
@@ -836,6 +846,7 @@ $assetReport = @"
 - 全画像参照数（スキル画像を含む）: $($referencedImagePaths.Count)
 - 実ファイルがない参照: $($missingReferencedImagePaths.Count)
 - 未参照のカタログ画像: $($unreferencedAssetFiles.Count)
+- 今回安全に削除した旧画像: $($prunedImageNames.Count)
 - ダウンロード失敗: $($DownloadFailures.Count)
 - カタログJSON: ``source/current/tft/tft_catalog.json``
 - 画像ディレクトリ: ``source/current/tft/images/``

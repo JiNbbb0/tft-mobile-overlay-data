@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: tft-data-refresh-and-pages
+  group: tft-data-publication
   cancel-in-progress: false
 
 permissions:
@@ -51,7 +51,17 @@ jobs:
       - uses: actions/checkout@v6
       - name: Verify public files
         shell: pwsh
-        run: ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+        run: |
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try {
+              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
+              exit 0
+            } catch {
+              if ($attempt -eq 6) { throw }
+              Start-Sleep -Seconds (10 * $attempt)
+            }
+          }
       - name: Write summary
         shell: pwsh
         run: |

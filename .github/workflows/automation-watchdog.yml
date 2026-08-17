@@ -1,0 +1,115 @@
+name: Watch unattended data automation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "11 * * * *"
+  workflow_run:
+    workflows: ["Refresh and publish TFT data"]
+    types: [completed]
+
+concurrency:
+  group: tft-data-publication
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pages: write
+  id-token: write
+
+env:
+  DATA_INDEX_URL: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+
+jobs:
+  inspect:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    outputs:
+      publish_required: ${{ steps.reconcile.outputs.publish_required }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Test watchdog and publication reconciliation policy
+        shell: pwsh
+        run: ./tools/test-publication-state.ps1
+
+      - name: Compare tracked publication with public Pages
+        id: reconcile
+        shell: pwsh
+        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+
+      - name: Validate tracked last-known-good site before repair
+        if: steps.reconcile.outputs.publish_required == 'true'
+        shell: pwsh
+        run: ./tools/validate-site.ps1
+
+      - name: Configure Pages repair
+        if: steps.reconcile.outputs.publish_required == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Upload tracked site for repair
+        if: steps.reconcile.outputs.publish_required == 'true'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+  repair-publication:
+    if: needs.inspect.result == 'success' && needs.inspect.outputs.publish_required == 'true'
+    needs: inspect
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Atomically redeploy tracked last-known-good site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  verify-repair:
+    if: always() && needs.inspect.result == 'success' && (needs.inspect.outputs.publish_required != 'true' || needs.repair-publication.result == 'success')
+    needs: [inspect, repair-publication]
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Verify public index, manifest, data, and sample image
+        shell: pwsh
+        run: |
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try {
+              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
+              exit 0
+            } catch {
+              if ($attempt -eq 6) { throw }
+              Start-Sleep -Seconds (10 * $attempt)
+            }
+          }
+
+  report-health:
+    if: always() && needs.inspect.result == 'success'
+    needs: [inspect, repair-publication, verify-repair]
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Recheck final public state after any repair attempt
+        id: final-reconcile
+        shell: pwsh
+        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+
+      - name: Upsert or close one sanitized automation health issue
+        shell: pwsh
+        env:
+          GH_AUTOMATION_TOKEN: ${{ github.token }}
+          PUBLIC_OUT_OF_SYNC: ${{ steps.final-reconcile.outputs.publish_required }}
+        run: |
+          $outOfSync = $env:PUBLIC_OUT_OF_SYNC -eq 'true'
+          ./tools/watch-automation-health.ps1 `
+            -Repository '${{ github.repository }}' `
+            -GitHubToken $env:GH_AUTOMATION_TOKEN `
+            -PublicOutOfSync $outOfSync

@@ -13,6 +13,7 @@ $backupRoot = Join-Path $buildRoot "source-backup"
 $failureRoot = Join-Path $buildRoot "failure-report"
 $sourceRoot = Join-Path $repositoryRoot "source/current"
 $userAgent = "TFT-Mobile-Overlay-Data/1.0 scheduled-version-check"
+. (Join-Path $PSScriptRoot 'material-publication-policy.ps1')
 
 function Set-ActionOutput([string]$Name, [string]$Value) {
     if ($env:GITHUB_OUTPUT) { Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "$Name=$Value" -Encoding UTF8 }
@@ -36,6 +37,14 @@ function Write-FailureReport([string]$Stage, [string]$Message) {
         workflowRunId = $(if ($env:GITHUB_RUN_ID) { $env:GITHUB_RUN_ID } else { "local" })
     }
     [IO.File]::WriteAllText((Join-Path $failureRoot "failure.json"), ($report | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+}
+
+function Get-SnapshotSourceTimestamp([string]$SnapshotPath) {
+    $snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $SnapshotPath | ConvertFrom-Json
+    if ($snapshot.PSObject.Properties['statsUpdatedEpochMs'] -and [int64]$snapshot.statsUpdatedEpochMs -gt 0) {
+        return [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$snapshot.statsUpdatedEpochMs).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
+    }
+    return [string]$snapshot.fetchedAtUtc
 }
 
 $stage = "detect"
@@ -77,15 +86,12 @@ try {
     if (Test-Path -LiteralPath $backupRoot) { Remove-Item -Recurse -Force -LiteralPath $backupRoot }
     Copy-Item -Recurse -Force -LiteralPath $sourceRoot -Destination $backupRoot
     $previousMetaPath = Join-Path $backupRoot "tft_static_snapshot.json"
-    $existingFingerprintProperty = if ($existingVersion) {
-        $existingVersion.PSObject.Properties['metaFingerprint']
-    } else {
-        $null
-    }
-    $previousFingerprint = if ($existingFingerprintProperty -and [string]$existingFingerprintProperty.Value) {
-        [string]$existingFingerprintProperty.Value
-    } elseif (Test-Path -LiteralPath $previousMetaPath) {
-        & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $previousMetaPath
+    $previousCatalogPath = Join-Path $backupRoot "tft/tft_catalog.json"
+    $previousContentFingerprint = if ((Test-Path -LiteralPath $previousMetaPath) -and (Test-Path -LiteralPath $previousCatalogPath)) {
+        & (Join-Path $PSScriptRoot "get-content-fingerprint.ps1") `
+            -CatalogPath $previousCatalogPath `
+            -SnapshotPath $previousMetaPath `
+            -AssetRoot $backupRoot
     } else {
         ""
     }
@@ -114,8 +120,32 @@ try {
         & (Join-Path $PSScriptRoot "refresh-static-meta.ps1")
     }
     $currentMetaPath = Join-Path $sourceRoot "tft_static_snapshot.json"
-    $metaFingerprint = & (Join-Path $PSScriptRoot "get-meta-fingerprint.ps1") -SnapshotPath $currentMetaPath
-    if (-not $Force -and $existingVersion -and $previousFingerprint -and $metaFingerprint -eq $previousFingerprint) {
+    # Publication identity covers every user-visible catalog/meta field and the
+    # bytes of referenced images. Observation timestamps and raw sample growth
+    # alone are intentionally excluded to avoid a new immutable version every
+    # 15 minutes.
+    $contentFingerprint = & (Join-Path $PSScriptRoot "get-content-fingerprint.ps1") `
+        -CatalogPath (Join-Path $sourceRoot "tft/tft_catalog.json") `
+        -SnapshotPath $currentMetaPath `
+        -AssetRoot $sourceRoot
+    $currentSourceTimestamp = Get-SnapshotSourceTimestamp $currentMetaPath
+    $publicationDecision = if ($existingVersion -and $previousContentFingerprint) {
+        Resolve-MaterialPublicationDecision `
+            -PreviousContentFingerprint $previousContentFingerprint `
+            -CurrentContentFingerprint $contentFingerprint `
+            -PreviousSourceTimestampUtc (Get-SnapshotSourceTimestamp $previousMetaPath) `
+            -CurrentSourceTimestampUtc $currentSourceTimestamp `
+            -Force:$Force
+    } else {
+        [pscustomobject][ordered]@{
+            publish = $true
+            materialChanged = $true
+            observationDue = $false
+            useObservationIdentity = $false
+            reason = 'NEW_VERSION'
+        }
+    }
+    if (-not $publicationDecision.publish) {
         Remove-Item -Recurse -Force -LiteralPath $sourceRoot
         Move-Item -LiteralPath $backupRoot -Destination $sourceRoot
         Set-ActionOutput "changed" "false"
@@ -123,9 +153,14 @@ try {
         Set-ActionOutput "result" "NO_CHANGE"
         Set-ActionOutput "detected_version" ([string]$existingVersion.id)
         Set-ActionOutput "detected_kind" ([string]$existingVersion.updateKind)
-        Write-Output "No semantic meta change: Version=$($existingVersion.id) Fingerprint=$metaFingerprint"
+        Write-Output "No material catalog/meta/image change: Version=$($existingVersion.id) Fingerprint=$contentFingerprint"
         exit 0
     }
+    $publicationFingerprint = & (Join-Path $PSScriptRoot 'get-publication-fingerprint.ps1') `
+        -ContentFingerprint $contentFingerprint `
+        -SourceTimestampUtc $currentSourceTimestamp `
+        -ObservationRefresh:$publicationDecision.useObservationIdentity
+    Write-Output "Publication decision: $($publicationDecision.reason) Content=$contentFingerprint Identity=$publicationFingerprint"
     $readiness = (Get-Content -Raw -Encoding UTF8 -LiteralPath $currentMetaPath | ConvertFrom-Json).readiness
     if (-not $readiness) { $readiness = "META_STABLE" }
     $stage = "source-manifest"
@@ -136,7 +171,7 @@ try {
     $stage = "change-summary"
     & (Join-Path $PSScriptRoot "new-change-summary.ps1") -SiteDirectory $SiteDirectory
     $stage = "publish"
-    & (Join-Path $PSScriptRoot "publish-data-history.ps1") -SiteDirectory $SiteDirectory -MetaFingerprint $metaFingerprint -Readiness $readiness
+    & (Join-Path $PSScriptRoot "publish-data-history.ps1") -SiteDirectory $SiteDirectory -MetaFingerprint $publicationFingerprint -Readiness $readiness
     $publishedIndex = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $siteRoot "data-index.json") | ConvertFrom-Json
     $publishedVersion = @($publishedIndex.versions | Where-Object { [string]$_.id -eq [string]$publishedIndex.latestVersionId }) | Select-Object -First 1
     Set-ActionOutput "detected_version" ([string]$publishedVersion.id)

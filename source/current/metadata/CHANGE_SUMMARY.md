@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-08-17T14:19:54Z
-- From: tftset17-17.9-r409-m7614d5a07b
+- Generated: 2026-08-17T14:28:02Z
+- From: tftset17-17.9-r409-m1553e150b7
 - To: TFTSet17 / patch 17.9 / revision 409
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -14,5 +14,5 @@
 | Images | 894 | 894 | - | - | 0 delta |
 
 - Tier changes: 0
-- Average-placement changes: 17
+- Average-placement changes: 14
 - Missing names/descriptions/images: 0 / 0 / 0

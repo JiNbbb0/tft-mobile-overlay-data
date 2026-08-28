@@ -48,6 +48,30 @@ if ($metaChanged) {
     Write-Output "Static-meta generator already preserves JSON array collections."
 }
 
+# New-set statistics can arrive before comp-specific augment tiers. Do not let
+# that optional metadata suppress otherwise valid composition candidates while
+# catalog-first partial mode is active; recommendedAugments can legitimately be [].
+$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+$oldAugmentGate = @'
+    if (-not $compAugmentTiers.results.PSObject.Properties[$clusterId]) {
+        continue
+    }
+'@
+$newAugmentGate = @'
+    if (-not $compAugmentTiers.results.PSObject.Properties[$clusterId] -and -not $AllowPartial) {
+        continue
+    }
+'@
+if ($metaText.Contains($newAugmentGate)) {
+    Write-Output "Partial composition candidate policy already patched."
+} elseif ($metaText.Contains($oldAugmentGate)) {
+    $metaText = $metaText.Replace($oldAugmentGate, $newAugmentGate)
+    Write-Utf8NoBom -Path $metaPath -Text $metaText
+    Write-Output "Patched partial composition policy so missing augment tiers do not hide valid comps."
+} else {
+    throw "Could not patch partial composition candidate policy in refresh-static-meta.ps1"
+}
+
 # Once a new set has been published in CATALOG_READY/META_COLLECTING state it is
 # no longer technically a never-published set, but statistics can still be absent.
 # Keep AllowPartial enabled until that set actually reaches META_STABLE.

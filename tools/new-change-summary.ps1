@@ -37,11 +37,22 @@ if (Test-Path -LiteralPath $indexPath) {
     }
 }
 
+function Get-ValidIdRecords($Records) {
+    return @(
+        foreach ($record in @($Records)) {
+            if ($record -isnot [pscustomobject]) { continue }
+            if (-not ($record.PSObject.Properties.Name -contains 'id')) { continue }
+            if ([string]::IsNullOrWhiteSpace([string]$record.id)) { continue }
+            $record
+        }
+    )
+}
+
 function Compare-Records($Current, $Previous) {
     $currentMap = @{}
-    foreach ($record in @($Current)) { $currentMap[[string]$record.id] = $record }
+    foreach ($record in @(Get-ValidIdRecords $Current)) { $currentMap[[string]$record.id] = $record }
     $previousMap = @{}
-    foreach ($record in @($Previous)) { $previousMap[[string]$record.id] = $record }
+    foreach ($record in @(Get-ValidIdRecords $Previous)) { $previousMap[[string]$record.id] = $record }
     $added = @($currentMap.Keys | Where-Object { -not $previousMap.ContainsKey($_) } | Sort-Object)
     $removed = @($previousMap.Keys | Where-Object { -not $currentMap.ContainsKey($_) } | Sort-Object)
     $changed = @(
@@ -55,17 +66,19 @@ function Compare-Records($Current, $Previous) {
 
 $previousCatalogSafe = if ($previousCatalog) { $previousCatalog } else { [pscustomobject]@{ champions=@(); traits=@(); items=@(); augments=@() } }
 $previousMetaSafe = if ($previousMeta) { $previousMeta } else { [pscustomobject]@{ compositions=@() } }
+$currentCompositions = @(Get-ValidIdRecords $currentMeta.compositions)
+$previousCompositionRecords = @(Get-ValidIdRecords $previousMetaSafe.compositions)
 $champions = Compare-Records $currentCatalog.champions $previousCatalogSafe.champions
 $traits = Compare-Records $currentCatalog.traits $previousCatalogSafe.traits
 $items = Compare-Records $currentCatalog.items $previousCatalogSafe.items
 $augments = Compare-Records $currentCatalog.augments $previousCatalogSafe.augments
-$compositions = Compare-Records $currentMeta.compositions $previousMetaSafe.compositions
+$compositions = Compare-Records $currentCompositions $previousCompositionRecords
 
 $previousCompositions = @{}
-foreach ($composition in @($previousMetaSafe.compositions)) { $previousCompositions[[string]$composition.id] = $composition }
+foreach ($composition in $previousCompositionRecords) { $previousCompositions[[string]$composition.id] = $composition }
 $tierChanges = @()
 $placementChanges = @()
-foreach ($composition in @($currentMeta.compositions)) {
+foreach ($composition in $currentCompositions) {
     $before = $previousCompositions[[string]$composition.id]
     if (-not $before) { continue }
     if ([string]$before.tier -ne [string]$composition.tier) {
@@ -108,7 +121,7 @@ $counts = [ordered]@{
     traits = [ordered]@{ previous=@($previousCatalogSafe.traits).Count; current=@($currentCatalog.traits).Count }
     items = [ordered]@{ previous=@($previousCatalogSafe.items).Count; current=@($currentCatalog.items).Count }
     augments = [ordered]@{ previous=@($previousCatalogSafe.augments).Count; current=@($currentCatalog.augments).Count }
-    compositions = [ordered]@{ previous=@($previousMetaSafe.compositions).Count; current=@($currentMeta.compositions).Count }
+    compositions = [ordered]@{ previous=$previousCompositionRecords.Count; current=$currentCompositions.Count }
     images = [ordered]@{ previous=$(if ($previousManifest) { @($previousManifest.files | Where-Object { [string]$_.path -match '^tft/images/' }).Count } else { 0 }); current=@(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "source/current/tft/images") -File).Count }
 }
 

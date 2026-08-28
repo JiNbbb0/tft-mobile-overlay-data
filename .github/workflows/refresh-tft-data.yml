@@ -2,6 +2,12 @@ name: Refresh and publish TFT data
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/**"
+      - ".github/workflows/refresh-tft-data.yml"
   schedule:
     - cron: "7,22,37,52 * * * *"
 

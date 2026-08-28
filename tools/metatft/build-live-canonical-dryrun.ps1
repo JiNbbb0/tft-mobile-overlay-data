@@ -35,6 +35,11 @@ function Get-LooseItemKey([string]$ItemId) {
     if (-not $ItemId) { return '' }
     return (($ItemId -replace '^(?:TFT\d*_Item_|TFT_Item_|DA_)', '').ToLowerInvariant())
 }
+function Get-ItemNameKey([string]$Name) {
+    if (-not $Name) { return '' }
+    $normalized = $Name.Normalize([Text.NormalizationForm]::FormKC).Trim().ToLowerInvariant()
+    return [regex]::Replace($normalized, '[\p{P}\p{Z}\s]+', '')
+}
 
 $robots = Get-PublicText -Url 'https://www.metatft.com/robots.txt'
 if (Test-RobotsSiteWideBlock -RobotsText $robots -UserAgent '*') {
@@ -48,27 +53,72 @@ foreach ($champion in @($catalog.champions)) { if ($champion.id) { $catalogChamp
 $catalogItemIds = @{}
 $catalogItemLoose = @{}
 $ambiguousLoose = @{}
+$catalogItemByName = @{}
+$ambiguousNames = @{}
 foreach ($item in @($catalog.items)) {
     $id = [string]$item.id
     if (-not $id) { continue }
     $catalogItemIds[$id] = $true
+
     $key = Get-LooseItemKey -ItemId $id
-    if (-not $key) { continue }
-    if ($catalogItemLoose.ContainsKey($key) -and [string]$catalogItemLoose[$key] -ne $id) {
-        $ambiguousLoose[$key] = $true
-    } elseif (-not $catalogItemLoose.ContainsKey($key)) {
-        $catalogItemLoose[$key] = $id
+    if ($key) {
+        if ($catalogItemLoose.ContainsKey($key) -and [string]$catalogItemLoose[$key] -ne $id) {
+            $ambiguousLoose[$key] = $true
+        } elseif (-not $catalogItemLoose.ContainsKey($key)) {
+            $catalogItemLoose[$key] = $id
+        }
+    }
+
+    foreach ($nameValue in @([string]$item.nameJa, [string]$item.nameEn)) {
+        $nameKey = Get-ItemNameKey -Name $nameValue
+        if (-not $nameKey) { continue }
+        if ($catalogItemByName.ContainsKey($nameKey) -and [string]$catalogItemByName[$nameKey] -ne $id) {
+            $ambiguousNames[$nameKey] = $true
+        } elseif (-not $catalogItemByName.ContainsKey($nameKey)) {
+            $catalogItemByName[$nameKey] = $id
+        }
     }
 }
 foreach ($key in @($ambiguousLoose.Keys)) { $catalogItemLoose.Remove([string]$key) }
+foreach ($key in @($ambiguousNames.Keys)) { $catalogItemByName.Remove([string]$key) }
 $catalogAugmentIds = @{}
 foreach ($augment in @($catalog.augments)) { if ($augment.id) { $catalogAugmentIds[[string]$augment.id] = $true } }
+$sourceItemNamesById = @{}
+
+function Add-SourceItemNames($SourceItems) {
+    foreach ($sourceItem in @($SourceItems)) {
+        $sourceId = [string]$sourceItem.apiName
+        $sourceName = [string]$sourceItem.name
+        if (-not $sourceId -or -not $sourceName) { continue }
+        if (-not $sourceItemNamesById.ContainsKey($sourceId)) {
+            $sourceItemNamesById[$sourceId] = [Collections.Generic.List[string]]::new()
+        }
+        $nameList = $sourceItemNamesById[$sourceId]
+        if (-not $nameList.Contains($sourceName)) { $nameList.Add($sourceName) }
+    }
+}
 
 function Resolve-CanonicalItemId([string]$RawId) {
     if (-not $RawId) { return '' }
     if ($catalogItemIds.ContainsKey($RawId)) { return $RawId }
+
     $key = Get-LooseItemKey -ItemId $RawId
     if ($key -and $catalogItemLoose.ContainsKey($key)) { return [string]$catalogItemLoose[$key] }
+
+    if ($sourceItemNamesById.ContainsKey($RawId)) {
+        $resolvedByName = @(
+            foreach ($sourceName in @($sourceItemNamesById[$RawId])) {
+                $nameKey = Get-ItemNameKey -Name ([string]$sourceName)
+                if ($nameKey -and $catalogItemByName.ContainsKey($nameKey)) {
+                    [string]$catalogItemByName[$nameKey]
+                }
+            }
+        ) | Select-Object -Unique
+        if ($resolvedByName.Count -eq 1) { return [string]$resolvedByName[0] }
+        if ($resolvedByName.Count -gt 1) {
+            throw "AMBIGUOUS_ITEM_NAME_MAPPING raw=$RawId candidates=$($resolvedByName -join ',')"
+        }
+    }
     return $RawId
 }
 
@@ -79,6 +129,17 @@ $clusterId = [int]$cluster.cluster_id
 if ([string]$catalog.set.id -ne [string]$cluster.tft_set) {
     throw "CATALOG_SET_MISMATCH catalog=$($catalog.set.id) live=$($cluster.tft_set)"
 }
+
+# MetaTFT and CommunityDragon can expose semantically identical items under
+# different API namespaces (for example DA_* versus TFT_Item_*). Use exact ID,
+# then an unambiguous loose ID key, then an unambiguous localized/English name.
+# Name matching is unique-only: ambiguous names fail instead of guessing.
+Start-Sleep -Milliseconds 350
+$communityDragonJa = Get-PublicJson -Url 'https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json'
+Start-Sleep -Milliseconds 350
+$communityDragonEn = Get-PublicJson -Url 'https://raw.communitydragon.org/latest/cdragon/tft/en_us.json'
+Add-SourceItemNames -SourceItems $communityDragonJa.items
+Add-SourceItemNames -SourceItems $communityDragonEn.items
 
 Start-Sleep -Milliseconds 350
 $compsData = Get-PublicJson -Url 'https://api-hc.metatft.com/tft-comps-api/comps_data'
@@ -108,6 +169,7 @@ if ($selected.Count -lt $CompositionLimit) {
     throw "PLATINUM_PLUS_COVERAGE_INSUFFICIENT required=$CompositionLimit actual=$($selected.Count) minimumSamples=$MinimumSamples"
 }
 
+$resolvedAliasRows = [Collections.Generic.List[object]]::new()
 $compositions = [Collections.Generic.List[object]]::new()
 foreach ($composition in $selected) {
     $compositionId = [string]$composition.id
@@ -136,7 +198,11 @@ foreach ($composition in $selected) {
     )
     $canonicalItemIdMap = @{}
     foreach ($rawItemId in $rawItemIds) {
-        $canonicalItemIdMap[$rawItemId] = Resolve-CanonicalItemId -RawId $rawItemId
+        $canonicalItemId = Resolve-CanonicalItemId -RawId $rawItemId
+        $canonicalItemIdMap[$rawItemId] = $canonicalItemId
+        if ($canonicalItemId -ne $rawItemId) {
+            $resolvedAliasRows.Add([pscustomobject][ordered]@{ raw = $rawItemId; canonical = $canonicalItemId })
+        }
     }
 
     $unitItemData = [Collections.Generic.List[object]]::new()
@@ -207,6 +273,7 @@ $result = [pscustomobject][ordered]@{
         permitFilterAdjustment = $false
         allRankFallbackAllowed = $false
     }
+    itemIdAliases = @($resolvedAliasRows.ToArray() | Sort-Object raw, canonical -Unique)
     compositions = @($compositions)
 }
 
@@ -215,4 +282,4 @@ $result = [pscustomobject][ordered]@{
     (($result | ConvertTo-Json -Depth 30).Replace("`r`n", "`n") + "`n"),
     [Text.UTF8Encoding]::new($false)
 )
-Write-Output "Canonical v2 live dry-run built: Set=$($result.set.id) Cluster=$clusterId Compositions=$($compositions.Count) Output=$resolvedOutput"
+Write-Output "Canonical v2 live dry-run built: Set=$($result.set.id) Cluster=$clusterId Compositions=$($compositions.Count) ItemAliases=$(@($result.itemIdAliases).Count) Output=$resolvedOutput"

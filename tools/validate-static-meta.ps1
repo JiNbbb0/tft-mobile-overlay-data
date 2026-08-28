@@ -37,7 +37,7 @@ if (-not $snapshot.setId) { throw "Missing setId" }
 if (-not $snapshot.sources.compositionItemBuilds) { throw "Missing composition item source" }
 if (-not $snapshot.sources.compositionDetails) { throw "Missing composition details source" }
 if (-not $snapshot.sources.compositionAugmentTiers) { throw "Missing composition augment source" }
-if ([int]$snapshot.itemStatBasis.buildSize -ne 3) { throw "Unexpected item stat build size" }
+if ([int]$snapshot.itemStatBasis.buildSize -ne 3) { throw "Unexpected static meta build size" }
 if ($snapshot.PSObject.Properties['statisticsScope']) {
     $scope = $snapshot.statisticsScope
     if ([string]$scope.preferred -ne 'PLATINUM_PLUS') { throw "Unexpected preferred rank scope" }
@@ -50,7 +50,9 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
     if ([bool]$scope.fallbackAttempted -and -not $scope.fallbackReason) { throw "Rank fallback reason missing" }
 }
 
-$compositions = @($snapshot.compositions)
+# ConvertFrom-Json can surface a JSON null composition value as a pipeline
+# placeholder. Only real composition objects belong in the validation list.
+$compositions = @($snapshot.compositions | Where-Object { $_ -is [pscustomobject] })
 $readiness = if ($snapshot.PSObject.Properties['readiness']) { [string]$snapshot.readiness } else { 'META_STABLE' }
 $isPartial = $readiness -in @('CATALOG_READY', 'META_COLLECTING')
 if (-not $isPartial -and $compositions.Count -lt 18) { throw "Expected at least 18 compositions, found $($compositions.Count)" }
@@ -204,7 +206,7 @@ foreach ($composition in $compositions) {
                 }
                 $itemCatalogEntry = $catalogEntries[$buildItem.itemId]
                 if (-not $itemCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $itemCatalogEntry.image))) {
-                    throw "Best-build item image missing: $($composition.id)/$($unit.id)/$($buildItem.itemId)"
+                    throw "Best-build item image missing: $($composition.id)/$($unit.id)/$($stat.itemId)"
                 }
             }
             if ([int]$stat.sampleCount -ge 250) {

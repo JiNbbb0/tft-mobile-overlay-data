@@ -107,13 +107,15 @@ function Resolve-CanonicalItemId([string]$RawId) {
 
     if ($sourceItemNamesById.ContainsKey($RawId)) {
         $resolvedByName = @(
-            foreach ($sourceName in @($sourceItemNamesById[$RawId])) {
-                $nameKey = Get-ItemNameKey -Name ([string]$sourceName)
-                if ($nameKey -and $catalogItemByName.ContainsKey($nameKey)) {
-                    [string]$catalogItemByName[$nameKey]
+            @(
+                foreach ($sourceName in @($sourceItemNamesById[$RawId])) {
+                    $nameKey = Get-ItemNameKey -Name ([string]$sourceName)
+                    if ($nameKey -and $catalogItemByName.ContainsKey($nameKey)) {
+                        [string]$catalogItemByName[$nameKey]
+                    }
                 }
-            }
-        ) | Select-Object -Unique
+            ) | Select-Object -Unique
+        )
         if ($resolvedByName.Count -eq 1) { return [string]$resolvedByName[0] }
         if ($resolvedByName.Count -gt 1) {
             throw "AMBIGUOUS_ITEM_NAME_MAPPING raw=$RawId candidates=$($resolvedByName -join ',')"

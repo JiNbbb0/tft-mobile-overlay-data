@@ -96,10 +96,6 @@ function Stop-AsSourceNotReady {
     exit 0
 }
 
-# MetaTFT can announce a new live set slightly before CommunityDragon's localized
-# catalog export has converged. Publishing during that window can produce an
-# empty/partial catalog. Gate only catalog readiness here; statistics readiness
-# remains handled by refresh-live-data.ps1 (catalog-first for a never-published set).
 $clusterResponse = Get-WebText "https://api-hc.metatft.com/tft-comps-api/latest_cluster_info" | ConvertFrom-Json
 $cluster = $clusterResponse.cluster_info
 if (-not $cluster -or -not $cluster.cluster_id -or -not $cluster.tft_set -or [string]$cluster.state -ne "published" -or [bool]$cluster.is_failed -or [bool]$cluster.is_deleted) {
@@ -125,6 +121,28 @@ $jaSampleApiNames = @($jaRawChampions | Select-Object -First 12 | ForEach-Object
 $enSampleApiNames = @($enRawChampions | Select-Object -First 12 | ForEach-Object { [string](Get-ObjectPropertyValue -Object $_ -Name 'apiName') })
 Write-Output "CommunityDragon probe: Set=$setId Number=$setNumber RawChampions ja=$($jaRawChampions.Count)/en=$($enRawChampions.Count) JA sample=$($jaSampleApiNames -join ',') EN sample=$($enSampleApiNames -join ',')"
 
+if ($setNumber -eq 18) {
+    try {
+        $raw = Get-WebText "https://raw.communitydragon.org/latest/game/characters/da_18_ahri.cdtb.bin.json" | ConvertFrom-Json
+        $recProperty = @($raw.PSObject.Properties | Where-Object { $_.Name -match 'CharacterRecords/Root$' }) | Select-Object -First 1
+        if ($recProperty) {
+            Write-Output "Set18 raw Ahri record key=$($recProperty.Name)"
+            Write-Output "Set18 raw Ahri record=$($recProperty.Value | ConvertTo-Json -Depth 6 -Compress)"
+        }
+        $map22 = Get-WebText "https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json" | ConvertFrom-Json
+        $shopRows = @(
+            $map22.PSObject.Properties |
+                Where-Object { $_.Name -match 'Sets/TFTSet18/Shop/' -and $_.Value -and $_.Value.mName } |
+                Select-Object -First 3
+        )
+        foreach ($row in $shopRows) {
+            Write-Output "Set18 shop sample key=$($row.Name) value=$($row.Value | ConvertTo-Json -Depth 5 -Compress)"
+        }
+    } catch {
+        Write-Warning "Set18 raw diagnostic failed: $($_.Exception.Message)"
+    }
+}
+
 $jaPrefixed = @(Get-PrefixedChampions -SetData $setJa -SetNumber $setNumber)
 $enPrefixed = @(Get-PrefixedChampions -SetData $setEn -SetNumber $setNumber)
 $jaPlayable = @(Get-PlayableChampions -SetData $setJa -SetNumber $setNumber)
@@ -143,9 +161,6 @@ if ($jaPrefixed.Count -lt $minimumChampions -or $enPrefixed.Count -lt $minimumCh
     Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "champion roster is still partial (ja=$($jaPrefixed.Count), en=$($enPrefixed.Count), minimum=$minimumChampions)"
 }
 
-# Once the full-looking roster exists, a large gap between prefixed and usable
-# champions is more likely a schema break than normal rollout lag. Fail loudly
-# instead of hiding a parser regression as an indefinitely pending source.
 $minimumUsable = [Math]::Floor([Math]::Min($jaPrefixed.Count, $enPrefixed.Count) * 0.90)
 if ($jaPlayable.Count -lt $minimumUsable -or $enPlayable.Count -lt $minimumUsable) {
     throw "CommunityDragon champion schema is incomplete or unsupported for ${setId}: prefixed ja=$($jaPrefixed.Count)/en=$($enPrefixed.Count), usable ja=$($jaPlayable.Count)/en=$($enPlayable.Count), required=$minimumUsable"

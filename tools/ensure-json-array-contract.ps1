@@ -49,9 +49,10 @@ $oldPolicy = @'
     }
 '@
 $newPolicy = @'
-    $isNewSet = -not $existingSetVersion
-    $existingSetReadiness = if ($existingSetVersion -and $existingSetVersion.PSObject.Properties['readiness']) {
-        [string]$existingSetVersion.readiness
+    $existingSetVersionRecord = @($existingSetVersion) | Select-Object -First 1
+    $isNewSet = -not $existingSetVersionRecord
+    $existingSetReadiness = if ($existingSetVersionRecord -and $existingSetVersionRecord.PSObject.Properties['readiness']) {
+        [string]$existingSetVersionRecord.readiness
     } else {
         ''
     }

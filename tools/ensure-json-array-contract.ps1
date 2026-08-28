@@ -72,6 +72,44 @@ if ($metaText.Contains($newAugmentGate)) {
     throw "Could not patch partial composition candidate policy in refresh-static-meta.ps1"
 }
 
+# A full list of 18 compositions is not META_STABLE if the upstream source has
+# not published composition-specific augment recommendations yet. Keep the
+# snapshot in META_COLLECTING so clients can use comps while quality gates remain.
+$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+$oldReadiness = @'
+$readiness = if (@($compositions).Count -eq 0) {
+    'META_COLLECTING'
+} elseif (@($compositions).Count -lt $requiredPreferredCompositions) {
+    'META_COLLECTING'
+} else {
+    'META_STABLE'
+}
+'@
+$newReadiness = @'
+$hasIncompleteCompositionMetadata = @(
+    @($compositions) | Where-Object { @($_.recommendedAugments).Count -eq 0 }
+).Count -gt 0
+$readiness = if (@($compositions).Count -eq 0) {
+    'META_COLLECTING'
+} elseif (@($compositions).Count -lt $requiredPreferredCompositions) {
+    'META_COLLECTING'
+} elseif ($hasIncompleteCompositionMetadata) {
+    'META_COLLECTING'
+} else {
+    'META_STABLE'
+}
+'@
+$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+if ($metaText.Contains($newReadiness)) {
+    Write-Output "Composition metadata readiness policy already patched."
+} elseif ($metaText.Contains($oldReadiness)) {
+    $metaText = $metaText.Replace($oldReadiness, $newReadiness)
+    Write-Utf8NoBom -Path $metaPath -Text $metaText
+    Write-Output "Patched readiness so missing comp augment metadata remains META_COLLECTING."
+} else {
+    throw "Could not patch composition metadata readiness policy in refresh-static-meta.ps1"
+}
+
 # Validation must accept empty comp-specific augment recommendations only while
 # the new set is explicitly in partial readiness. All other composition fields
 # remain fully validated, and META_STABLE still requires augment recommendations.

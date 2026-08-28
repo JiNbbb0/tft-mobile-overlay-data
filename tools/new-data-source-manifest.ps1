@@ -54,12 +54,16 @@ function Get-ObservationAggregate {
 $catalogCount = @($catalog.champions).Count + @($catalog.traits).Count + @($catalog.items).Count + @($catalog.augments).Count
 $itemStatCount = @(
     foreach ($composition in @($meta.compositions)) {
+        if ($null -eq $composition) { continue }
         $unitsProperty = $composition.PSObject.Properties['units']
         if (-not $unitsProperty) { continue }
         foreach ($unit in @($unitsProperty.Value)) {
+            if ($null -eq $unit) { continue }
             $itemStatsProperty = $unit.PSObject.Properties['itemStats']
             if (-not $itemStatsProperty) { continue }
-            foreach ($itemStat in @($itemStatsProperty.Value)) { $itemStat }
+            foreach ($itemStat in @($itemStatsProperty.Value)) {
+                if ($null -ne $itemStat) { $itemStat }
+            }
         }
     }
 ).Count

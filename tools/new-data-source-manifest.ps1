@@ -52,21 +52,16 @@ function Get-ObservationAggregate {
 }
 
 $catalogCount = @($catalog.champions).Count + @($catalog.traits).Count + @($catalog.items).Count + @($catalog.augments).Count
-$itemStatCount = @(
-    foreach ($composition in @($meta.compositions)) {
-        if ($null -eq $composition) { continue }
-        $unitsProperty = $composition.PSObject.Properties['units']
-        if (-not $unitsProperty) { continue }
-        foreach ($unit in @($unitsProperty.Value)) {
-            if ($null -eq $unit) { continue }
-            $itemStatsProperty = $unit.PSObject.Properties['itemStats']
-            if (-not $itemStatsProperty) { continue }
-            foreach ($itemStat in @($itemStatsProperty.Value)) {
-                if ($null -ne $itemStat) { $itemStat }
-            }
-        }
+$itemStatCount = 0
+foreach ($composition in @($meta.compositions)) {
+    if ($composition -isnot [pscustomobject]) { continue }
+    if (-not ($composition.PSObject.Properties.Name -contains 'units')) { continue }
+    foreach ($unit in @($composition.units)) {
+        if ($unit -isnot [pscustomobject]) { continue }
+        if (-not ($unit.PSObject.Properties.Name -contains 'itemStats')) { continue }
+        $itemStatCount += @($unit.itemStats).Count
     }
-).Count
+}
 $imageCount = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "source/current/tft/images") -File).Count
 $definitions = @(
     [ordered]@{ sourceName = "Riot TFT patch notes"; sourceUrl = [string]$catalog.sources.riotPatch; terms = "Riot website terms and Riot Legal Notices"; count = 1; fallback = $catalogPath },
@@ -75,10 +70,10 @@ $definitions = @(
     [ordered]@{ sourceName = "CommunityDragon image assets"; sourceUrl = "https://raw.communitydragon.org/latest/game/"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"; count = $imageCount; fallback = $catalogPath },
     [ordered]@{ sourceName = "MetaTFT cluster information"; sourceUrl = [string]$meta.sources.clusterInfo; terms = "Public endpoint; availability and terms must be monitored"; count = 1; fallback = $metaPath },
     [ordered]@{ sourceName = "MetaTFT augment tiers"; sourceUrl = [string]$meta.sources.augmentTiers; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.augments).Count; fallback = $metaPath },
-    [ordered]@{ sourceName = "MetaTFT composition statistics"; sourceUrl = [string]$meta.sources.compositionStats; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions).Count; fallback = $metaPath },
+    [ordered]@{ sourceName = "MetaTFT composition statistics"; sourceUrl = [string]$meta.sources.compositionStats; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count; fallback = $metaPath },
     [ordered]@{ sourceName = "MetaTFT composition item builds"; sourceUrl = [string]$meta.sources.compositionItemBuilds; terms = "Public endpoint; availability and terms must be monitored"; count = $itemStatCount; fallback = $metaPath },
-    [ordered]@{ sourceName = "MetaTFT composition augment tiers"; sourceUrl = [string]$meta.sources.compositionAugmentTiers; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions).Count; fallback = $metaPath },
-    [ordered]@{ sourceName = "MetaTFT composition details"; sourceUrl = [string]$meta.sources.compositionDetails; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions).Count; fallback = $metaPath }
+    [ordered]@{ sourceName = "MetaTFT composition augment tiers"; sourceUrl = [string]$meta.sources.compositionAugmentTiers; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count; fallback = $metaPath },
+    [ordered]@{ sourceName = "MetaTFT composition details"; sourceUrl = [string]$meta.sources.compositionDetails; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count; fallback = $metaPath }
 )
 
 $sourceRecords = foreach ($definition in $definitions) {

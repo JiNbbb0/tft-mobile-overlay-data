@@ -14,6 +14,13 @@ function Test-TftSharedItemFamily {
     return $Id -match '(?i)(^TFT_Item_|Artifact|Ornn|Radiant|Support|Emblem|Spatula|FryingPan)'
 }
 
+function Get-TftExplicitItemSetNumber {
+    param([Parameter(Mandatory = $true)][string]$Id)
+    if ($Id -match '^TFT(\d+)_') { return [int]$Matches[1] }
+    if ($Id -match '^DA_(\d+)_') { return [int]$Matches[1] }
+    return $null
+}
+
 function Get-TftCurrentSetUniverse {
     param(
         [Parameter(Mandatory = $true)][int]$SetNumber,
@@ -32,6 +39,19 @@ function Get-TftCurrentSetUniverse {
         if ($id) { [void]$seedIds.Add([string]$id) }
     }
 
+    # CommunityDragon setData.items is not exhaustive for every equipable item.
+    # In particular, modern sets can expose emblems and augment-granted special
+    # items under explicit current-set namespaces such as DA_18_* without
+    # listing them in setData.items. Seed every explicit current-set identity so
+    # valid live statistics are not lost merely because the setData list lags.
+    foreach ($idValue in @($itemById.Keys)) {
+        $id = [string]$idValue
+        $explicitSetNumber = Get-TftExplicitItemSetNumber -Id $id
+        if ($null -ne $explicitSetNumber -and [int]$explicitSetNumber -eq $SetNumber) {
+            [void]$seedIds.Add($id)
+        }
+    }
+
     $included = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $excluded = [Collections.Generic.List[object]]::new()
     $queue = [Collections.Generic.Queue[string]]::new()
@@ -44,11 +64,8 @@ function Get-TftCurrentSetUniverse {
             continue
         }
 
-        $otherSet = $false
-        if ($id -match '^TFT(\d+)_') {
-            $sourceSet = [int]$Matches[1]
-            $otherSet = $sourceSet -ne $SetNumber
-        }
+        $sourceSet = Get-TftExplicitItemSetNumber -Id $id
+        $otherSet = $null -ne $sourceSet -and [int]$sourceSet -ne $SetNumber
         if ($otherSet -and -not (Test-TftSharedItemFamily -Id $id)) {
             $excluded.Add([pscustomobject][ordered]@{ id = $id; reason = 'OTHER_SET_ONLY' })
             continue

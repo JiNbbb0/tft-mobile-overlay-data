@@ -64,7 +64,12 @@ jobs:
       - name: Detect, generate, validate, and stage a new version
         id: refresh
         shell: pwsh
-        run: ./tools/refresh-live-data-gated.ps1
+        run: |
+          if (Test-Path -LiteralPath "build/force-json-contract-repair.flag") {
+            ./tools/refresh-live-data-gated.ps1 -Force
+          } else {
+            ./tools/refresh-live-data-gated.ps1
+          }
 
       - name: Validate complete site
         if: success()

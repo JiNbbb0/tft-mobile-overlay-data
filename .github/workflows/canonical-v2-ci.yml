@@ -21,6 +21,12 @@ jobs:
       - name: Typed display value resolver
         shell: pwsh
         run: ./tools/test-display-value-resolver.ps1
+      - name: Current-set item universe
+        shell: pwsh
+        run: ./tools/test-current-set-universe.ps1
+      - name: Trait-to-emblem mapping
+        shell: pwsh
+        run: ./tools/test-emblem-mapping.ps1
       - name: Existing cross-source ID policy
         shell: pwsh
         run: ./tools/test-id-compatibility-policy.ps1

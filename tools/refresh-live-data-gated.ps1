@@ -119,6 +119,12 @@ if (-not $setJa -or -not $setEn) {
 
 $setNumberValue = Get-ObjectPropertyValue -Object $setJa -Name 'number'
 $setNumber = if ($setNumberValue) { [int]$setNumberValue } else { [int]($setId -replace '\D','') }
+$jaRawChampions = @((Get-ObjectPropertyValue -Object $setJa -Name 'champions'))
+$enRawChampions = @((Get-ObjectPropertyValue -Object $setEn -Name 'champions'))
+$jaSampleApiNames = @($jaRawChampions | Select-Object -First 12 | ForEach-Object { [string](Get-ObjectPropertyValue -Object $_ -Name 'apiName') })
+$enSampleApiNames = @($enRawChampions | Select-Object -First 12 | ForEach-Object { [string](Get-ObjectPropertyValue -Object $_ -Name 'apiName') })
+Write-Output "CommunityDragon probe: Set=$setId Number=$setNumber RawChampions ja=$($jaRawChampions.Count)/en=$($enRawChampions.Count) JA sample=$($jaSampleApiNames -join ',') EN sample=$($enSampleApiNames -join ',')"
+
 $jaPrefixed = @(Get-PrefixedChampions -SetData $setJa -SetNumber $setNumber)
 $enPrefixed = @(Get-PrefixedChampions -SetData $setEn -SetNumber $setNumber)
 $jaPlayable = @(Get-PlayableChampions -SetData $setJa -SetNumber $setNumber)

@@ -16,8 +16,8 @@ function Convert-MetaTftUnitItemData {
         return $RawId
     }
 
-    # `recommended` is source-defined only. We preserve MetaTFT's composition
-    # overview build ordering and never replace it with an independently
+    # `recommended` is source-defined only. Preserve the order exposed by the
+    # MetaTFT composition overview; never replace it with an independently
     # calculated average-placement ranking.
     $recommended = [Collections.Generic.List[object]]::new()
     $recommendedRows = @(
@@ -74,30 +74,34 @@ function Convert-MetaTftUnitItemData {
         }
     }
 
+    $correlationRows = [Collections.Generic.List[object]]::new()
+    foreach ($itemId in $aggregate.Keys) {
+        $row = $aggregate[$itemId]
+        if ([int]$row.sampleCount -lt $MinimumCorrelationSamples) { continue }
+        $correlationRows.Add([pscustomobject][ordered]@{
+            itemId = [string]$itemId
+            averagePlacement = [Math]::Round(([double]$row.weightedPlacement / [int]$row.sampleCount), 4)
+            sampleCount = [int]$row.sampleCount
+            source = 'DERIVED_FROM_METATFT_COMPLETE_THREE_ITEM_BUILDS'
+            isRecommendation = $false
+        })
+    }
     $correlations = @(
-        foreach ($itemId in $aggregate.Keys) {
-            $row = $aggregate[$itemId]
-            if ([int]$row.sampleCount -lt $MinimumCorrelationSamples) { continue }
-            [pscustomobject][ordered]@{
-                itemId = [string]$itemId
-                averagePlacement = [Math]::Round(([double]$row.weightedPlacement / [int]$row.sampleCount), 4)
-                sampleCount = [int]$row.sampleCount
-                source = 'DERIVED_FROM_METATFT_COMPLETE_THREE_ITEM_BUILDS'
-                isRecommendation = $false
-            }
-        } |
+        $correlationRows.ToArray() |
             Sort-Object averagePlacement, @{ Expression = { -[int]$_.sampleCount } }, itemId
     )
 
+    $popularityRows = [Collections.Generic.List[object]]::new()
+    foreach ($itemId in $aggregate.Keys) {
+        $popularityRows.Add([pscustomobject][ordered]@{
+            itemId = [string]$itemId
+            sampleCount = [int]$aggregate[$itemId].sampleCount
+            source = 'DERIVED_FROM_METATFT_COMPLETE_THREE_ITEM_BUILDS'
+            isRecommendation = $false
+        })
+    }
     $derivedPopularity = @(
-        foreach ($itemId in $aggregate.Keys) {
-            [pscustomobject][ordered]@{
-                itemId = [string]$itemId
-                sampleCount = [int]$aggregate[$itemId].sampleCount
-                source = 'DERIVED_FROM_METATFT_COMPLETE_THREE_ITEM_BUILDS'
-                isRecommendation = $false
-            }
-        } |
+        $popularityRows.ToArray() |
             Sort-Object @{ Expression = { -[int]$_.sampleCount } }, itemId
     )
 

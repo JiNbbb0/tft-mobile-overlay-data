@@ -72,6 +72,148 @@ if ($metaText.Contains($newAugmentGate)) {
     throw "Could not patch partial composition candidate policy in refresh-static-meta.ps1"
 }
 
+# MetaTFT/CommunityDragon may expose current-set standard item IDs under DA_*
+# while the local catalog uses canonical TFT_Item_* IDs. Normalize all comp item
+# references before publication so app lookups, images, and validation use the
+# same canonical ID namespace.
+$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+$oldItemMapBlock = @'
+$itemMap = @{}
+foreach ($item in $communityDragon.items) {
+    if ($item.apiName -and $item.name) {
+        $itemMap[[string]$item.apiName] = $item
+    }
+}
+'@
+$newItemMapBlock = @'
+$itemMap = @{}
+foreach ($item in $communityDragon.items) {
+    if ($item.apiName -and $item.name) {
+        $itemMap[[string]$item.apiName] = $item
+    }
+}
+
+$catalogPathForItemIds = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
+$catalogForItemIds = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPathForItemIds | ConvertFrom-Json
+$catalogItemIds = @{}
+$catalogItemIdByLooseKey = @{}
+$catalogItemIdByName = @{}
+foreach ($catalogItem in @($catalogForItemIds.items)) {
+    $catalogItemId = [string]$catalogItem.id
+    if (-not $catalogItemId) { continue }
+    $catalogItemIds[$catalogItemId] = $true
+    $looseKey = ($catalogItemId -replace '^(?:TFT\d*_Item_|TFT_Item_|DA_)', '').ToLowerInvariant()
+    if ($looseKey -and -not $catalogItemIdByLooseKey.ContainsKey($looseKey)) {
+        $catalogItemIdByLooseKey[$looseKey] = $catalogItemId
+    }
+    foreach ($catalogName in @([string]$catalogItem.nameJa, [string]$catalogItem.nameEn)) {
+        $nameKey = $catalogName.Trim().ToLowerInvariant()
+        if ($nameKey -and -not $catalogItemIdByName.ContainsKey($nameKey)) {
+            $catalogItemIdByName[$nameKey] = $catalogItemId
+        }
+    }
+}
+function Resolve-CatalogItemId {
+    param([Parameter(Mandatory = $true)][string]$ItemId)
+    if ($catalogItemIds.ContainsKey($ItemId)) { return $ItemId }
+    $looseKey = ($ItemId -replace '^(?:TFT\d*_Item_|TFT_Item_|DA_)', '').ToLowerInvariant()
+    if ($looseKey -and $catalogItemIdByLooseKey.ContainsKey($looseKey)) {
+        return [string]$catalogItemIdByLooseKey[$looseKey]
+    }
+    if ($itemMap.ContainsKey($ItemId)) {
+        $sourceName = [string]$itemMap[$ItemId].name
+        $nameKey = $sourceName.Trim().ToLowerInvariant()
+        if ($nameKey -and $catalogItemIdByName.ContainsKey($nameKey)) {
+            return [string]$catalogItemIdByName[$nameKey]
+        }
+    }
+    return $ItemId
+}
+foreach ($sourceItemIdValue in @($itemMap.Keys)) {
+    $sourceItemId = [string]$sourceItemIdValue
+    $canonicalItemId = Resolve-CatalogItemId -ItemId $sourceItemId
+    if ($canonicalItemId -ne $sourceItemId -and -not $itemMap.ContainsKey($canonicalItemId)) {
+        $itemMap[$canonicalItemId] = $itemMap[$sourceItemId]
+    }
+}
+'@
+if ($metaText.Contains($newItemMapBlock)) {
+    Write-Output "MetaTFT item ID canonicalization already patched."
+} elseif ($metaText.Contains($oldItemMapBlock)) {
+    $metaText = $metaText.Replace($oldItemMapBlock, $newItemMapBlock)
+    Write-Utf8NoBom -Path $metaPath -Text $metaText
+    Write-Output "Patched MetaTFT item IDs to resolve against the canonical catalog."
+} else {
+    throw "Could not patch item ID canonicalization block in refresh-static-meta.ps1"
+}
+
+$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+$oldFullBuildIds = @'
+            $fullBuildItemIds = @(
+                @($build.buildName) |
+                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
+                    ForEach-Object { [string]$_ }
+            )
+'@
+$newFullBuildIds = @'
+            $fullBuildItemIds = @(
+                @($build.buildName) |
+                    Where-Object { $_ } |
+                    ForEach-Object { Resolve-CatalogItemId -ItemId ([string]$_) } |
+                    Where-Object { $_ -and $catalogItemIds.ContainsKey([string]$_) -and $itemMap.ContainsKey([string]$_) }
+            )
+'@
+if ($metaText.Contains($newFullBuildIds)) {
+    Write-Output "Composition item-stat IDs already canonicalized."
+} elseif ($metaText.Contains($oldFullBuildIds)) {
+    $metaText = $metaText.Replace($oldFullBuildIds, $newFullBuildIds)
+    Write-Utf8NoBom -Path $metaPath -Text $metaText
+    Write-Output "Patched composition item-stat IDs to canonical catalog IDs."
+} else {
+    throw "Could not patch composition item-stat ID normalization in refresh-static-meta.ps1"
+}
+
+$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+$oldRecommendedBuild = @'
+        $recommendedBuild = @(
+            if ($overviewBuildRow.Count -gt 0) {
+                @($overviewBuildRow[0].buildName) |
+                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            itemId = [string]$_
+                            itemName = [string]$itemMap[[string]$_].name
+                        }
+                    }
+            }
+        )
+'@
+$newRecommendedBuild = @'
+        $recommendedBuild = @(
+            if ($overviewBuildRow.Count -gt 0) {
+                @($overviewBuildRow[0].buildName) |
+                    Where-Object { $_ } |
+                    ForEach-Object { Resolve-CatalogItemId -ItemId ([string]$_) } |
+                    Where-Object { $_ -and $catalogItemIds.ContainsKey([string]$_) -and $itemMap.ContainsKey([string]$_) } |
+                    ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            itemId = [string]$_
+                            itemName = [string]$itemMap[[string]$_].name
+                        }
+                    }
+            }
+        )
+'@
+if ($metaText.Contains($newRecommendedBuild)) {
+    Write-Output "Recommended overview item IDs already canonicalized."
+} elseif ($metaText.Contains($oldRecommendedBuild)) {
+    $metaText = $metaText.Replace($oldRecommendedBuild, $newRecommendedBuild)
+    Write-Utf8NoBom -Path $metaPath -Text $metaText
+    Write-Output "Patched recommended overview item IDs to canonical catalog IDs."
+} else {
+    throw "Could not patch recommended overview item ID normalization in refresh-static-meta.ps1"
+}
+
 # A full list of 18 compositions is not META_STABLE if the upstream source has
 # not published composition-specific augment recommendations yet. Keep the
 # snapshot in META_COLLECTING so clients can use comps while quality gates remain.
@@ -99,7 +241,6 @@ $readiness = if (@($compositions).Count -eq 0) {
     'META_STABLE'
 }
 '@
-$metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
 if ($metaText.Contains($newReadiness)) {
     Write-Output "Composition metadata readiness policy already patched."
 } elseif ($metaText.Contains($oldReadiness)) {

@@ -17,29 +17,99 @@ function Convert-MetaTftExplicitPosition {
     return $null
 }
 
-function Get-MetaTftCandidateUnits {
+function Get-MetaTftDefaultAllowedUnitIds {
+    $catalogPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..\source\current\tft\tft_catalog.json'))
+    if (-not (Test-Path -LiteralPath $catalogPath)) {
+        throw "METATFT_BOARD_CATALOG_NOT_FOUND path=$catalogPath"
+    }
+
+    try {
+        $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath | ConvertFrom-Json
+    } catch {
+        throw "METATFT_BOARD_CATALOG_INVALID path=$catalogPath"
+    }
+
+    $allowed = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($champion in @($catalog.champions)) {
+        if ($null -ne $champion -and $champion.id) {
+            [void]$allowed.Add([string]$champion.id)
+        }
+    }
+    if ($allowed.Count -eq 0) {
+        throw "METATFT_BOARD_CATALOG_EMPTY path=$catalogPath"
+    }
+    return $allowed
+}
+
+function ConvertTo-MetaTftAllowedUnitSet {
+    param([AllowNull()]$AllowedUnitIds)
+
+    if ($null -eq $AllowedUnitIds) {
+        return Get-MetaTftDefaultAllowedUnitIds
+    }
+
+    $allowed = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($id in @($AllowedUnitIds)) {
+        if ($id) { [void]$allowed.Add([string]$id) }
+    }
+    if ($allowed.Count -eq 0) {
+        throw 'METATFT_BOARD_ALLOWED_UNIT_SET_EMPTY'
+    }
+    return $allowed
+}
+
+function Get-MetaTftCandidateUnitRows {
     param(
         [Parameter(Mandatory = $true)]$Candidate,
-        [Parameter(Mandatory = $true)][int]$Level
+        [Parameter(Mandatory = $true)][int]$Level,
+        [Parameter(Mandatory = $true)]$AllowedUnitSet
     )
+
     $unitListValue = ''
     foreach ($propertyName in @('unit_list','units_list')) {
         $property = $Candidate.PSObject.Properties[$propertyName]
         if ($property -and $property.Value) { $unitListValue = [string]$property.Value; break }
     }
     if (-not $unitListValue) { return @() }
-    return @(
+
+    $rawUnitIds = @(
         ($unitListValue -split '&') |
-            Where-Object { $_ } |
-            ForEach-Object { [string]$_ } |
-            Select-Object -First $Level
+            ForEach-Object { [string]$_ }
+    )
+    $rows = [Collections.Generic.List[object]]::new()
+    for ($sourceIndex = 0; $sourceIndex -lt $rawUnitIds.Count; $sourceIndex++) {
+        $unitId = [string]$rawUnitIds[$sourceIndex]
+        if (-not $unitId) { continue }
+        if (-not $AllowedUnitSet.Contains($unitId)) { continue }
+
+        $rows.Add([pscustomobject][ordered]@{
+            id = $unitId
+            sourceIndex = $sourceIndex
+        })
+        if ($rows.Count -ge $Level) { break }
+    }
+    return @($rows)
+}
+
+function Get-MetaTftCandidateUnits {
+    param(
+        [Parameter(Mandatory = $true)]$Candidate,
+        [Parameter(Mandatory = $true)][int]$Level,
+        [AllowNull()]$AllowedUnitIds = $null
+    )
+
+    $allowedUnitSet = ConvertTo-MetaTftAllowedUnitSet -AllowedUnitIds $AllowedUnitIds
+    return @(
+        Get-MetaTftCandidateUnitRows -Candidate $Candidate -Level $Level -AllowedUnitSet $allowedUnitSet |
+            ForEach-Object { [string]$_.id }
     )
 }
 
 function Get-MetaTftCandidatePositions {
     param(
         [Parameter(Mandatory = $true)]$Candidate,
-        [Parameter(Mandatory = $true)][string[]]$UnitIds
+        [Parameter(Mandatory = $true)][string[]]$UnitIds,
+        [int[]]$SourceIndexes = @()
     )
 
     $positionProperty = @('positions','unit_positions','board_positions') |
@@ -62,11 +132,24 @@ function Get-MetaTftCandidatePositions {
         }
     } elseif ($raw -is [Collections.IEnumerable] -and $raw -isnot [string]) {
         $values = @($raw)
-        if ($values.Count -ne $UnitIds.Count) { return [pscustomobject]@{ available = $false; positions = @() } }
-        for ($i = 0; $i -lt $UnitIds.Count; $i++) {
-            $position = Convert-MetaTftExplicitPosition -Value $values[$i]
-            if ($null -eq $position) { return [pscustomobject]@{ available = $false; positions = @() } }
-            $rows.Add([pscustomobject]@{ id=$UnitIds[$i]; position=[int]$position })
+        if ($SourceIndexes.Count -gt 0) {
+            if ($SourceIndexes.Count -ne $UnitIds.Count) { return [pscustomobject]@{ available = $false; positions = @() } }
+            for ($i = 0; $i -lt $UnitIds.Count; $i++) {
+                $sourceIndex = [int]$SourceIndexes[$i]
+                if ($sourceIndex -lt 0 -or $sourceIndex -ge $values.Count) {
+                    return [pscustomobject]@{ available = $false; positions = @() }
+                }
+                $position = Convert-MetaTftExplicitPosition -Value $values[$sourceIndex]
+                if ($null -eq $position) { return [pscustomobject]@{ available = $false; positions = @() } }
+                $rows.Add([pscustomobject]@{ id=$UnitIds[$i]; position=[int]$position })
+            }
+        } else {
+            if ($values.Count -ne $UnitIds.Count) { return [pscustomobject]@{ available = $false; positions = @() } }
+            for ($i = 0; $i -lt $UnitIds.Count; $i++) {
+                $position = Convert-MetaTftExplicitPosition -Value $values[$i]
+                if ($null -eq $position) { return [pscustomobject]@{ available = $false; positions = @() } }
+                $rows.Add([pscustomobject]@{ id=$UnitIds[$i]; position=[int]$position })
+            }
         }
     } else {
         return [pscustomobject]@{ available = $false; positions = @() }
@@ -81,8 +164,15 @@ function Get-MetaTftCandidatePositions {
 function Convert-MetaTftLevelBoards {
     param(
         [Parameter(Mandatory = $true)]$Details,
-        [int]$MaximumBoardsPerLevel = 3
+        [int]$MaximumBoardsPerLevel = 3,
+        [AllowNull()]$AllowedUnitIds = $null
     )
+
+    # Board rows may include source-side summons, helper entities, or other
+    # non-placeable identities. Canonical v2 only publishes champion IDs that
+    # exist in the current catalog. Source indexes are retained so explicit
+    # position arrays still map to the correct cells after filtering.
+    $allowedUnitSet = ConvertTo-MetaTftAllowedUnitSet -AllowedUnitIds $AllowedUnitIds
 
     $boards = [Collections.Generic.List[object]]::new()
     foreach ($level in 4..9) {
@@ -96,7 +186,8 @@ function Convert-MetaTftLevelBoards {
         $indexed = [Collections.Generic.List[object]]::new()
         $sourceIndex = 0
         foreach ($candidate in @($levelProperty.Value)) {
-            $unitIds = @(Get-MetaTftCandidateUnits -Candidate $candidate -Level $level)
+            $unitRows = @(Get-MetaTftCandidateUnitRows -Candidate $candidate -Level $level -AllowedUnitSet $allowedUnitSet)
+            $unitIds = @($unitRows | ForEach-Object { [string]$_.id })
             if ($unitIds.Count -eq 0) { $sourceIndex++; continue }
             $indexed.Add([pscustomobject]@{
                 sourceIndex = $sourceIndex
@@ -104,6 +195,7 @@ function Convert-MetaTftLevelBoards {
                 avg = if ($candidate.PSObject.Properties['avg']) { [double]$candidate.avg } else { 0.0 }
                 candidate = $candidate
                 unitIds = @($unitIds)
+                unitSourceIndexes = @($unitRows | ForEach-Object { [int]$_.sourceIndex })
             })
             $sourceIndex++
         }
@@ -115,7 +207,10 @@ function Convert-MetaTftLevelBoards {
         )
         $rank = 1
         foreach ($row in $selected) {
-            $positionResult = Get-MetaTftCandidatePositions -Candidate $row.candidate -UnitIds @($row.unitIds)
+            $positionResult = Get-MetaTftCandidatePositions `
+                -Candidate $row.candidate `
+                -UnitIds @($row.unitIds) `
+                -SourceIndexes @($row.unitSourceIndexes)
             $boards.Add([pscustomobject][ordered]@{
                 level = $level
                 popularityRank = $rank

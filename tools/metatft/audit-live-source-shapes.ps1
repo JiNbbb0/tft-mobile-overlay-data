@@ -27,6 +27,11 @@ function Get-PropertyNames($Value) {
     if ($null -eq $Value) { return @() }
     return @($Value.PSObject.Properties.Name | Sort-Object)
 }
+function Get-FirstItem($Value) {
+    $items = @($Value)
+    if ($items.Count -eq 0) { return $null }
+    return $items[0]
+}
 
 $robots = Get-PublicText -Url 'https://www.metatft.com/robots.txt'
 if (Test-RobotsSiteWideBlock -RobotsText $robots -UserAgent '*') {
@@ -68,8 +73,23 @@ if (-not $details) { throw 'Sample comp_details is missing results.' }
 
 $optionProperty = $compOptions.results.PSObject.Properties[$sampleId]
 $buildProperty = $compBuilds.results.PSObject.Properties[$sampleId]
-$sampleOption = if ($optionProperty) { @($optionProperty.Value.options | Select-Object -First 1) } else { @() }
-$sampleBuild = if ($buildProperty) { @($buildProperty.Value.builds | Select-Object -First 1) } else { @() }
+$sampleOption = if ($optionProperty) { Get-FirstItem $optionProperty.Value.options } else { $null }
+$sampleBuild = if ($buildProperty) { Get-FirstItem $buildProperty.Value.builds } else { $null }
+$sampleDetailAugment = if ($details.PSObject.Properties['augments']) { Get-FirstItem $details.augments } else { $null }
+$sampleDetailBuild = if ($details.PSObject.Properties['builds']) { Get-FirstItem $details.builds } else { $null }
+$sampleDetailItem = if ($details.PSObject.Properties['items']) { Get-FirstItem $details.items } else { $null }
+$sampleDetailReroll = if ($details.PSObject.Properties['rerolls']) { Get-FirstItem $details.rerolls } else { $null }
+$earlyLevel4Property = if ($details.PSObject.Properties['early_options']) { $details.early_options.PSObject.Properties['4'] } else { $null }
+$lateLevel8Property = if ($details.PSObject.Properties['options']) { $details.options.PSObject.Properties['8'] } else { $null }
+$sampleEarlyLevel4 = if ($earlyLevel4Property) { Get-FirstItem $earlyLevel4Property.Value } else { $null }
+$sampleLateLevel8 = if ($lateLevel8Property) { Get-FirstItem $lateLevel8Property.Value } else { $null }
+$positionUnitProperty = if ($details.PSObject.Properties['positioning'] -and $details.positioning.PSObject.Properties['units']) {
+    Get-FirstItem $details.positioning.units.PSObject.Properties
+} else { $null }
+$samplePositionUnitValue = if ($positionUnitProperty) { $positionUnitProperty.Value } else { $null }
+$samplePositionRow = if ($samplePositionUnitValue -and $samplePositionUnitValue.PSObject.Properties['positions']) {
+    Get-FirstItem $samplePositionUnitValue.positions
+} else { $null }
 
 $summary = [pscustomobject][ordered]@{
     fetchedAtUtc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -84,13 +104,21 @@ $summary = [pscustomobject][ordered]@{
         compsStats = Get-PropertyNames $compsStats
         compsStatsRow = if (@($compsStats.results).Count -gt 0) { Get-PropertyNames @($compsStats.results)[0] } else { @() }
         compOptions = Get-PropertyNames $compOptions
-        compOptionsSample = if (@($sampleOption).Count -gt 0) { Get-PropertyNames @($sampleOption)[0] } else { @() }
+        compOptionsSample = Get-PropertyNames $sampleOption
         compBuilds = Get-PropertyNames $compBuilds
-        compBuildsSample = if (@($sampleBuild).Count -gt 0) { Get-PropertyNames @($sampleBuild)[0] } else { @() }
+        compBuildsSample = Get-PropertyNames $sampleBuild
         compDetails = Get-PropertyNames $details
+        compDetailsAugmentSample = Get-PropertyNames $sampleDetailAugment
+        compDetailsBuildSample = Get-PropertyNames $sampleDetailBuild
+        compDetailsItemSample = Get-PropertyNames $sampleDetailItem
+        compDetailsRerollSample = Get-PropertyNames $sampleDetailReroll
         compDetailsPositioning = if ($details.PSObject.Properties['positioning']) { Get-PropertyNames $details.positioning } else { @() }
+        compDetailsPositionUnitSample = Get-PropertyNames $samplePositionUnitValue
+        compDetailsPositionRowSample = Get-PropertyNames $samplePositionRow
         compDetailsEarlyOptions = if ($details.PSObject.Properties['early_options']) { Get-PropertyNames $details.early_options } else { @() }
+        compDetailsEarlyLevel4Sample = Get-PropertyNames $sampleEarlyLevel4
         compDetailsOptions = if ($details.PSObject.Properties['options']) { Get-PropertyNames $details.options } else { @() }
+        compDetailsLevel8Sample = Get-PropertyNames $sampleLateLevel8
         clusterDetail = Get-PropertyNames $sampleCluster
         clusterBuild = if (@($sampleCluster.builds).Count -gt 0) { Get-PropertyNames @($sampleCluster.builds)[0] } else { @() }
     }
@@ -100,6 +128,13 @@ $summary = [pscustomobject][ordered]@{
         sampleOverviewBuilds = @($sampleCluster.builds).Count
         sampleCompOptions = if ($optionProperty) { @($optionProperty.Value.options).Count } else { 0 }
         sampleCompBuilds = if ($buildProperty) { @($buildProperty.Value.builds).Count } else { 0 }
+        sampleDetailAugments = if ($details.PSObject.Properties['augments']) { @($details.augments).Count } else { 0 }
+        sampleDetailBuilds = if ($details.PSObject.Properties['builds']) { @($details.builds).Count } else { 0 }
+        sampleDetailItems = if ($details.PSObject.Properties['items']) { @($details.items).Count } else { 0 }
+        sampleDetailRerolls = if ($details.PSObject.Properties['rerolls']) { @($details.rerolls).Count } else { 0 }
+        sampleEarlyLevel4 = if ($earlyLevel4Property) { @($earlyLevel4Property.Value).Count } else { 0 }
+        sampleLevel8 = if ($lateLevel8Property) { @($lateLevel8Property.Value).Count } else { 0 }
+        samplePositionUnits = if ($details.PSObject.Properties['positioning'] -and $details.positioning.PSObject.Properties['units']) { @($details.positioning.units.PSObject.Properties).Count } else { 0 }
     }
 }
 

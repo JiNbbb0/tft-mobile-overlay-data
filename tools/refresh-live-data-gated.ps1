@@ -83,7 +83,7 @@ if ($playableChampions.Count -lt 40) {
     . (Join-Path $PSScriptRoot 'raw-champion-fallback.ps1')
     $playableChampions = @(Get-RawSetChampions -SetNumber $SetNumber -SetJa $setJa -SetEn $setEn)
     $Sources['communityDragonRawMap22'] = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
-    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/en_us/tft.stringtable.json'
+    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json'
     $Sources['communityDragonEnStringTable'] = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
 }
 
@@ -138,9 +138,6 @@ $outOfSetChampions = @($champions | Where-Object { -not $expectedChampionIds.Con
 
     Write-Utf8NoBom -Path $catalogPath -Text $catalogText
 
-    # refresh-static-meta runs after the catalog. When the derived champion block
-    # is incomplete, reuse the validated raw-rebuilt catalog for unit identity,
-    # cost and traits so MetaTFT compositions can still resolve their units.
     $metaPath = Join-Path $PSScriptRoot 'refresh-static-meta.ps1'
     $metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
     $metaStart = $metaText.IndexOf('$unitMap = @{}', [StringComparison]::Ordinal)
@@ -176,8 +173,31 @@ if ($unitMap.Count -lt 40) {
     $metaText = $metaText.Replace($oldCompositionCount, $newCompositionCount)
     Write-Utf8NoBom -Path $metaPath -Text $metaText
 
-    # The derived Set 18 title was shipped as a stale placeholder. Preserve the
-    # official live set names while this raw fallback is active.
+    # Catalog-first snapshots intentionally contain no composition objects yet.
+    # Make the publication metadata calculation ignore JSON null placeholders.
+    $historyPath = Join-Path $PSScriptRoot 'publish-data-history.ps1'
+    $historyText = [IO.File]::ReadAllText($historyPath).Replace("`r`n", "`n")
+    $oldHistoryStats = @'
+    compositionCount = @($meta.compositions).Count
+    itemStatCount = @($meta.compositions | ForEach-Object { @($_.units | ForEach-Object { @($_.itemStats) }) }).Count
+'@
+    $newHistoryStats = @'
+    compositionCount = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count
+    itemStatCount = @(
+        foreach ($composition in @($meta.compositions)) {
+            if ($composition -isnot [pscustomobject] -or -not ($composition.PSObject.Properties.Name -contains 'units')) { continue }
+            foreach ($unit in @($composition.units)) {
+                if ($unit -is [pscustomobject] -and ($unit.PSObject.Properties.Name -contains 'itemStats')) {
+                    @($unit.itemStats)
+                }
+            }
+        }
+    ).Count
+'@
+    if (-not $historyText.Contains($oldHistoryStats)) { throw 'Could not patch catalog-first history statistics.' }
+    $historyText = $historyText.Replace($oldHistoryStats, $newHistoryStats)
+    Write-Utf8NoBom -Path $historyPath -Text $historyText
+
     if ($setNumber -eq 18) {
         $livePath = Join-Path $PSScriptRoot 'refresh-live-data.ps1'
         $liveText = [IO.File]::ReadAllText($livePath).Replace("`r`n", "`n")

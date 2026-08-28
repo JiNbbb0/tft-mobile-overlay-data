@@ -1,0 +1,32 @@
+name: Canonical v2 validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Canonical quality fixtures
+        shell: pwsh
+        run: ./tools/test-canonical-quality.ps1
+      - name: Existing cross-source ID policy
+        shell: pwsh
+        run: ./tools/test-id-compatibility-policy.ps1
+      - name: Existing new-set readiness regression
+        shell: pwsh
+        run: ./tools/test-new-set-readiness.ps1
+      - name: Existing patch detection regression
+        shell: pwsh
+        run: ./tools/test-patch-detection-policy.ps1
+      - name: Existing data history regression
+        shell: pwsh
+        run: ./tools/test-data-history-policy.ps1

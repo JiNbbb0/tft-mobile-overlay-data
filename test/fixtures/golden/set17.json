@@ -1,0 +1,83 @@
+{
+  "setId": "TFTSet17",
+  "setNumber": 17,
+  "setData": {
+    "items": [
+      "TFT17_Item_ForestEmblem",
+      "TFT_Item_Deathblade"
+    ],
+    "augments": [
+      "TFT17_Augment_Test"
+    ]
+  },
+  "traits": [
+    {
+      "apiName": "TFT17_Forest",
+      "name": "森"
+    }
+  ],
+  "items": [
+    {
+      "apiName": "TFT17_Item_ForestEmblem",
+      "name": "森の紋章",
+      "desc": "装備者は森特性を得る。",
+      "icon": "ASSETS/Items/Icons/TFT17_ForestEmblem.png",
+      "from": ["TFT_Item_Spatula", "TFT_Item_GiantsBelt"],
+      "associatedTraits": ["TFT17_Forest"]
+    },
+    {
+      "apiName": "TFT_Item_Deathblade",
+      "name": "デスブレード",
+      "desc": "攻撃力を得る。",
+      "icon": "ASSETS/Items/Icons/Deathblade.png",
+      "from": ["TFT_Item_BFSword", "TFT_Item_BFSword"],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT_Item_Spatula",
+      "name": "へら",
+      "desc": "特別な素材。",
+      "icon": "ASSETS/Items/Icons/Spatula.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT_Item_GiantsBelt",
+      "name": "ジャイアントベルト",
+      "desc": "体力を得る。",
+      "icon": "ASSETS/Items/Icons/GiantsBelt.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT_Item_BFSword",
+      "name": "B.F.ソード",
+      "desc": "攻撃力を得る。",
+      "icon": "ASSETS/Items/Icons/BFSword.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "DA_16_OldConsumable",
+      "name": "旧セット専用",
+      "desc": "旧セット専用。",
+      "icon": "ASSETS/Items/Icons/Old.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT17_Augment_Test",
+      "name": "テストオーグメント",
+      "desc": "オーグメント。",
+      "icon": "ASSETS/Augments/Test.png",
+      "from": [],
+      "associatedTraits": []
+    }
+  ],
+  "expect": {
+    "included": ["TFT17_Item_ForestEmblem", "TFT_Item_Deathblade"],
+    "excluded": ["DA_16_OldConsumable", "TFT17_Augment_Test"],
+    "emblemTraitId": "TFT17_Forest",
+    "emblemItemId": "TFT17_Item_ForestEmblem"
+  }
+}

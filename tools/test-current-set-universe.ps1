@@ -3,10 +3,10 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'normalize/Get-CurrentSetUniverse.ps1')
 
 function Assert-Contains([object[]]$Values, [string]$Expected, [string]$Message) {
-    if (-not (@($Values | ForEach-Object { [string]$_ }) -contains $Expected)) { throw "$Message: $Expected" }
+    if (-not (@($Values | ForEach-Object { [string]$_ }) -contains $Expected)) { throw "${Message}: $Expected" }
 }
 function Assert-NotContains([object[]]$Values, [string]$Unexpected, [string]$Message) {
-    if (@($Values | ForEach-Object { [string]$_ }) -contains $Unexpected) { throw "$Message: $Unexpected" }
+    if (@($Values | ForEach-Object { [string]$_ }) -contains $Unexpected) { throw "${Message}: $Unexpected" }
 }
 
 $setData = [pscustomobject]@{

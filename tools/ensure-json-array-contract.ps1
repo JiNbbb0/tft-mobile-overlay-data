@@ -72,6 +72,23 @@ if ($metaText.Contains($newAugmentGate)) {
     throw "Could not patch partial composition candidate policy in refresh-static-meta.ps1"
 }
 
+# Validation must accept empty comp-specific augment recommendations only while
+# the new set is explicitly in partial readiness. All other composition fields
+# remain fully validated, and META_STABLE still requires augment recommendations.
+$validatorPath = Join-Path $PSScriptRoot "validate-static-meta.ps1"
+$validatorText = [IO.File]::ReadAllText($validatorPath).Replace("`r`n", "`n")
+$oldAugmentValidation = '    if ($recommendedAugments.Count -eq 0) { throw "No recommended augments: $($composition.id)" }'
+$newAugmentValidation = '    if ($recommendedAugments.Count -eq 0 -and -not $isPartial) { throw "No recommended augments: $($composition.id)" }'
+if ($validatorText.Contains($newAugmentValidation)) {
+    Write-Output "Partial augment validation policy already patched."
+} elseif ($validatorText.Contains($oldAugmentValidation)) {
+    $validatorText = $validatorText.Replace($oldAugmentValidation, $newAugmentValidation)
+    Write-Utf8NoBom -Path $validatorPath -Text $validatorText
+    Write-Output "Patched validator to accept missing comp augment recommendations during partial readiness."
+} else {
+    throw "Could not patch partial augment validation policy in validate-static-meta.ps1"
+}
+
 # Once a new set has been published in CATALOG_READY/META_COLLECTING state it is
 # no longer technically a never-published set, but statistics can still be absent.
 # Keep AllowPartial enabled until that set actually reaches META_STABLE.

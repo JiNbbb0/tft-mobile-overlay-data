@@ -83,7 +83,7 @@ if ($playableChampions.Count -lt 40) {
     . (Join-Path $PSScriptRoot 'raw-champion-fallback.ps1')
     $playableChampions = @(Get-RawSetChampions -SetNumber $SetNumber -SetJa $setJa -SetEn $setEn)
     $Sources['communityDragonRawMap22'] = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
-    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json'
+    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/en_us/tft.stringtable.json'
     $Sources['communityDragonEnStringTable'] = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
 }
 
@@ -170,6 +170,10 @@ if ($unitMap.Count -lt 40) {
 
 '@
     $metaText = $metaText.Substring(0, $metaStart) + $metaReplacement + $metaText.Substring($metaEnd)
+    $oldCompositionCount = '$($compositions.Count)'
+    $newCompositionCount = '$(@($compositions).Count)'
+    if (-not $metaText.Contains($oldCompositionCount)) { throw 'Could not patch scalar composition count handling.' }
+    $metaText = $metaText.Replace($oldCompositionCount, $newCompositionCount)
     Write-Utf8NoBom -Path $metaPath -Text $metaText
 
     # The derived Set 18 title was shipped as a stale placeholder. Preserve the

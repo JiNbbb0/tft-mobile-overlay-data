@@ -6,6 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'normalize/Get-CurrentSetUniverse.ps1')
+. (Join-Path $PSScriptRoot 'normalize/Get-EmblemMappings.ps1')
 
 function Get-LiveJson([string]$Url) {
     for ($attempt = 1; $attempt -le 3; $attempt++) {
@@ -28,23 +29,38 @@ $setNumber = [int]$catalog.set.number
 if (-not $setId -or $setNumber -le 0) { throw 'Catalog set identity is missing.' }
 
 $live = Get-LiveJson -Url $CommunityDragonUrl
-$setData = @($live.setData | Where-Object { [string]$_.mutator -eq $setId } | Select-Object -First 1)
-if ($setData.Count -ne 1) { throw "Live CommunityDragon does not contain exactly one setData record for $setId." }
-$setData = $setData[0]
+$setDataRows = @($live.setData | Where-Object { [string]$_.mutator -eq $setId } | Select-Object -First 1)
+if ($setDataRows.Count -ne 1) { throw "Live CommunityDragon does not contain exactly one setData record for $setId." }
+$setData = $setDataRows[0]
 
-$result = Get-TftCurrentSetUniverse `
-    -SetNumber $setNumber `
-    -SetData $setData `
-    -AllItems @($live.items) `
-    -ExcludedItemIds @($setData.augments)
-
+$itemById = @{}
+foreach ($item in @($live.items)) {
+    if ($null -ne $item -and $item.apiName) { $itemById[[string]$item.apiName] = $item }
+}
 $augmentIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($id in @($setData.augments)) { if ($id) { [void]$augmentIds.Add([string]$id) } }
 $declaredIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($id in @($setData.items)) { if ($id) { [void]$declaredIds.Add([string]$id) } }
 
-$includedItems = @($result.items)
-$includedIds = @($result.itemIds | ForEach-Object { [string]$_ })
+$emblemMappingResult = Get-TftEmblemMappings -Traits @($setData.traits) -Items @($live.items)
+$mappedEmblemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($mapping in @($emblemMappingResult.mappings)) {
+    if ($mapping.emblemId) { [void]$mappedEmblemIds.Add([string]$mapping.emblemId) }
+}
+if ($mappedEmblemIds.Count -eq 0) {
+    throw "No validated trait-to-emblem mappings were recovered for live set $setId."
+}
+
+$result = Get-TftCurrentSetUniverse `
+    -SetNumber $setNumber `
+    -SetData $setData `
+    -AllItems @($live.items) `
+    -AdditionalItemIds @($emblemMappingResult.mappings | ForEach-Object { [string]$_.emblemId }) `
+    -ExcludedItemIds @($setData.augments)
+
+$includedIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($id in @($result.itemIds)) { if ($id) { [void]$includedIds.Add([string]$id) } }
+
 $augmentLeaks = @($includedIds | Where-Object { $augmentIds.Contains([string]$_) })
 if ($augmentLeaks.Count -gt 0) {
     throw "Augment IDs leaked into the item universe: $($augmentLeaks -join ', ')"
@@ -60,57 +76,61 @@ if ($otherSetLeaks.Count -gt 0) {
     throw "Other-set non-shared items leaked into the current universe: $($otherSetLeaks -join ', ')"
 }
 
-$invalidDisplayItems = @(
-    $includedItems | Where-Object {
-        -not $_.apiName -or -not $_.name -or -not $_.desc -or -not $_.icon
-    }
-)
-if ($invalidDisplayItems.Count -gt 0) {
-    throw "Current-set universe contains items without id/name/desc/icon: $(@($invalidDisplayItems | ForEach-Object { [string]$_.apiName }) -join ', ')"
+$missingMappedEmblems = @($mappedEmblemIds | Where-Object { -not $includedIds.Contains([string]$_) })
+if ($missingMappedEmblems.Count -gt 0) {
+    throw "Validated mapped emblems were not included: $($missingMappedEmblems -join ', ')"
 }
 
-$supplemental = @($includedItems | Where-Object { -not $declaredIds.Contains([string]$_.apiName) })
-$explicitCurrentSetSupplemental = @(
-    $supplemental | Where-Object {
-        $sourceSet = Get-TftExplicitItemSetNumber -Id ([string]$_.apiName)
-        $null -ne $sourceSet -and [int]$sourceSet -eq $setNumber
+$mappedDisplayFailures = [Collections.Generic.List[string]]::new()
+$mappedWithoutSourceDescription = [Collections.Generic.List[string]]::new()
+foreach ($emblemIdValue in $mappedEmblemIds) {
+    $emblemId = [string]$emblemIdValue
+    if (-not $itemById.ContainsKey($emblemId)) {
+        $mappedDisplayFailures.Add("$emblemId:missing-source-record")
+        continue
     }
-)
-$emblems = @(
-    $includedItems | Where-Object {
-        ([string]$_.name -match '紋章') -or ([string]$_.apiName -match '(?i)Emblem')
+    $item = $itemById[$emblemId]
+    if (-not $item.name -or -not $item.icon) {
+        $mappedDisplayFailures.Add("$emblemId:missing-name-or-icon")
+        continue
     }
-)
-$explicitCurrentSetEmblems = @(
-    $emblems | Where-Object {
-        $sourceSet = Get-TftExplicitItemSetNumber -Id ([string]$_.apiName)
-        $null -ne $sourceSet -and [int]$sourceSet -eq $setNumber
-    }
-)
-
-# Modern sets rely on explicit current-set items that may be absent from setData.items.
-# If the live source exposes such items, the canonical universe must discover them.
-$liveExplicitCandidates = @(
-    @($live.items) | Where-Object {
-        if (-not $_.apiName) { return $false }
-        if ($augmentIds.Contains([string]$_.apiName)) { return $false }
-        if (Test-TftInternalItem -Item $_) { return $false }
-        $sourceSet = Get-TftExplicitItemSetNumber -Id ([string]$_.apiName)
-        return $null -ne $sourceSet -and [int]$sourceSet -eq $setNumber
-    }
-)
-$missingExplicitCandidates = @(
-    $liveExplicitCandidates | Where-Object { $includedIds -notcontains [string]$_.apiName }
-)
-if ($missingExplicitCandidates.Count -gt 0) {
-    throw "Explicit current-set items were not discovered: $(@($missingExplicitCandidates | ForEach-Object { [string]$_.apiName }) -join ', ')"
+    if (-not $item.desc) { $mappedWithoutSourceDescription.Add($emblemId) }
+}
+if ($mappedDisplayFailures.Count -gt 0) {
+    throw "Mapped emblem display contract failed: $($mappedDisplayFailures -join ', ')"
 }
 
-if ($liveExplicitCandidates.Count -gt 0 -and $explicitCurrentSetSupplemental.Count -eq 0) {
-    throw "Live $setId exposes explicit current-set items, but none were recovered outside setData.items."
-}
-if (@($liveExplicitCandidates | Where-Object { ([string]$_.name -match '紋章') -or ([string]$_.apiName -match '(?i)Emblem') }).Count -gt 0 -and $explicitCurrentSetEmblems.Count -eq 0) {
-    throw "Live $setId exposes explicit current-set emblems, but the canonical universe recovered none."
+$candidateIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($item in @($result.items)) {
+    if ($null -eq $item -or -not $item.apiName) { continue }
+    $id = [string]$item.apiName
+    if ($augmentIds.Contains($id)) { continue }
+    if (-not $item.name -or -not $item.icon) { continue }
+    if (-not $item.desc -and -not $mappedEmblemIds.Contains($id)) { continue }
+    [void]$candidateIds.Add($id)
 }
 
-Write-Output "Live current-set universe audit passed: Set=$setId Number=$setNumber Declared=$($declaredIds.Count) Included=$($includedIds.Count) Supplemental=$($supplemental.Count) ExplicitSupplemental=$($explicitCurrentSetSupplemental.Count) Emblems=$($emblems.Count) ExplicitEmblems=$($explicitCurrentSetEmblems.Count) AugmentLeaks=0 OtherSetLeaks=0"
+$missingMappedCandidates = @($mappedEmblemIds | Where-Object { -not $candidateIds.Contains([string]$_) })
+if ($missingMappedCandidates.Count -gt 0) {
+    throw "Validated mapped emblems would be dropped by catalog candidate filtering: $($missingMappedCandidates -join ', ')"
+}
+
+$mappedOutsideDeclared = @($mappedEmblemIds | Where-Object { -not $declaredIds.Contains([string]$_) })
+$missingSupplementalMapped = @(
+    $mappedOutsideDeclared | Where-Object {
+        -not $includedIds.Contains([string]$_) -or -not $candidateIds.Contains([string]$_)
+    }
+)
+if ($missingSupplementalMapped.Count -gt 0) {
+    throw "Supplemental mapped emblems were not recovered as catalog candidates: $($missingSupplementalMapped -join ', ')"
+}
+
+$ambiguousIds = @(
+    @($emblemMappingResult.ambiguous) |
+        ForEach-Object { @($_.candidateIds) } |
+        ForEach-Object { $_ } |
+        Where-Object { $_ } |
+        Sort-Object -Unique
+)
+
+Write-Output "Live current-set universe audit passed: Set=$setId Number=$setNumber Declared=$($declaredIds.Count) Included=$($includedIds.Count) CatalogCandidates=$($candidateIds.Count) MappedEmblems=$($mappedEmblemIds.Count) SupplementalMappedEmblems=$($mappedOutsideDeclared.Count) MappedWithoutSourceDesc=$($mappedWithoutSourceDescription.Count) EmblemAmbiguities=$(@($emblemMappingResult.ambiguous).Count) AmbiguousCandidateIds=$($ambiguousIds.Count) AugmentLeaks=0 OtherSetLeaks=0"

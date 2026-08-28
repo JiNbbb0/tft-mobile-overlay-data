@@ -18,6 +18,9 @@ jobs:
       - name: Canonical quality fixtures
         shell: pwsh
         run: ./tools/test-canonical-quality.ps1
+      - name: Typed display value resolver
+        shell: pwsh
+        run: ./tools/test-display-value-resolver.ps1
       - name: Existing cross-source ID policy
         shell: pwsh
         run: ./tools/test-id-compatibility-policy.ps1

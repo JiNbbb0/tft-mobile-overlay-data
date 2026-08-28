@@ -1,0 +1,74 @@
+{
+  "setId": "TFTSet19",
+  "setNumber": 19,
+  "setData": {
+    "items": [
+      "TFT_Item_Deathblade"
+    ],
+    "augments": [
+      "DA_19_Augment_Test"
+    ]
+  },
+  "traits": [
+    {
+      "apiName": "TFT19_Forest",
+      "name": "未来の森"
+    }
+  ],
+  "items": [
+    {
+      "apiName": "DA_19_ForestEmblem",
+      "name": "未来の森の紋章",
+      "desc": "装備者は未来の森特性を得る。",
+      "icon": "ASSETS/Items/Icons/DA_19_ForestEmblem.png",
+      "from": [],
+      "associatedTraits": ["TFT19_Forest"]
+    },
+    {
+      "apiName": "TFT19_Item_CurrentMechanic",
+      "name": "未来セット専用装備",
+      "desc": "未来セット専用。",
+      "icon": "ASSETS/Items/Icons/TFT19_Current.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT_Item_Deathblade",
+      "name": "デスブレード",
+      "desc": "攻撃力を得る。",
+      "icon": "ASSETS/Items/Icons/Deathblade.png",
+      "from": ["TFT_Item_BFSword", "TFT_Item_BFSword"],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT_Item_BFSword",
+      "name": "B.F.ソード",
+      "desc": "攻撃力を得る。",
+      "icon": "ASSETS/Items/Icons/BFSword.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "DA_18_MechanicConsumable",
+      "name": "Set18専用消耗品",
+      "desc": "旧セット専用。",
+      "icon": "ASSETS/Items/Icons/Set18Old.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "DA_19_Augment_Test",
+      "name": "未来テストオーグメント",
+      "desc": "オーグメント。",
+      "icon": "ASSETS/Augments/FutureTest.png",
+      "from": [],
+      "associatedTraits": []
+    }
+  ],
+  "expect": {
+    "included": ["DA_19_ForestEmblem", "TFT19_Item_CurrentMechanic", "TFT_Item_Deathblade"],
+    "excluded": ["DA_18_MechanicConsumable", "DA_19_Augment_Test"],
+    "emblemTraitId": "TFT19_Forest",
+    "emblemItemId": "DA_19_ForestEmblem"
+  }
+}

@@ -183,7 +183,7 @@ function Get-RawSetChampions {
     $result = @($champions | Sort-Object cost, name)
     Write-Host "LIVE raw champion fallback: Shop=$($shopRows.Count) Playable=$($result.Count) FailedBins=$($failedBins.Count) UnknownTraits=$($unknownTraits.Count)"
     if ($result.Count -lt 40) {
-        throw "LIVE raw champion fallback is incomplete for Set $SetNumber: $($result.Count) playable champions"
+        throw "LIVE raw champion fallback is incomplete for Set ${SetNumber}: $($result.Count) playable champions"
     }
     if ($unknownTraits.Count -gt 0) {
         Write-Warning "Raw champion fallback skipped unknown trait links: $(@($unknownTraits | Select-Object -First 10) -join ', ')"

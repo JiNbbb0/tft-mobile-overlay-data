@@ -1,6 +1,11 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$script:MetaTftExpectedQueue = '1100'
+$script:MetaTftExpectedPatch = 'current'
+$script:MetaTftExpectedDays = 3
+$script:MetaTftExpectedRank = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+
 function Get-MetaTftAveragePlacement {
     param([Parameter(Mandatory = $true)]$Places)
     $values = @($Places)
@@ -18,10 +23,10 @@ function Get-MetaTftAveragePlacement {
 function Assert-MetaTftFilterIdentity {
     param(
         [Parameter(Mandatory = $true)]$Filter,
-        [string]$ExpectedQueue = '1100',
-        [string]$ExpectedPatch = 'current',
-        [int]$ExpectedDays = 3,
-        [string]$ExpectedRank = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+        [string]$ExpectedQueue = $script:MetaTftExpectedQueue,
+        [string]$ExpectedPatch = $script:MetaTftExpectedPatch,
+        [int]$ExpectedDays = $script:MetaTftExpectedDays,
+        [string]$ExpectedRank = $script:MetaTftExpectedRank
     )
     if ([string]$Filter.queue -ne $ExpectedQueue) { throw "METATFT_FILTER_MISMATCH queue=$($Filter.queue)" }
     if ([string]$Filter.patch -ne $ExpectedPatch) { throw "METATFT_FILTER_MISMATCH patch=$($Filter.patch)" }
@@ -46,6 +51,9 @@ function Convert-MetaTftCompositionSnapshot {
     $setId = [string]$ClusterInfo.tft_set
     $clusterId = [int]$ClusterInfo.cluster_id
     $data = $CompsData.results.data
+    if (-not $data -or -not $data.cluster_details) {
+        throw 'METATFT_SCHEMA_MISMATCH comps_data is missing results.data.cluster_details.'
+    }
     if ([string]$data.tft_set -ne $setId -or [int]$data.cluster_id -ne $clusterId) {
         throw 'SOURCE_SET_MISMATCH MetaTFT comps_data and cluster_info differ.'
     }
@@ -55,6 +63,9 @@ function Convert-MetaTftCompositionSnapshot {
     }
     if ($CompsStats.PSObject.Properties['cluster_id'] -and [int]$CompsStats.cluster_id -ne $clusterId) {
         throw 'SOURCE_SET_MISMATCH MetaTFT comps_stats cluster differs.'
+    }
+    if (-not $CompsStats.PSObject.Properties['results']) {
+        throw 'METATFT_SCHEMA_MISMATCH comps_stats is missing results.'
     }
 
     $clusters = @{}
@@ -92,11 +103,12 @@ function Convert-MetaTftCompositionSnapshot {
         clusterId = $clusterId
         filter = [pscustomobject][ordered]@{
             queue = 'RANKED'
-            queueId = $ExpectedQueue = '1100'
+            queueId = $script:MetaTftExpectedQueue
             rank = 'PLATINUM_PLUS'
-            rawRankFilter = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+            rawRankFilter = $script:MetaTftExpectedRank
             patch = 'CURRENT'
-            windowDays = 3
+            rawPatch = $script:MetaTftExpectedPatch
+            windowDays = $script:MetaTftExpectedDays
             permitFilterAdjustment = $false
         }
         compositions = @($sorted)

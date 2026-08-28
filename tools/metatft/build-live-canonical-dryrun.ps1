@@ -12,6 +12,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'Convert-MetaTftBoards.ps1')
 . (Join-Path $PSScriptRoot 'Convert-MetaTftItems.ps1')
 . (Join-Path $PSScriptRoot '..\source-contract.ps1')
+. (Join-Path $PSScriptRoot '..\normalize\Get-CurrentSetUniverse.ps1')
 
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $resolvedOutput = if ([IO.Path]::IsPathRooted($OutputPath)) { $OutputPath } else { Join-Path $repoRoot $OutputPath }
@@ -39,6 +40,12 @@ function Get-ItemNameKey([string]$Name) {
     if (-not $Name) { return '' }
     $normalized = $Name.Normalize([Text.NormalizationForm]::FormKC).Trim().ToLowerInvariant()
     return [regex]::Replace($normalized, '[\p{P}\p{Z}\s]+', '')
+}
+function Get-OptionalPropertyValue($Object, [string]$Name) {
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if ($property) { return $property.Value }
+    return $null
 }
 
 $robots = Get-PublicText -Url 'https://www.metatft.com/robots.txt'
@@ -87,8 +94,8 @@ $sourceItemNamesById = @{}
 
 function Add-SourceItemNames($SourceItems) {
     foreach ($sourceItem in @($SourceItems)) {
-        $sourceId = [string]$sourceItem.apiName
-        $sourceName = [string]$sourceItem.name
+        $sourceId = [string](Get-OptionalPropertyValue -Object $sourceItem -Name 'apiName')
+        $sourceName = [string](Get-OptionalPropertyValue -Object $sourceItem -Name 'name')
         if (-not $sourceId -or -not $sourceName) { continue }
         if (-not $sourceItemNamesById.ContainsKey($sourceId)) {
             $sourceItemNamesById[$sourceId] = [Collections.Generic.List[string]]::new()
@@ -143,6 +150,26 @@ $communityDragonEn = Get-PublicJson -Url 'https://raw.communitydragon.org/latest
 Add-SourceItemNames -SourceItems $communityDragonJa.items
 Add-SourceItemNames -SourceItems $communityDragonEn.items
 
+$sourceSetMatches = @(
+    $communityDragonJa.setData |
+        Where-Object { [string]$_.mutator -eq [string]$cluster.tft_set } |
+        Select-Object -First 1
+)
+if ($sourceSetMatches.Count -ne 1) {
+    throw "COMMUNITYDRAGON_SET_NOT_FOUND set=$($cluster.tft_set)"
+}
+$sourceSet = $sourceSetMatches[0]
+$sourceItemsJaById = @{}
+foreach ($sourceItem in @($communityDragonJa.items)) {
+    $sourceId = [string](Get-OptionalPropertyValue -Object $sourceItem -Name 'apiName')
+    if ($sourceId) { $sourceItemsJaById[$sourceId] = $sourceItem }
+}
+$sourceItemsEnById = @{}
+foreach ($sourceItem in @($communityDragonEn.items)) {
+    $sourceId = [string](Get-OptionalPropertyValue -Object $sourceItem -Name 'apiName')
+    if ($sourceId) { $sourceItemsEnById[$sourceId] = $sourceItem }
+}
+
 Start-Sleep -Milliseconds 350
 $compsData = Get-PublicJson -Url 'https://api-hc.metatft.com/tft-comps-api/comps_data'
 Start-Sleep -Milliseconds 350
@@ -171,6 +198,8 @@ if ($selected.Count -lt $CompositionLimit) {
     throw "PLATINUM_PLUS_COVERAGE_INSUFFICIENT required=$CompositionLimit actual=$($selected.Count) minimumSamples=$MinimumSamples"
 }
 
+$observedRawItemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$canonicalItemIdByRaw = @{}
 $resolvedAliasRows = [Collections.Generic.List[object]]::new()
 $compositions = [Collections.Generic.List[object]]::new()
 foreach ($composition in $selected) {
@@ -200,8 +229,10 @@ foreach ($composition in $selected) {
     )
     $canonicalItemIdMap = @{}
     foreach ($rawItemId in $rawItemIds) {
+        [void]$observedRawItemIds.Add($rawItemId)
         $canonicalItemId = Resolve-CanonicalItemId -RawId $rawItemId
         $canonicalItemIdMap[$rawItemId] = $canonicalItemId
+        $canonicalItemIdByRaw[$rawItemId] = $canonicalItemId
         if ($canonicalItemId -ne $rawItemId) {
             $resolvedAliasRows.Add([pscustomobject][ordered]@{ raw = $rawItemId; canonical = $canonicalItemId })
         }
@@ -254,6 +285,53 @@ foreach ($composition in $selected) {
     })
 }
 
+# A source-observed item can be equipable and statistically meaningful without
+# being listed in CommunityDragon setData.items (for example augment-granted
+# special emblems). Preserve such identities instead of aliasing them to a
+# different ordinary item or dropping their statistics.
+$sourceUniverse = Get-TftCurrentSetUniverse `
+    -SetNumber ([int]$catalog.set.number) `
+    -SetData $sourceSet `
+    -AllItems @($communityDragonJa.items) `
+    -AdditionalItemIds @($observedRawItemIds)
+$sourceUniverseById = @{}
+foreach ($sourceItem in @($sourceUniverse.items)) {
+    $sourceId = [string](Get-OptionalPropertyValue -Object $sourceItem -Name 'apiName')
+    if ($sourceId) { $sourceUniverseById[$sourceId] = $sourceItem }
+}
+
+$supplementalItems = [Collections.Generic.List[object]]::new()
+foreach ($rawItemId in @($observedRawItemIds | Sort-Object)) {
+    $canonicalItemId = if ($canonicalItemIdByRaw.ContainsKey($rawItemId)) {
+        [string]$canonicalItemIdByRaw[$rawItemId]
+    } else {
+        Resolve-CanonicalItemId -RawId $rawItemId
+    }
+    if ($catalogItemIds.ContainsKey($canonicalItemId)) { continue }
+    if ($canonicalItemId -ne $rawItemId) {
+        throw "CANONICAL_ITEM_TARGET_MISSING raw=$rawItemId canonical=$canonicalItemId"
+    }
+    if (-not $sourceUniverseById.ContainsKey($rawItemId)) {
+        throw "SOURCE_OBSERVED_ITEM_NOT_IN_COMMUNITYDRAGON raw=$rawItemId"
+    }
+
+    $jaItem = $sourceUniverseById[$rawItemId]
+    $enItem = if ($sourceItemsEnById.ContainsKey($rawItemId)) { $sourceItemsEnById[$rawItemId] } else { $null }
+    $associatedTraits = @(
+        @(Get-OptionalPropertyValue -Object $jaItem -Name 'associatedTraits') |
+            Where-Object { $_ } |
+            ForEach-Object { [string]$_ }
+    )
+    $supplementalItems.Add([pscustomobject][ordered]@{
+        id = $rawItemId
+        nameJa = [string](Get-OptionalPropertyValue -Object $jaItem -Name 'name')
+        nameEn = [string](Get-OptionalPropertyValue -Object $enItem -Name 'name')
+        icon = [string](Get-OptionalPropertyValue -Object $jaItem -Name 'icon')
+        associatedTraits = @($associatedTraits)
+        source = 'CommunityDragon current-set universe + MetaTFT observed item'
+    })
+}
+
 $result = [pscustomobject][ordered]@{
     schemaVersion = 1
     mode = 'CANONICAL_V2_LIVE_DRYRUN'
@@ -276,6 +354,7 @@ $result = [pscustomobject][ordered]@{
         allRankFallbackAllowed = $false
     }
     itemIdAliases = @($resolvedAliasRows.ToArray() | Sort-Object raw, canonical -Unique)
+    supplementalItems = @($supplementalItems.ToArray() | Sort-Object id)
     compositions = @($compositions)
 }
 
@@ -284,4 +363,4 @@ $result = [pscustomobject][ordered]@{
     (($result | ConvertTo-Json -Depth 30).Replace("`r`n", "`n") + "`n"),
     [Text.UTF8Encoding]::new($false)
 )
-Write-Output "Canonical v2 live dry-run built: Set=$($result.set.id) Cluster=$clusterId Compositions=$($compositions.Count) ItemAliases=$(@($result.itemIdAliases).Count) Output=$resolvedOutput"
+Write-Output "Canonical v2 live dry-run built: Set=$($result.set.id) Cluster=$clusterId Compositions=$($compositions.Count) ItemAliases=$(@($result.itemIdAliases).Count) SupplementalItems=$(@($result.supplementalItems).Count) Output=$resolvedOutput"

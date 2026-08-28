@@ -22,6 +22,16 @@ $candidateItems = @(
         } |
         Sort-Object name, apiName
 )
+
+$items = [Collections.Generic.List[object]]::new()
+foreach ($item in $candidateItems) {
+    $id = [string]$item.apiName
+    $image = Save-Asset -AssetPath ([string]$item.icon) -OwnerId $id -Category "item"
+    $items.Add([pscustomobject][ordered]@{
+        id = $id
+        descriptionJa = Normalize-Text -Value $item.desc -Effects $item.effects
+    })
+}
 '@
     [IO.File]::WriteAllText($fixturePath, $fixture, [Text.UTF8Encoding]::new($false))
 
@@ -31,11 +41,26 @@ $candidateItems = @(
     if (-not $patched.Contains("normalize/Get-CurrentSetUniverse.ps1")) {
         throw 'Current-set universe module was not injected.'
     }
-    if (-not $patched.Contains('$currentSetUniverse = Get-TftCurrentSetUniverse')) {
-        throw 'Canonical item-universe block was not injected.'
+    if (-not $patched.Contains("normalize/Get-EmblemMappings.ps1")) {
+        throw 'Emblem mapping module was not injected.'
+    }
+    if (-not $patched.Contains('$emblemMappingResult = Get-TftEmblemMappings')) {
+        throw 'Trait-to-emblem resolver was not wired into catalog discovery.'
+    }
+    if (-not $patched.Contains('-AdditionalItemIds @($emblemMappingResult.mappings')) {
+        throw 'Mapped emblem IDs were not supplied as validated supplemental seeds.'
     }
     if (-not $patched.Contains('-ExcludedItemIds @($setJa.augments)')) {
         throw 'Augment exclusions were not wired into catalog item discovery.'
+    }
+    if (-not $patched.Contains('$mappedEmblemIds.Contains($id)')) {
+        throw 'Mapped emblems without CommunityDragon descriptions would still be discarded.'
+    }
+    if (-not $patched.Contains('$itemDescriptionJa = "装備者に「$([string]$emblemTraitNameByItemId[$id])」特性を付与する。"')) {
+        throw 'Mapped emblem description fallback was not injected.'
+    }
+    if (-not $patched.Contains('descriptionJa = $itemDescriptionJa')) {
+        throw 'Catalog item output does not use the normalized/fallback description.'
     }
     if ($patched.Contains('$ja.items |' + "`n" + '        Where-Object {' + "`n" + '            $setItemIds.ContainsKey')) {
         throw 'Legacy candidate-item scan survived the integration patch.'

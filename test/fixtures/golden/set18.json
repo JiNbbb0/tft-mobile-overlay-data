@@ -1,0 +1,66 @@
+{
+  "setId": "TFTSet18",
+  "setNumber": 18,
+  "setData": {
+    "items": [
+      "TFT_Item_Deathblade"
+    ],
+    "augments": [
+      "DA_18_Augment_Test"
+    ]
+  },
+  "traits": [
+    {
+      "apiName": "DA_18_Wild",
+      "name": "野生"
+    }
+  ],
+  "items": [
+    {
+      "apiName": "DA_18_WildEmblem",
+      "name": "野生の紋章",
+      "desc": "",
+      "icon": "ASSETS/Items/Icons/DA_18_WildEmblem.png",
+      "from": [],
+      "associatedTraits": ["DA_18_Wild"]
+    },
+    {
+      "apiName": "TFT_Item_Deathblade",
+      "name": "デスブレード",
+      "desc": "攻撃力を得る。",
+      "icon": "ASSETS/Items/Icons/Deathblade.png",
+      "from": ["TFT_Item_BFSword", "TFT_Item_BFSword"],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "TFT_Item_BFSword",
+      "name": "B.F.ソード",
+      "desc": "攻撃力を得る。",
+      "icon": "ASSETS/Items/Icons/BFSword.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "DA_17_OldConsumable",
+      "name": "旧セット専用",
+      "desc": "旧セット専用。",
+      "icon": "ASSETS/Items/Icons/Old.png",
+      "from": [],
+      "associatedTraits": []
+    },
+    {
+      "apiName": "DA_18_Augment_Test",
+      "name": "テストオーグメント",
+      "desc": "オーグメント。",
+      "icon": "ASSETS/Augments/Test.png",
+      "from": [],
+      "associatedTraits": []
+    }
+  ],
+  "expect": {
+    "included": ["DA_18_WildEmblem", "TFT_Item_Deathblade"],
+    "excluded": ["DA_17_OldConsumable", "DA_18_Augment_Test"],
+    "emblemTraitId": "DA_18_Wild",
+    "emblemItemId": "DA_18_WildEmblem"
+  }
+}

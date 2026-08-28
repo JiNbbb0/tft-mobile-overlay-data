@@ -26,7 +26,8 @@ function Get-TftCurrentSetUniverse {
         [Parameter(Mandatory = $true)][int]$SetNumber,
         [Parameter(Mandatory = $true)]$SetData,
         [Parameter(Mandatory = $true)][object[]]$AllItems,
-        [string[]]$AdditionalItemIds = @()
+        [string[]]$AdditionalItemIds = @(),
+        [string[]]$ExcludedItemIds = @()
     )
 
     $itemById = @{}
@@ -34,9 +35,16 @@ function Get-TftCurrentSetUniverse {
         if ($null -ne $item -and $item.apiName) { $itemById[[string]$item.apiName] = $item }
     }
 
+    $explicitExclusions = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($id in @($ExcludedItemIds)) {
+        if ($id) { [void]$explicitExclusions.Add([string]$id) }
+    }
+
     $seedIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($id in @($SetData.items) + @($AdditionalItemIds)) {
-        if ($id) { [void]$seedIds.Add([string]$id) }
+        if ($id -and -not $explicitExclusions.Contains([string]$id)) {
+            [void]$seedIds.Add([string]$id)
+        }
     }
 
     # CommunityDragon setData.items is not exhaustive for every equipable item.
@@ -44,8 +52,11 @@ function Get-TftCurrentSetUniverse {
     # items under explicit current-set namespaces such as DA_18_* without
     # listing them in setData.items. Seed every explicit current-set identity so
     # valid live statistics are not lost merely because the setData list lags.
+    # Callers can exclude known non-equipment namespaces (for example augments)
+    # without weakening current-set discovery for actual items.
     foreach ($idValue in @($itemById.Keys)) {
         $id = [string]$idValue
+        if ($explicitExclusions.Contains($id)) { continue }
         $explicitSetNumber = Get-TftExplicitItemSetNumber -Id $id
         if ($null -ne $explicitSetNumber -and [int]$explicitSetNumber -eq $SetNumber) {
             [void]$seedIds.Add($id)
@@ -57,6 +68,10 @@ function Get-TftCurrentSetUniverse {
     $queue = [Collections.Generic.Queue[string]]::new()
 
     foreach ($id in $seedIds) {
+        if ($explicitExclusions.Contains([string]$id)) {
+            $excluded.Add([pscustomobject][ordered]@{ id = [string]$id; reason = 'EXPLICIT_EXCLUSION' })
+            continue
+        }
         if (-not $itemById.ContainsKey($id)) { continue }
         $item = $itemById[$id]
         if (Test-TftInternalItem -Item $item) {
@@ -78,6 +93,7 @@ function Get-TftCurrentSetUniverse {
         $id = $queue.Dequeue()
         $item = $itemById[$id]
         foreach ($componentId in @($item.from | Where-Object { $_ } | ForEach-Object { [string]$_ })) {
+            if ($explicitExclusions.Contains($componentId)) { continue }
             if (-not $itemById.ContainsKey($componentId)) { continue }
             $component = $itemById[$componentId]
             if (Test-TftInternalItem -Item $component) { continue }
@@ -89,6 +105,7 @@ function Get-TftCurrentSetUniverse {
         itemIds = @($included | Sort-Object)
         items = @($included | Sort-Object | ForEach-Object { $itemById[[string]$_] })
         excluded = @($excluded)
+        explicitExclusions = @($explicitExclusions | Sort-Object)
         missingSeedIds = @($seedIds | Where-Object { -not $itemById.ContainsKey([string]$_) } | Sort-Object)
     }
 }

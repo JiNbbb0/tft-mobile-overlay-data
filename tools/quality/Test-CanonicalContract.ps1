@@ -33,6 +33,12 @@ function Get-CanonicalStringFindings {
             return
         }
 
+        # Primitive value types expose synthetic PSObject properties (for example
+        # DateTime/number metadata). Recursing into those properties can create
+        # self-referential traversal and call-depth overflow on large live JSON.
+        # Only strings can contain the textual placeholder patterns checked here.
+        if ($Node -is [ValueType]) { return }
+
         if ($Node -is [Collections.IDictionary]) {
             foreach ($key in $Node.Keys) {
                 Visit-Node -Node $Node[$key] -NodePath "$NodePath.$key"

@@ -30,16 +30,25 @@ $items = @(
     # Explicit current-set DA identities must survive even when CommunityDragon
     # omits them from setData.items. This mirrors Set18 augment-granted emblems.
     [pscustomobject]@{ apiName='DA_19_EmblemSpecial'; name='特殊な紋章'; from=@() },
+    # Explicit current-set IDs can also identify non-item records such as augments.
+    # Catalog callers must be able to exclude those without disabling DA discovery.
+    [pscustomobject]@{ apiName='DA_19_SpecialAugment'; name='特殊オーグメント'; from=@() },
     # A non-shared DA item from another set must not leak into the current set.
     [pscustomobject]@{ apiName='DA_18_MechanicConsumable'; name='旧セット専用消耗品'; from=@() }
 )
 
-$result = Get-TftCurrentSetUniverse -SetNumber 19 -SetData $setData -AllItems $items
+$result = Get-TftCurrentSetUniverse `
+    -SetNumber 19 `
+    -SetData $setData `
+    -AllItems $items `
+    -ExcludedItemIds @('DA_19_SpecialAugment')
 Assert-Contains $result.itemIds 'TFT_Item_Deathblade' 'Global completed item should stay'
 Assert-Contains $result.itemIds 'TFT_Item_BFSword' 'Recipe component should be reachable'
 Assert-Contains $result.itemIds 'TFT19_Item_ForestEmblem' 'Current-set item should stay'
 Assert-Contains $result.itemIds 'TFT9_Item_OrnnDeathfireGrasp' 'Shared artifact family must survive old numeric prefix'
 Assert-Contains $result.itemIds 'DA_19_EmblemSpecial' 'Explicit current-set DA item should be discovered even when absent from setData.items'
+Assert-NotContains $result.itemIds 'DA_19_SpecialAugment' 'Explicit exclusions must keep augment-like IDs out of the item universe'
+Assert-Contains $result.explicitExclusions 'DA_19_SpecialAugment' 'Explicit exclusions should be reported for auditability'
 Assert-NotContains $result.itemIds 'DA_18_MechanicConsumable' 'Other-set DA item must not leak into current set'
 Assert-NotContains $result.itemIds 'TFT7_Item_ShimmerscaleMogulsMail' 'Unreachable other-set mechanic item must be excluded'
 Assert-NotContains $result.itemIds 'TFT_Assist_1x2star5cost' 'Internal assist item must be excluded'

@@ -40,26 +40,15 @@ function Get-TftCurrentSetUniverse {
         if ($id) { [void]$explicitExclusions.Add([string]$id) }
     }
 
+    # setData.items remains the authoritative base. Supplemental items must be
+    # supplied explicitly by a validated resolver (for example trait->emblem
+    # mappings or observed cross-source aliases). Do not auto-seed an entire
+    # namespace such as DA_18_*: that namespace also contains consumables,
+    # helpers, duplicate item families and records without public display data.
     $seedIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach ($id in @($SetData.items) + @($AdditionalItemIds)) {
         if ($id -and -not $explicitExclusions.Contains([string]$id)) {
             [void]$seedIds.Add([string]$id)
-        }
-    }
-
-    # CommunityDragon setData.items is not exhaustive for every equipable item.
-    # In particular, modern sets can expose emblems and augment-granted special
-    # items under explicit current-set namespaces such as DA_18_* without
-    # listing them in setData.items. Seed every explicit current-set identity so
-    # valid live statistics are not lost merely because the setData list lags.
-    # Callers can exclude known non-equipment namespaces (for example augments)
-    # without weakening current-set discovery for actual items.
-    foreach ($idValue in @($itemById.Keys)) {
-        $id = [string]$idValue
-        if ($explicitExclusions.Contains($id)) { continue }
-        $explicitSetNumber = Get-TftExplicitItemSetNumber -Id $id
-        if ($null -ne $explicitSetNumber -and [int]$explicitSetNumber -eq $SetNumber) {
-            [void]$seedIds.Add($id)
         }
     }
 
@@ -106,6 +95,7 @@ function Get-TftCurrentSetUniverse {
         items = @($included | Sort-Object | ForEach-Object { $itemById[[string]$_] })
         excluded = @($excluded)
         explicitExclusions = @($explicitExclusions | Sort-Object)
+        supplementalSeedIds = @($AdditionalItemIds | Where-Object { $_ } | Sort-Object -Unique)
         missingSeedIds = @($seedIds | Where-Object { -not $itemById.ContainsKey([string]$_) } | Sort-Object)
     }
 }

@@ -26,51 +26,8 @@ function Get-ObjectPropertyValue {
     )
     if ($null -eq $Object) { return $null }
     $property = $Object.PSObject.Properties[$Name]
-    if ($null -eq $property) { return $null }
-    return $property.Value
-}
-
-function Get-PrefixedChampions {
-    param(
-        [AllowNull()][object]$SetData,
-        [Parameter(Mandatory = $true)][int]$SetNumber
-    )
-    $championsValue = Get-ObjectPropertyValue -Object $SetData -Name 'champions'
-    return @(
-        @($championsValue) | Where-Object {
-            $apiName = [string](Get-ObjectPropertyValue -Object $_ -Name 'apiName')
-            $apiName -match "^TFT${SetNumber}_"
-        }
-    )
-}
-
-function Get-PlayableChampions {
-    param(
-        [AllowNull()][object]$SetData,
-        [Parameter(Mandatory = $true)][int]$SetNumber
-    )
-    return @(
-        Get-PrefixedChampions -SetData $SetData -SetNumber $SetNumber | Where-Object {
-            $name = [string](Get-ObjectPropertyValue -Object $_ -Name 'name')
-            $costValue = Get-ObjectPropertyValue -Object $_ -Name 'cost'
-            $traitsValue = Get-ObjectPropertyValue -Object $_ -Name 'traits'
-            $abilityValue = Get-ObjectPropertyValue -Object $_ -Name 'ability'
-            $statsValue = Get-ObjectPropertyValue -Object $_ -Name 'stats'
-            $squareIcon = [string](Get-ObjectPropertyValue -Object $_ -Name 'squareIcon')
-
-            $cost = 0
-            $costValid = $null -ne $costValue -and [int]::TryParse([string]$costValue, [ref]$cost)
-            $abilityIcon = [string](Get-ObjectPropertyValue -Object $abilityValue -Name 'icon')
-            $statsMana = Get-ObjectPropertyValue -Object $statsValue -Name 'mana'
-
-            $name -and
-            $costValid -and $cost -ge 1 -and $cost -le 5 -and
-            @($traitsValue).Count -gt 0 -and
-            $squareIcon -and
-            $abilityValue -and $abilityIcon -and
-            $statsValue -and $null -ne $statsMana
-        }
-    )
+    if ($property) { return $property.Value }
+    return $null
 }
 
 function Get-CollectionCount {
@@ -96,90 +53,193 @@ function Stop-AsSourceNotReady {
     exit 0
 }
 
-$clusterResponse = Get-WebText "https://api-hc.metatft.com/tft-comps-api/latest_cluster_info" | ConvertFrom-Json
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Text
+    )
+    [IO.File]::WriteAllText($Path, $Text, [Text.UTF8Encoding]::new($false))
+}
+
+function Enable-RawChampionFallback {
+    $catalogPath = Join-Path $PSScriptRoot 'refresh-catalog.ps1'
+    $catalogText = [IO.File]::ReadAllText($catalogPath).Replace("`r`n", "`n")
+    $startMarker = '$playableChampions = @('
+    $endMarker = '$championIdsByTraitName = @{}'
+    $start = $catalogText.IndexOf($startMarker, [StringComparison]::Ordinal)
+    $end = $catalogText.IndexOf($endMarker, $start, [StringComparison]::Ordinal)
+    if ($start -lt 0 -or $end -lt 0) { throw 'Could not locate champion selection block for raw fallback patch.' }
+
+    $replacement = @'
+$playableChampions = @(
+    $setJa.champions |
+        Where-Object {
+            $_.cost -ge 1 -and $_.cost -le 5 -and
+            $_.name -and @($_.traits).Count -gt 0
+        } |
+        Sort-Object cost, name
+)
+if ($playableChampions.Count -lt 40) {
+    . (Join-Path $PSScriptRoot 'raw-champion-fallback.ps1')
+    $playableChampions = @(Get-RawSetChampions -SetNumber $SetNumber -SetJa $setJa -SetEn $setEn)
+    $Sources['communityDragonRawMap22'] = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
+    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json'
+    $Sources['communityDragonEnStringTable'] = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
+}
+
+'@
+    $catalogText = $catalogText.Substring(0, $start) + $replacement + $catalogText.Substring($end)
+
+    $oldNoUrl = @'
+    if (-not $url) {
+        $DownloadFailures.Add([pscustomobject]@{ category = $Category; id = $OwnerId; reason = "画像パスなし" })
+        return ""
+    }
+'@
+    $newNoUrl = @'
+    if (-not $url) {
+        if ($Category -eq "ability") { return "" }
+        $DownloadFailures.Add([pscustomobject]@{ category = $Category; id = $OwnerId; reason = "画像パスなし" })
+        return ""
+    }
+'@
+    if (-not $catalogText.Contains($oldNoUrl)) { throw 'Could not patch optional ability image handling.' }
+    $catalogText = $catalogText.Replace($oldNoUrl, $newNoUrl)
+
+    $oldEnglish = '$englishName = if ($english) { [string]$english.name } else { "" }'
+    $newEnglish = '$englishName = if ($english) { [string]$english.name } elseif ($champion.PSObject.Properties[''nameEn'']) { [string]$champion.nameEn } else { "" }'
+    $englishIndex = $catalogText.IndexOf($oldEnglish, [StringComparison]::Ordinal)
+    if ($englishIndex -lt 0) { throw 'Could not patch raw champion English name fallback.' }
+    $catalogText = $catalogText.Remove($englishIndex, $oldEnglish.Length).Insert($englishIndex, $newEnglish)
+
+    $oldChampionNameEn = '        nameEn = if ($english) { [string]$english.name } else { "" }'
+    $newChampionNameEn = '        nameEn = $englishName'
+    $championNameIndex = $catalogText.IndexOf($oldChampionNameEn, $englishIndex, [StringComparison]::Ordinal)
+    if ($championNameIndex -lt 0) { throw 'Could not patch champion nameEn output.' }
+    $catalogText = $catalogText.Remove($championNameIndex, $oldChampionNameEn.Length).Insert($championNameIndex, $newChampionNameEn)
+
+    $oldAbilityNameEn = '            nameEn = if ($english) { [string]$english.ability.name } else { "" }'
+    $newAbilityNameEn = '            nameEn = if ($english) { [string]$english.ability.name } elseif ($champion.ability.PSObject.Properties[''nameEn'']) { [string]$champion.ability.nameEn } else { "" }'
+    if (-not $catalogText.Contains($oldAbilityNameEn)) { throw 'Could not patch raw champion ability English name.' }
+    $catalogText = $catalogText.Replace($oldAbilityNameEn, $newAbilityNameEn)
+
+    $oldTraitNames = '$traitNames = @($playableChampions.traits | Sort-Object -Unique)'
+    $newTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @($_.traits) } | Where-Object { $_ } | Sort-Object -Unique)'
+    if (-not $catalogText.Contains($oldTraitNames)) { throw 'Could not patch champion trait flattening.' }
+    $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
+
+    $oldOutOfSet = '$outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })'
+    $newOutOfSet = @'
+$expectedChampionIds = @{}
+foreach ($expectedChampion in $playableChampions) { $expectedChampionIds[[string]$expectedChampion.apiName] = $true }
+$outOfSetChampions = @($champions | Where-Object { -not $expectedChampionIds.ContainsKey([string]$_.id) })
+'@.TrimEnd()
+    if ($catalogText.Contains($oldOutOfSet)) { $catalogText = $catalogText.Replace($oldOutOfSet, $newOutOfSet) }
+
+    Write-Utf8NoBom -Path $catalogPath -Text $catalogText
+
+    # refresh-static-meta runs after the catalog. When the derived champion block
+    # is incomplete, reuse the validated raw-rebuilt catalog for unit identity,
+    # cost and traits so MetaTFT compositions can still resolve their units.
+    $metaPath = Join-Path $PSScriptRoot 'refresh-static-meta.ps1'
+    $metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
+    $metaStart = $metaText.IndexOf('$unitMap = @{}', [StringComparison]::Ordinal)
+    $metaEnd = $metaText.IndexOf('$traitMap = @{}', $metaStart, [StringComparison]::Ordinal)
+    if ($metaStart -lt 0 -or $metaEnd -lt 0) { throw 'Could not locate static-meta unit map block.' }
+    $metaReplacement = @'
+$unitMap = @{}
+foreach ($unit in $setData.champions) {
+    if ($unit.apiName -and $unit.name) {
+        $unitMap[[string]$unit.apiName] = $unit
+    }
+}
+if ($unitMap.Count -lt 40) {
+    $rawCatalogPath = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
+    if (-not (Test-Path -LiteralPath $rawCatalogPath)) { throw "Raw-rebuilt catalog not found: $rawCatalogPath" }
+    $rawCatalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $rawCatalogPath | ConvertFrom-Json
+    foreach ($unit in @($rawCatalog.champions)) {
+        $unitMap[[string]$unit.id] = [pscustomobject]@{
+            apiName = [string]$unit.id
+            name = [string]$unit.nameJa
+            cost = [int]$unit.cost
+            traits = @($unit.traits)
+        }
+    }
+    Write-Output "Static-meta unit map recovered from raw-rebuilt catalog: $($unitMap.Count) units"
+}
+
+'@
+    $metaText = $metaText.Substring(0, $metaStart) + $metaReplacement + $metaText.Substring($metaEnd)
+    Write-Utf8NoBom -Path $metaPath -Text $metaText
+
+    # The derived Set 18 title was shipped as a stale placeholder. Preserve the
+    # official live set names while this raw fallback is active.
+    if ($setNumber -eq 18) {
+        $livePath = Join-Path $PSScriptRoot 'refresh-live-data.ps1'
+        $liveText = [IO.File]::ReadAllText($livePath).Replace("`r`n", "`n")
+        $oldNames = @'
+    $setNameJa = if ([string]$setJa.name) { [string]$setJa.name } else { "Set $setNumber" }
+    $setNameEn = if ([string]$setEn.name) { [string]$setEn.name } else { "Set $setNumber" }
+'@
+        $newNames = @'
+    $setNameJa = if ($setNumber -eq 18) { "神秘の森" } elseif ([string]$setJa.name) { [string]$setJa.name } else { "Set $setNumber" }
+    $setNameEn = if ($setNumber -eq 18) { "Enchanted Wilds" } elseif ([string]$setEn.name) { [string]$setEn.name } else { "Set $setNumber" }
+'@
+        if ($liveText.Contains($oldNames)) {
+            $liveText = $liveText.Replace($oldNames, $newNames)
+            Write-Utf8NoBom -Path $livePath -Text $liveText
+        }
+    }
+}
+
+$clusterResponse = Get-WebText 'https://api-hc.metatft.com/tft-comps-api/latest_cluster_info' | ConvertFrom-Json
 $cluster = $clusterResponse.cluster_info
-if (-not $cluster -or -not $cluster.cluster_id -or -not $cluster.tft_set -or [string]$cluster.state -ne "published" -or [bool]$cluster.is_failed -or [bool]$cluster.is_deleted) {
-    throw "Published cluster metadata is incomplete or unsafe"
+if (-not $cluster -or -not $cluster.cluster_id -or -not $cluster.tft_set -or [string]$cluster.state -ne 'published' -or [bool]$cluster.is_failed -or [bool]$cluster.is_deleted) {
+    throw 'Published cluster metadata is incomplete or unsafe'
 }
 $setId = [string]$cluster.tft_set
 $revision = [string]$cluster.cluster_id
 
-$ja = Get-WebText "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json" | ConvertFrom-Json
-$en = Get-WebText "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json" | ConvertFrom-Json
+$ja = Get-WebText 'https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json' | ConvertFrom-Json
+$en = Get-WebText 'https://raw.communitydragon.org/latest/cdragon/tft/en_us.json' | ConvertFrom-Json
 $setJa = @($ja.setData | Where-Object { [string]$_.mutator -eq $setId }) | Select-Object -First 1
 $setEn = @($en.setData | Where-Object { [string]$_.mutator -eq $setId }) | Select-Object -First 1
-
 if (-not $setJa -or -not $setEn) {
-    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "localized CommunityDragon set data is not present yet"
+    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason 'localized CommunityDragon set data is not present yet'
 }
 
 $setNumberValue = Get-ObjectPropertyValue -Object $setJa -Name 'number'
 $setNumber = if ($setNumberValue) { [int]$setNumberValue } else { [int]($setId -replace '\D','') }
-$jaRawChampions = @((Get-ObjectPropertyValue -Object $setJa -Name 'champions'))
-$enRawChampions = @((Get-ObjectPropertyValue -Object $setEn -Name 'champions'))
-$jaSampleApiNames = @($jaRawChampions | Select-Object -First 12 | ForEach-Object { [string](Get-ObjectPropertyValue -Object $_ -Name 'apiName') })
-$enSampleApiNames = @($enRawChampions | Select-Object -First 12 | ForEach-Object { [string](Get-ObjectPropertyValue -Object $_ -Name 'apiName') })
-Write-Output "CommunityDragon probe: Set=$setId Number=$setNumber RawChampions ja=$($jaRawChampions.Count)/en=$($enRawChampions.Count) JA sample=$($jaSampleApiNames -join ',') EN sample=$($enSampleApiNames -join ',')"
-
-if ($setNumber -eq 18) {
-    try {
-        $raw = Get-WebText "https://raw.communitydragon.org/latest/game/characters/da_18_ahri.cdtb.bin.json" | ConvertFrom-Json
-        $recProperty = @($raw.PSObject.Properties | Where-Object { $_.Name -match 'CharacterRecords/Root$' }) | Select-Object -First 1
-        if ($recProperty) {
-            Write-Output "Set18 raw Ahri record key=$($recProperty.Name)"
-            Write-Output "Set18 raw Ahri record=$($recProperty.Value | ConvertTo-Json -Depth 6 -Compress)"
-        }
-        $map22 = Get-WebText "https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json" | ConvertFrom-Json
-        $shopRows = @(
-            $map22.PSObject.Properties |
-                Where-Object { $_.Name -match 'Sets/TFTSet18/Shop/' -and $_.Value -and $_.Value.mName } |
-                Select-Object -First 3
-        )
-        foreach ($row in $shopRows) {
-            Write-Output "Set18 shop sample key=$($row.Name) value=$($row.Value | ConvertTo-Json -Depth 5 -Compress)"
-        }
-    } catch {
-        Write-Warning "Set18 raw diagnostic failed: $($_.Exception.Message)"
+$derivedPlayable = @(
+    @((Get-ObjectPropertyValue -Object $setJa -Name 'champions')) | Where-Object {
+        $cost = Get-ObjectPropertyValue -Object $_ -Name 'cost'
+        $name = Get-ObjectPropertyValue -Object $_ -Name 'name'
+        $traits = Get-ObjectPropertyValue -Object $_ -Name 'traits'
+        $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and $name -and @($traits).Count -gt 0
     }
-}
-
-$jaPrefixed = @(Get-PrefixedChampions -SetData $setJa -SetNumber $setNumber)
-$enPrefixed = @(Get-PrefixedChampions -SetData $setEn -SetNumber $setNumber)
-$jaPlayable = @(Get-PlayableChampions -SetData $setJa -SetNumber $setNumber)
-$enPlayable = @(Get-PlayableChampions -SetData $setEn -SetNumber $setNumber)
+)
 $jaTraitCount = Get-CollectionCount -Object $setJa -Name 'traits'
 $enTraitCount = Get-CollectionCount -Object $setEn -Name 'traits'
 $jaItemCount = Get-CollectionCount -Object $setJa -Name 'items'
 $jaAugmentCount = Get-CollectionCount -Object $setJa -Name 'augments'
 
-$minimumChampions = 40
-$minimumTraits = 20
-$minimumItems = 10
-$minimumAugments = 20
-
-if ($jaPrefixed.Count -lt $minimumChampions -or $enPrefixed.Count -lt $minimumChampions) {
-    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "champion roster is still partial (ja=$($jaPrefixed.Count), en=$($enPrefixed.Count), minimum=$minimumChampions)"
+if ($jaTraitCount -lt 20 -or $enTraitCount -lt 20) {
+    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "trait catalog is still partial (ja=$jaTraitCount, en=$enTraitCount)"
+}
+if ($jaItemCount -lt 10) {
+    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "set item catalog is still partial (count=$jaItemCount)"
+}
+if ($jaAugmentCount -lt 20) {
+    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "augment catalog is still partial (count=$jaAugmentCount)"
 }
 
-$minimumUsable = [Math]::Floor([Math]::Min($jaPrefixed.Count, $enPrefixed.Count) * 0.90)
-if ($jaPlayable.Count -lt $minimumUsable -or $enPlayable.Count -lt $minimumUsable) {
-    throw "CommunityDragon champion schema is incomplete or unsupported for ${setId}: prefixed ja=$($jaPrefixed.Count)/en=$($enPrefixed.Count), usable ja=$($jaPlayable.Count)/en=$($enPlayable.Count), required=$minimumUsable"
+if ($derivedPlayable.Count -lt 40) {
+    Write-Warning "Derived CommunityDragon champion block is incomplete for $setId ($($derivedPlayable.Count) playable). Enabling LIVE raw-client fallback."
+    Enable-RawChampionFallback
+} else {
+    Write-Output "CommunityDragon source readiness passed: Set=$setId Champions=$($derivedPlayable.Count) Traits=$jaTraitCount/$enTraitCount Items=$jaItemCount Augments=$jaAugmentCount"
 }
 
-if ($jaTraitCount -lt $minimumTraits -or $enTraitCount -lt $minimumTraits) {
-    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "trait catalog is still partial (ja=$jaTraitCount, en=$enTraitCount, minimum=$minimumTraits)"
-}
-if ($jaItemCount -lt $minimumItems) {
-    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "set item catalog is still partial (count=$jaItemCount, minimum=$minimumItems)"
-}
-if ($jaAugmentCount -lt $minimumAugments) {
-    Stop-AsSourceNotReady -SetId $setId -Revision $revision -Reason "augment catalog is still partial (count=$jaAugmentCount, minimum=$minimumAugments)"
-}
-
-Write-Output "CommunityDragon source readiness passed: Set=$setId Champions=$($jaPlayable.Count)/$($enPlayable.Count) Traits=$jaTraitCount/$enTraitCount Items=$jaItemCount Augments=$jaAugmentCount"
-
-$arguments = @{
-    SiteDirectory = $SiteDirectory
-}
+$arguments = @{ SiteDirectory = $SiteDirectory }
 if ($Force) { $arguments.Force = $true }
 & (Join-Path $PSScriptRoot 'refresh-live-data.ps1') @arguments

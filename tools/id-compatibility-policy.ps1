@@ -88,9 +88,11 @@ function Resolve-TftCanonicalId {
     }
 
     $looseKey = ConvertTo-TftLooseIdKey -Id $SourceId
-    $looseCandidates = if ($looseKey -and $Index.byLooseKey.ContainsKey($looseKey)) {
-        @($Index.byLooseKey[$looseKey])
-    } else { @() }
+    $looseCandidates = @(
+        if ($looseKey -and $Index.byLooseKey.ContainsKey($looseKey)) {
+            @($Index.byLooseKey[$looseKey])
+        }
+    )
     if ($looseCandidates.Count -eq 1) {
         return [pscustomobject][ordered]@{
             status = 'ALIAS'
@@ -100,9 +102,11 @@ function Resolve-TftCanonicalId {
     }
 
     $nameKey = ConvertTo-TftNameKey -Name $SourceName
-    $nameCandidates = if ($nameKey -and $Index.byName.ContainsKey($nameKey)) {
-        @($Index.byName[$nameKey])
-    } else { @() }
+    $nameCandidates = @(
+        if ($nameKey -and $Index.byName.ContainsKey($nameKey)) {
+            @($Index.byName[$nameKey])
+        }
+    )
     if ($nameCandidates.Count -eq 1) {
         if ($looseCandidates.Count -eq 0 -or $looseCandidates -contains [string]$nameCandidates[0]) {
             return [pscustomobject][ordered]@{

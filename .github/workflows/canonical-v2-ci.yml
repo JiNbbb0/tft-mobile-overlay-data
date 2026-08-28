@@ -30,6 +30,9 @@ jobs:
       - name: Platinum+ MetaTFT composition adapter
         shell: pwsh
         run: ./tools/test-metatft-adapter.ps1
+      - name: MetaTFT level board adapter
+        shell: pwsh
+        run: ./tools/test-metatft-boards.ps1
       - name: Existing cross-source ID policy
         shell: pwsh
         run: ./tools/test-id-compatibility-policy.ps1

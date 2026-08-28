@@ -12,7 +12,7 @@ permissions:
 jobs:
   contract-tests:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - name: Canonical quality fixtures
@@ -48,6 +48,20 @@ jobs:
       - name: Existing data history regression
         shell: pwsh
         run: ./tools/test-data-history-policy.ps1
+      - name: Build live Canonical v2 dry-run
+        shell: pwsh
+        run: ./tools/metatft/build-live-canonical-dryrun.ps1
+      - name: Validate live Canonical v2 dry-run
+        shell: pwsh
+        run: ./tools/metatft/validate-live-canonical-dryrun.ps1
+      - name: Preserve live Canonical v2 dry-run
+        if: always() && hashFiles('build/canonical-v2-live/**') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: canonical-v2-live-${{ github.run_id }}
+          path: build/canonical-v2-live
+          if-no-files-found: error
+          retention-days: 14
       - name: Audit live MetaTFT source shapes
         shell: pwsh
         run: ./tools/metatft/audit-live-source-shapes.ps1

@@ -16,7 +16,7 @@ function Convert-RawFallbackStringTable {
     $root = if ($Json.PSObject.Properties['entries']) { $Json.entries } else { $Json }
     $map = @{}
     foreach ($property in $root.PSObject.Properties) {
-        $map[[string]$property.Name] = [string]$property.Value
+        $map[[string]$property.Name.ToLowerInvariant()] = [string]$property.Value
     }
     return $map
 }
@@ -41,7 +41,8 @@ function Get-RawSetChampions {
     )
 
     $map22Url = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
-    $jaStringUrl = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json'
+    # Locale overlays keep Riot's internal menu folder named en_us.
+    $jaStringUrl = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/en_us/tft.stringtable.json'
     $enStringUrl = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
 
     Write-Host "Derived champion block is incomplete; rebuilding Set $SetNumber champions from LIVE raw client data."
@@ -51,7 +52,7 @@ function Get-RawSetChampions {
 
     $jaTraitNames = @{}
     foreach ($trait in @($SetJa.traits)) {
-        if ($trait.apiName -and $trait.name) { $jaTraitNames[[string]$trait.apiName] = [string]$trait.name }
+        if ($trait.apiName -and $trait.name) { $jaTraitNames[[string]$trait.apiName.ToLowerInvariant()] = [string]$trait.name }
     }
 
     $shopPattern = "Sets/TFTSet${SetNumber}/Shop/"
@@ -76,7 +77,7 @@ function Get-RawSetChampions {
 
     foreach ($shop in $shopRows) {
         $id = [string](Get-RawFallbackPropertyValue -Object $shop -Name 'mName')
-        if (-not $id -or $seen.ContainsKey($id)) { continue }
+        if (-not $id -or $seen.ContainsKey($id.ToLowerInvariant())) { continue }
 
         $baseCostValue = Get-RawFallbackPropertyValue -Object $shop -Name 'BaseCost'
         $baseCost = if ($null -ne $baseCostValue) { [int]$baseCostValue } else { 0 }
@@ -100,8 +101,9 @@ function Get-RawSetChampions {
             $traitPath = [string](Get-RawFallbackPropertyValue -Object $linkedTrait -Name 'TraitData')
             if (-not $traitPath -or $traitPath -notmatch [regex]::Escape($traitPattern)) { continue }
             $traitApiName = ($traitPath -split '/')[-1]
-            if ($jaTraitNames.ContainsKey($traitApiName)) {
-                $traitNames.Add([string]$jaTraitNames[$traitApiName])
+            $traitKey = $traitApiName.ToLowerInvariant()
+            if ($jaTraitNames.ContainsKey($traitKey)) {
+                $traitNames.Add([string]$jaTraitNames[$traitKey])
             } else {
                 $unknownTraits.Add("$id->$traitApiName")
             }
@@ -112,11 +114,14 @@ function Get-RawSetChampions {
         $displayNameKey = [string](Get-RawFallbackPropertyValue -Object $shop -Name 'mDisplayNameTra')
         $abilityNameKey = [string](Get-RawFallbackPropertyValue -Object $shop -Name 'mAbilityNameTra')
         $abilityDescKey = [string](Get-RawFallbackPropertyValue -Object $shop -Name 'mDescriptionTra')
-        $nameJa = if ($displayNameKey -and $jaStrings.ContainsKey($displayNameKey)) { [string]$jaStrings[$displayNameKey] } else { '' }
-        $nameEn = if ($displayNameKey -and $enStrings.ContainsKey($displayNameKey)) { [string]$enStrings[$displayNameKey] } else { '' }
-        $abilityNameJa = if ($abilityNameKey -and $jaStrings.ContainsKey($abilityNameKey)) { [string]$jaStrings[$abilityNameKey] } else { '' }
-        $abilityNameEn = if ($abilityNameKey -and $enStrings.ContainsKey($abilityNameKey)) { [string]$enStrings[$abilityNameKey] } else { '' }
-        $abilityDescJa = if ($abilityDescKey -and $jaStrings.ContainsKey($abilityDescKey)) { [string]$jaStrings[$abilityDescKey] } else { '' }
+        $displayNameLookup = if ($displayNameKey) { $displayNameKey.ToLowerInvariant() } else { '' }
+        $abilityNameLookup = if ($abilityNameKey) { $abilityNameKey.ToLowerInvariant() } else { '' }
+        $abilityDescLookup = if ($abilityDescKey) { $abilityDescKey.ToLowerInvariant() } else { '' }
+        $nameJa = if ($displayNameLookup -and $jaStrings.ContainsKey($displayNameLookup)) { [string]$jaStrings[$displayNameLookup] } else { '' }
+        $nameEn = if ($displayNameLookup -and $enStrings.ContainsKey($displayNameLookup)) { [string]$enStrings[$displayNameLookup] } else { '' }
+        $abilityNameJa = if ($abilityNameLookup -and $jaStrings.ContainsKey($abilityNameLookup)) { [string]$jaStrings[$abilityNameLookup] } else { '' }
+        $abilityNameEn = if ($abilityNameLookup -and $enStrings.ContainsKey($abilityNameLookup)) { [string]$enStrings[$abilityNameLookup] } else { '' }
+        $abilityDescJa = if ($abilityDescLookup -and $jaStrings.ContainsKey($abilityDescLookup)) { [string]$jaStrings[$abilityDescLookup] } else { '' }
         if (-not $nameJa -or -not $abilityDescJa) { continue }
 
         $squareIcon = [string](Get-RawFallbackPropertyValue -Object $shop -Name 'SquareSplashPath')
@@ -177,7 +182,7 @@ function Get-RawSetChampions {
                 range = $range
             }
         })
-        $seen[$id] = $true
+        $seen[$id.ToLowerInvariant()] = $true
     }
 
     $result = @($champions | Sort-Object cost, name)

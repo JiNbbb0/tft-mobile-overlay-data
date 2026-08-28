@@ -13,7 +13,7 @@ if (-not (Test-Path -LiteralPath $resolvedInput)) { throw "Dry-run output not fo
 $data = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedInput | ConvertFrom-Json
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $repoRoot 'source/current/tft/tft_catalog.json') | ConvertFrom-Json
 
-$quality = Test-CanonicalContract -Value $data -RequiredArrayPaths @('compositions')
+$quality = Test-CanonicalContract -Value $data -RequiredArrayPaths @('compositions','itemIdAliases','supplementalItems')
 if (-not $quality.passed) {
     $text = @($quality.findings | ForEach-Object { "$($_.code) $($_.path)" }) -join '; '
     throw "CANONICAL_QUALITY_FAILED $text"
@@ -49,6 +49,23 @@ foreach ($item in @($catalog.items)) { if ($item.id) { $itemIds[[string]$item.id
 $augmentIds = @{}
 foreach ($augment in @($catalog.augments)) { if ($augment.id) { $augmentIds[[string]$augment.id] = $true } }
 
+$supplementalItems = @($data.supplementalItems)
+$supplementalIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($supplemental in $supplementalItems) {
+    $id = [string]$supplemental.id
+    if (-not $id) { throw 'Supplemental item has no ID.' }
+    if ($itemIds.ContainsKey($id)) { throw "Supplemental item duplicates catalog item: $id" }
+    if (-not $supplementalIds.Add($id)) { throw "Duplicate supplemental item ID: $id" }
+    $nameJa = [string]$supplemental.nameJa
+    $nameEn = [string]$supplemental.nameEn
+    if (-not $nameJa -and -not $nameEn) { throw "Supplemental item has no display name: $id" }
+    if ([string]$supplemental.source -ne 'CommunityDragon current-set universe + MetaTFT observed item') {
+        throw "Unexpected supplemental item provenance: $id/$($supplemental.source)"
+    }
+    $itemIds[$id] = $true
+}
+
+$referencedItemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $recommendedBuildCount = 0
 $correlationCount = 0
 $directAugmentCount = 0
@@ -68,22 +85,28 @@ foreach ($composition in $compositions) {
             if ([string]$recommended.sourceSemantics -ne 'OVERVIEW_BUILD') { throw "Invalid recommendation semantics: $compositionId/$($unitData.unitId)" }
             foreach ($itemIdValue in @($recommended.itemIds)) {
                 $itemId = [string]$itemIdValue
+                [void]$referencedItemIds.Add($itemId)
                 if (-not $itemIds.ContainsKey($itemId)) { throw "Unresolved recommended item: $compositionId/$($unitData.unitId)/$itemId" }
             }
             $recommendedBuildCount++
         }
         foreach ($popularity in @($unitData.derivedPopularity)) {
             if ([bool]$popularity.isRecommendation) { throw "Derived popularity mislabeled as recommendation: $compositionId/$($unitData.unitId)" }
-            if (-not $itemIds.ContainsKey([string]$popularity.itemId)) { throw "Unresolved popularity item: $compositionId/$($popularity.itemId)" }
+            $itemId = [string]$popularity.itemId
+            [void]$referencedItemIds.Add($itemId)
+            if (-not $itemIds.ContainsKey($itemId)) { throw "Unresolved popularity item: $compositionId/$itemId" }
         }
         foreach ($correlation in @($unitData.averagePlacementCorrelations)) {
             if ([bool]$correlation.isRecommendation) { throw "Derived correlation mislabeled as recommendation: $compositionId/$($unitData.unitId)" }
-            if (-not $itemIds.ContainsKey([string]$correlation.itemId)) { throw "Unresolved correlation item: $compositionId/$($correlation.itemId)" }
+            $itemId = [string]$correlation.itemId
+            [void]$referencedItemIds.Add($itemId)
+            if (-not $itemIds.ContainsKey($itemId)) { throw "Unresolved correlation item: $compositionId/$itemId" }
             $correlationCount++
         }
         foreach ($build in @($unitData.threeItemBuilds)) {
             foreach ($itemIdValue in @($build.itemIds)) {
                 $itemId = [string]$itemIdValue
+                [void]$referencedItemIds.Add($itemId)
                 if (-not $itemIds.ContainsKey($itemId)) { throw "Unresolved three-item build item: $compositionId/$($unitData.unitId)/$itemId" }
             }
         }
@@ -126,10 +149,17 @@ foreach ($composition in $compositions) {
     }
 }
 
+foreach ($supplemental in $supplementalItems) {
+    $id = [string]$supplemental.id
+    if (-not $referencedItemIds.Contains($id)) {
+        throw "Unreferenced supplemental item must not be published: $id"
+    }
+}
+
 if ($recommendedBuildCount -eq 0) { throw 'No source-recommended item builds survived canonicalization.' }
 if ($correlationCount -eq 0) { throw 'No derived item correlations were produced.' }
 if ($boardCount -eq 0) { throw 'No real level boards were produced.' }
 # Do not require augment rows for every composition. New-set comp-specific data can be sparse,
 # but when direct rows exist they must be canonical and must never gate the composition list.
 
-Write-Output "Canonical v2 live dry-run validation passed. Set=$($data.set.id) Compositions=$($compositions.Count) RecommendedBuilds=$recommendedBuildCount Correlations=$correlationCount DirectAugments=$directAugmentCount Boards=$boardCount"
+Write-Output "Canonical v2 live dry-run validation passed. Set=$($data.set.id) Compositions=$($compositions.Count) RecommendedBuilds=$recommendedBuildCount Correlations=$correlationCount DirectAugments=$directAugmentCount Boards=$boardCount SupplementalItems=$($supplementalItems.Count)"

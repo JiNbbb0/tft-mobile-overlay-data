@@ -40,14 +40,11 @@ function Get-RawSetChampions {
         [Parameter(Mandatory = $true)][object]$SetEn
     )
 
-    # CommunityDragon's derived TFT JSON can temporarily (or permanently, when
-    # its parser cannot identify a new spell schema) omit most champions. The
-    # raw client exports below are the same LIVE client data, not PBE data.
     $map22Url = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
     $jaStringUrl = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json'
     $enStringUrl = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
 
-    Write-Output "Derived champion block is incomplete; rebuilding Set $SetNumber champions from LIVE raw client data."
+    Write-Host "Derived champion block is incomplete; rebuilding Set $SetNumber champions from LIVE raw client data."
     $map22 = Get-Json -Url $map22Url
     $jaStrings = Convert-RawFallbackStringTable -Json (Get-Json -Url $jaStringUrl)
     $enStrings = Convert-RawFallbackStringTable -Json (Get-Json -Url $enStringUrl)
@@ -167,8 +164,6 @@ function Get-RawSetChampions {
                 nameEn = $abilityNameEn
                 desc = $abilityDescJa
                 variables = @()
-                # Set 18's new raw spell schema does not expose the old derived
-                # ability icon field. Keep it absent rather than fabricating one.
                 icon = ''
             }
             stats = [pscustomobject][ordered]@{
@@ -186,7 +181,7 @@ function Get-RawSetChampions {
     }
 
     $result = @($champions | Sort-Object cost, name)
-    Write-Output "LIVE raw champion fallback: Shop=$($shopRows.Count) Playable=$($result.Count) FailedBins=$($failedBins.Count) UnknownTraits=$($unknownTraits.Count)"
+    Write-Host "LIVE raw champion fallback: Shop=$($shopRows.Count) Playable=$($result.Count) FailedBins=$($failedBins.Count) UnknownTraits=$($unknownTraits.Count)"
     if ($result.Count -lt 40) {
         throw "LIVE raw champion fallback is incomplete for Set $SetNumber: $($result.Count) playable champions"
     }

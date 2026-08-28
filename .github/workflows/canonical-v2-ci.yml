@@ -12,7 +12,7 @@ permissions:
 jobs:
   contract-tests:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
       - name: Canonical quality fixtures
@@ -48,3 +48,14 @@ jobs:
       - name: Existing data history regression
         shell: pwsh
         run: ./tools/test-data-history-policy.ps1
+      - name: Audit live MetaTFT source shapes
+        shell: pwsh
+        run: ./tools/metatft/audit-live-source-shapes.ps1
+      - name: Preserve source-shape audit
+        if: always() && hashFiles('build/metatft-source-audit/**') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: metatft-source-shapes-${{ github.run_id }}
+          path: build/metatft-source-audit
+          if-no-files-found: error
+          retention-days: 14

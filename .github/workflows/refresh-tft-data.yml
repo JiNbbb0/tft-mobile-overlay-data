@@ -57,6 +57,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-new-set-readiness.ps1
 
+      - name: Enforce Android-safe JSON array contract
+        shell: pwsh
+        run: ./tools/ensure-json-array-contract.ps1
+
       - name: Detect, generate, validate, and stage a new version
         id: refresh
         shell: pwsh

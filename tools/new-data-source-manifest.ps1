@@ -52,7 +52,17 @@ function Get-ObservationAggregate {
 }
 
 $catalogCount = @($catalog.champions).Count + @($catalog.traits).Count + @($catalog.items).Count + @($catalog.augments).Count
-$itemStatCount = @($meta.compositions | ForEach-Object { @($_.units | ForEach-Object { @($_.itemStats) }) }).Count
+$itemStatCount = @(
+    foreach ($composition in @($meta.compositions)) {
+        $unitsProperty = $composition.PSObject.Properties['units']
+        if (-not $unitsProperty) { continue }
+        foreach ($unit in @($unitsProperty.Value)) {
+            $itemStatsProperty = $unit.PSObject.Properties['itemStats']
+            if (-not $itemStatsProperty) { continue }
+            foreach ($itemStat in @($itemStatsProperty.Value)) { $itemStat }
+        }
+    }
+).Count
 $imageCount = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "source/current/tft/images") -File).Count
 $definitions = @(
     [ordered]@{ sourceName = "Riot TFT patch notes"; sourceUrl = [string]$catalog.sources.riotPatch; terms = "Riot website terms and Riot Legal Notices"; count = 1; fallback = $catalogPath },

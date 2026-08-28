@@ -54,7 +54,7 @@ jobs:
       - name: Detect, generate, validate, and stage a new version
         id: refresh
         shell: pwsh
-        run: ./tools/refresh-live-data.ps1
+        run: ./tools/refresh-live-data-gated.ps1
 
       - name: Validate complete site
         if: success()
@@ -180,7 +180,8 @@ jobs:
               Start-Sleep -Seconds (10 * $attempt)
             }
           }
-          if (-not $verified) { throw "Public Pages validation did not converge." }
+          if (-not $verified) { throw "Public Pages validation did not converge."
+          }
       - name: Record public verification
         shell: pwsh
         run: |

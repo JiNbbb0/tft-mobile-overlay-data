@@ -42,9 +42,19 @@ jobs:
         shell: pwsh
         run: ./tools/ensure-json-array-contract.ps1
 
+      - name: Enable canonical current-set catalog universe
+        shell: pwsh
+        run: ./tools/enable-current-set-catalog-universe.ps1
+
       - name: Verify runtime hardening postconditions
         shell: pwsh
         run: ./tools/verify-runtime-hardening.ps1
+
+      - name: Test current-set catalog universe
+        shell: pwsh
+        run: |
+          ./tools/test-current-set-universe.ps1
+          ./tools/test-current-set-catalog-integration.ps1
 
       - name: Test cross-source ID compatibility policy
         shell: pwsh

@@ -285,6 +285,28 @@ foreach ($composition in $selected) {
     })
 }
 
+# Only materialize source-observed items that actually survive into the
+# canonical output. MetaTFT comp_details can contain build rows for units that
+# are not part of the selected composition; those rows must not expand the
+# published item universe.
+$referencedCanonicalItemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($composition in @($compositions)) {
+    foreach ($unitData in @($composition.itemData)) {
+        foreach ($recommended in @($unitData.recommended)) {
+            foreach ($itemId in @($recommended.itemIds)) { if ($itemId) { [void]$referencedCanonicalItemIds.Add([string]$itemId) } }
+        }
+        foreach ($popularity in @($unitData.derivedPopularity)) {
+            if ($popularity.itemId) { [void]$referencedCanonicalItemIds.Add([string]$popularity.itemId) }
+        }
+        foreach ($correlation in @($unitData.averagePlacementCorrelations)) {
+            if ($correlation.itemId) { [void]$referencedCanonicalItemIds.Add([string]$correlation.itemId) }
+        }
+        foreach ($build in @($unitData.threeItemBuilds)) {
+            foreach ($itemId in @($build.itemIds)) { if ($itemId) { [void]$referencedCanonicalItemIds.Add([string]$itemId) } }
+        }
+    }
+}
+
 # A source-observed item can be equipable and statistically meaningful without
 # being listed in CommunityDragon setData.items (for example augment-granted
 # special emblems). Preserve such identities instead of aliasing them to a
@@ -307,6 +329,7 @@ foreach ($rawItemId in @($observedRawItemIds | Sort-Object)) {
     } else {
         Resolve-CanonicalItemId -RawId $rawItemId
     }
+    if (-not $referencedCanonicalItemIds.Contains($canonicalItemId)) { continue }
     if ($catalogItemIds.ContainsKey($canonicalItemId)) { continue }
     if ($canonicalItemId -ne $rawItemId) {
         throw "CANONICAL_ITEM_TARGET_MISSING raw=$rawItemId canonical=$canonicalItemId"

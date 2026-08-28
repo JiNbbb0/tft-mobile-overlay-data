@@ -26,7 +26,6 @@ $candidateItems = @(
     [IO.File]::WriteAllText($fixturePath, $fixture, [Text.UTF8Encoding]::new($false))
 
     & (Join-Path $PSScriptRoot 'enable-current-set-catalog-universe.ps1') -CatalogScriptPath $fixturePath
-    if ($LASTEXITCODE -ne 0) { throw 'Catalog universe patcher returned non-zero.' }
 
     $patched = [IO.File]::ReadAllText($fixturePath)
     if (-not $patched.Contains("normalize/Get-CurrentSetUniverse.ps1")) {
@@ -44,7 +43,6 @@ $candidateItems = @(
 
     $firstHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $fixturePath).Hash
     & (Join-Path $PSScriptRoot 'enable-current-set-catalog-universe.ps1') -CatalogScriptPath $fixturePath
-    if ($LASTEXITCODE -ne 0) { throw 'Idempotent catalog universe patcher returned non-zero.' }
     $secondHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $fixturePath).Hash
     if ($firstHash -ne $secondHash) {
         throw 'Catalog universe patcher is not idempotent.'

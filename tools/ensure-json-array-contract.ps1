@@ -9,6 +9,19 @@ function Write-Utf8NoBom {
     [IO.File]::WriteAllText($Path, $Text, [Text.UTF8Encoding]::new($false))
 }
 
+$repositoryRoot = Split-Path -Parent $PSScriptRoot
+$repairFlag = Join-Path $repositoryRoot "build/force-json-contract-repair.flag"
+if (Test-Path -LiteralPath $repairFlag) { Remove-Item -Force -LiteralPath $repairFlag }
+$currentSnapshotPath = Join-Path $repositoryRoot "source/current/tft_static_snapshot.json"
+if (Test-Path -LiteralPath $currentSnapshotPath) {
+    $currentRaw = [IO.File]::ReadAllText($currentSnapshotPath)
+    if ($currentRaw -match '"compositions"\s*:\s*null') {
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $repairFlag) | Out-Null
+        [IO.File]::WriteAllText($repairFlag, "repair`n", [Text.UTF8Encoding]::new($false))
+        Write-Warning "Tracked latest metadata contains compositions:null; one forced publication is required for Android compatibility."
+    }
+}
+
 # Android's org.json getJSONArray() rejects JSON null. During catalog-first
 # publication, empty collections must therefore be emitted as [] rather than null.
 $metaPath = Join-Path $PSScriptRoot "refresh-static-meta.ps1"

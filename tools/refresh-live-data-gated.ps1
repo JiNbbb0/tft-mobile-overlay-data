@@ -142,7 +142,7 @@ if ($jaPrefixed.Count -lt $minimumChampions -or $enPrefixed.Count -lt $minimumCh
 # instead of hiding a parser regression as an indefinitely pending source.
 $minimumUsable = [Math]::Floor([Math]::Min($jaPrefixed.Count, $enPrefixed.Count) * 0.90)
 if ($jaPlayable.Count -lt $minimumUsable -or $enPlayable.Count -lt $minimumUsable) {
-    throw "CommunityDragon champion schema is incomplete or unsupported for $setId: prefixed ja=$($jaPrefixed.Count)/en=$($enPrefixed.Count), usable ja=$($jaPlayable.Count)/en=$($enPlayable.Count), required=$minimumUsable"
+    throw "CommunityDragon champion schema is incomplete or unsupported for ${setId}: prefixed ja=$($jaPrefixed.Count)/en=$($enPrefixed.Count), usable ja=$($jaPlayable.Count)/en=$($enPlayable.Count), required=$minimumUsable"
 }
 
 if ($jaTraitCount -lt $minimumTraits -or $enTraitCount -lt $minimumTraits) {

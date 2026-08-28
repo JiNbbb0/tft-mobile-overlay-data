@@ -2,6 +2,8 @@ param(
     [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$')][string]$Repository,
     [Parameter(Mandatory = $true)][string]$GitHubToken,
     [bool]$PublicOutOfSync = $false,
+    [bool]$DataQualityRequiresAttention = $false,
+    [string]$DataQualityReason = 'OK',
     [int]$FailureThreshold = 4,
     [int]$StaleHours = 6
 )
@@ -52,10 +54,17 @@ $health = Resolve-AutomationHealth `
     -StaleHours $StaleHours `
     -PublicOutOfSync $PublicOutOfSync
 
+$requiresAttention = [bool]$health.requiresAttention -or $DataQualityRequiresAttention
+$combinedReason = if ($DataQualityRequiresAttention) {
+    "DATA_QUALITY:$DataQualityReason"
+} else {
+    [string]$health.reason
+}
+
 $openIssues = @(Invoke-GitHubApi -Method Get -Uri "$apiRoot/issues?state=open&per_page=100")
 $existingIssue = Select-AutomationHealthIssue -Issues $openIssues -Title $issueTitle
 
-if ($health.requiresAttention) {
+if ($requiresAttention) {
     if (-not $existingIssue) {
         try {
             Invoke-GitHubApi -Method Post -Uri "$apiRoot/labels" -Body ([ordered]@{
@@ -72,13 +81,15 @@ if ($health.requiresAttention) {
         $body = @"
 The GitHub-only watchdog detected that unattended TFT data publication needs attention.
 
-- Health reason: $($health.reason)
+- Health reason: $combinedReason
 - Consecutive failed refresh runs: $($health.consecutiveFailures)
 - No successful refresh within $StaleHours hours: $($health.stale)
 - Public site out of sync at watchdog check: $PublicOutOfSync
+- Public data quality requires attention: $DataQualityRequiresAttention
+- Public data quality reason: $DataQualityReason
 - Latest refresh run: $latestRunUrl
 
-The tracked last-known-good bundle has not been replaced by an unvalidated bundle. Public availability is checked separately by the publication reconciler. This issue intentionally contains no credentials, request headers, local paths, or raw failure logs. It will close automatically after the scheduled pipeline recovers.
+The tracked last-known-good bundle has not been replaced by an unvalidated bundle. Public availability and user-visible data quality are checked separately. This issue intentionally contains no credentials, request headers, local paths, or raw failure logs. It will close automatically after the scheduled pipeline recovers.
 "@
         $existingIssue = Invoke-GitHubApi -Method Post -Uri "$apiRoot/issues" -Body ([ordered]@{
             title = $issueTitle
@@ -100,10 +111,12 @@ if ($env:GITHUB_STEP_SUMMARY) {
     @"
 ## TFT automation watchdog
 
-- Result: $($health.reason)
+- Result: $combinedReason
 - Consecutive refresh failures: $($health.consecutiveFailures)
 - Successful refresh stale: $($health.stale)
 - Public site out of sync: $PublicOutOfSync
-- Alert issue open: $($health.requiresAttention)
+- Public data quality requires attention: $DataQualityRequiresAttention
+- Public data quality reason: $DataQualityReason
+- Alert issue open: $requiresAttention
 "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
 }

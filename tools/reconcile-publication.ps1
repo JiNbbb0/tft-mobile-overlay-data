@@ -87,12 +87,24 @@ if ($localVersion.PSObject.Properties['manifestSha256'] -and [string]$localVersi
     throw 'Tracked index manifest SHA-256 does not match the tracked manifest.'
 }
 
+# Fixed-root control files are not part of an immutable bundle manifest. They
+# still affect the user experience, so reconciliation must verify them as well.
+$localQualityPath = Join-Path $siteRoot 'data-quality.json'
+if (-not (Test-Path -LiteralPath $localQualityPath -PathType Leaf)) { throw 'Tracked data-quality.json is missing.' }
+$localQualityBytes = [IO.File]::ReadAllBytes($localQualityPath)
+$localQualitySha = Get-Sha256 $localQualityBytes
+$localQuality = [Text.Encoding]::UTF8.GetString($localQualityBytes) | ConvertFrom-Json
+if ([int]$localQuality.schemaVersion -ne 1) { throw 'Tracked data-quality.json has an unsupported schema.' }
+if ([string]$localQuality.versionId -ne [string]$localVersion.id) {
+    throw 'Tracked data-quality.json does not describe the tracked latest version.'
+}
+
 $remoteReachable = $false
 $remoteVersionId = ''
 $remoteManifestSha = ''
 $remoteFailure = ''
+$indexUri = [uri]$DataIndexUrl
 try {
-    $indexUri = [uri]$DataIndexUrl
     $remoteIndexBytes = Get-RemoteBytes -Uri $indexUri -MaximumBytes 1MB
     $remoteIndex = [Text.Encoding]::UTF8.GetString($remoteIndexBytes) | ConvertFrom-Json
     $remoteVersion = @($remoteIndex.versions | Where-Object { [string]$_.id -eq [string]$remoteIndex.latestVersionId }) | Select-Object -First 1
@@ -113,6 +125,28 @@ try {
     $remoteFailure = $_.Exception.Message -replace '[\r\n]+', ' '
 }
 
+$remoteQualityReachable = $false
+$remoteQualitySha = ''
+$remoteQualityFailure = ''
+if ($remoteReachable) {
+    try {
+        $qualityUri = [uri]::new($indexUri, 'data-quality.json')
+        if ($qualityUri.Scheme -ne 'https' -or -not $qualityUri.Host.Equals($indexUri.Host, [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Public data-quality URL left the configured HTTPS host.'
+        }
+        $remoteQualityBytes = Get-RemoteBytes -Uri $qualityUri -MaximumBytes 1MB
+        $remoteQualitySha = Get-Sha256 $remoteQualityBytes
+        $remoteQuality = [Text.Encoding]::UTF8.GetString($remoteQualityBytes) | ConvertFrom-Json
+        if ([int]$remoteQuality.schemaVersion -ne 1) { throw 'Public data-quality.json has an unsupported schema.' }
+        if ([string]$remoteQuality.versionId -ne $remoteVersionId) {
+            throw 'Public data-quality.json does not describe the public latest version.'
+        }
+        $remoteQualityReachable = $true
+    } catch {
+        $remoteQualityFailure = $_.Exception.Message -replace '[\r\n]+', ' '
+    }
+}
+
 $decision = Resolve-PublicationRequirement `
     -LocalVersionId ([string]$localVersion.id) `
     -LocalManifestSha256 $localManifestSha `
@@ -121,14 +155,33 @@ $decision = Resolve-PublicationRequirement `
     -RemoteManifestSha256 $remoteManifestSha `
     -RemoteFailure $remoteFailure
 
+if (-not [bool]$decision.publishRequired) {
+    if (-not $remoteQualityReachable) {
+        $decision = [pscustomobject][ordered]@{
+            publishRequired = $true
+            state = 'CONTROL_FILE_UNAVAILABLE'
+            reason = "Public data-quality.json is unavailable or invalid: $remoteQualityFailure"
+        }
+    } elseif ($remoteQualitySha -ne $localQualitySha) {
+        $decision = [pscustomobject][ordered]@{
+            publishRequired = $true
+            state = 'CONTROL_FILE_OUT_OF_SYNC'
+            reason = 'Tracked data-quality.json differs from public Pages.'
+        }
+    }
+}
+
 Set-ActionOutput 'publish_required' $decision.publishRequired.ToString().ToLowerInvariant()
 Set-ActionOutput 'public_state' ([string]$decision.state)
 Set-ActionOutput 'local_version' ([string]$localVersion.id)
 Set-ActionOutput 'public_version' $remoteVersionId
 Set-ActionOutput 'local_manifest_sha256' $localManifestSha
 Set-ActionOutput 'public_manifest_sha256' $remoteManifestSha
+Set-ActionOutput 'local_quality_sha256' $localQualitySha
+Set-ActionOutput 'public_quality_sha256' $remoteQualitySha
 
 Write-Output "Publication reconciliation: Required=$($decision.publishRequired) State=$($decision.state) Local=$($localVersion.id) Public=$remoteVersionId"
+Write-Output "Quality reconciliation: Local=$localQualitySha Public=$remoteQualitySha Reachable=$remoteQualityReachable"
 Write-Output "Reason=$($decision.reason)"
 if ($FailWhenOutOfSync -and $decision.publishRequired) {
     throw "Public publication remains out of sync: $($decision.state)"

@@ -28,6 +28,9 @@ jobs:
     timeout-minutes: 10
     outputs:
       publish_required: ${{ steps.reconcile.outputs.publish_required }}
+      quality_requires_attention: ${{ steps.quality.outputs.requires_attention }}
+      quality_reason: ${{ steps.quality.outputs.reason }}
+      quality_state: ${{ steps.quality.outputs.quality_state }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -43,6 +46,13 @@ jobs:
         run: |
           $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-inspect"
           ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl
+
+      - name: Check public user-visible data quality
+        id: quality
+        shell: pwsh
+        run: |
+          $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-quality"
+          ./tools/check-public-data-quality.ps1 -DataIndexUrl $checkUrl
 
       - name: Validate tracked last-known-good site before repair
         if: steps.reconcile.outputs.publish_required == 'true'
@@ -81,7 +91,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: main
-      - name: Verify public index, manifest, data, and sample image
+      - name: Verify public index, manifest, data, sample image, and quality status
         shell: pwsh
         run: |
           for ($attempt = 1; $attempt -le 6; $attempt++) {
@@ -89,6 +99,7 @@ jobs:
               $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-$attempt"
               ./tools/validate-remote-site.ps1 -DataIndexUrl $checkUrl
               ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl -FailWhenOutOfSync
+              ./tools/check-public-data-quality.ps1 -DataIndexUrl $checkUrl
               exit 0
             } catch {
               if ($attempt -eq 6) { throw }
@@ -115,14 +126,29 @@ jobs:
           $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-final"
           ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl
 
+      - name: Recheck final public data quality
+        id: final-quality
+        if: needs.inspect.result == 'success'
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-final-quality"
+          ./tools/check-public-data-quality.ps1 -DataIndexUrl $checkUrl
+
       - name: Upsert or close one sanitized automation health issue
         shell: pwsh
         env:
           GH_AUTOMATION_TOKEN: ${{ github.token }}
           PUBLIC_OUT_OF_SYNC: ${{ needs.inspect.result != 'success' || steps.final-reconcile.outcome != 'success' || steps.final-reconcile.outputs.publish_required == 'true' }}
+          DATA_QUALITY_REQUIRES_ATTENTION: ${{ needs.inspect.result != 'success' || steps.final-quality.outcome != 'success' || steps.final-quality.outputs.requires_attention == 'true' }}
+          DATA_QUALITY_REASON: ${{ steps.final-quality.outputs.reason }}
         run: |
           $outOfSync = $env:PUBLIC_OUT_OF_SYNC -eq 'true'
+          $qualityAttention = $env:DATA_QUALITY_REQUIRES_ATTENTION -eq 'true'
+          $qualityReason = if ($env:DATA_QUALITY_REASON) { $env:DATA_QUALITY_REASON } else { 'CHECK_FAILED' }
           ./tools/watch-automation-health.ps1 `
             -Repository '${{ github.repository }}' `
             -GitHubToken $env:GH_AUTOMATION_TOKEN `
-            -PublicOutOfSync $outOfSync
+            -PublicOutOfSync $outOfSync `
+            -DataQualityRequiresAttention $qualityAttention `
+            -DataQualityReason $qualityReason

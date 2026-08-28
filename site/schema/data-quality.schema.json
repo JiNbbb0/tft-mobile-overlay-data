@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jinbbb0.github.io/tft-mobile-overlay-data/schema/data-quality.schema.json",
+  "title": "TFT Mobile Overlay Data Quality Status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "generatedAtUtc",
+    "sourceUpdatedAtUtc",
+    "versionId",
+    "setId",
+    "setNumber",
+    "setName",
+    "patch",
+    "revision",
+    "readiness",
+    "qualityState",
+    "userMessageJa",
+    "userMessageEn",
+    "features",
+    "counts",
+    "warnings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "generatedAtUtc": { "type": "string" },
+    "sourceUpdatedAtUtc": { "type": "string" },
+    "versionId": { "type": "string", "minLength": 1 },
+    "setId": { "type": "string", "minLength": 1 },
+    "setNumber": { "type": "integer", "minimum": 1 },
+    "setName": { "type": "string", "minLength": 1 },
+    "patch": { "type": "string", "minLength": 1 },
+    "revision": { "type": "string", "minLength": 1 },
+    "readiness": { "enum": ["CATALOG_READY", "META_COLLECTING", "META_STABLE"] },
+    "qualityState": { "enum": ["READY", "DEGRADED_OPTIONAL", "CATALOG_ONLY"] },
+    "userMessageJa": { "type": "string" },
+    "userMessageEn": { "type": "string" },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["catalog", "compositions", "compositionAugments"],
+      "properties": {
+        "catalog": { "enum": ["READY", "COLLECTING", "UNAVAILABLE"] },
+        "compositions": { "enum": ["READY", "PARTIAL", "COLLECTING", "UNAVAILABLE"] },
+        "compositionAugments": { "enum": ["READY", "COLLECTING", "UNAVAILABLE"] }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "champions",
+        "traits",
+        "items",
+        "augments",
+        "compositions",
+        "targetCompositions",
+        "qualifiedSourceCompositions",
+        "missingAugmentCompositions"
+      ],
+      "properties": {
+        "champions": { "type": "integer", "minimum": 0 },
+        "traits": { "type": "integer", "minimum": 0 },
+        "items": { "type": "integer", "minimum": 0 },
+        "augments": { "type": "integer", "minimum": 0 },
+        "compositions": { "type": "integer", "minimum": 0 },
+        "targetCompositions": { "type": "integer", "minimum": 1 },
+        "qualifiedSourceCompositions": { "type": "integer", "minimum": 0 },
+        "missingAugmentCompositions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    }
+  }
+}

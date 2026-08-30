@@ -5,7 +5,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $paths = @(
     'tools/normalize/Get-CurrentSetUniverse.ps1',
     'tools/normalize/Get-EmblemMappings.ps1',
-    'tools/normalize/Resolve-DisplayValue.ps1',
+    'tools/normalize/Resolve-TftDisplayValue.ps1',
     'tools/measure-emblem-quality.ps1',
     'tools/audit-live-current-set-universe.ps1',
     'tools/enable-current-set-catalog-universe.ps1',
@@ -21,7 +21,7 @@ $paths = @(
     'tools/metatft/validate-live-canonical-dryrun.ps1',
     'tools/metatft/capture-live-source-snapshots.ps1',
     'tools/metatft/audit-live-source-shapes.ps1',
-    'tools/quality/Test-CanonicalQuality.ps1',
+    'tools/quality/Test-CanonicalContract.ps1',
     'tools/quality/Test-PublishCandidate.ps1',
     'tools/quality/Test-RemotePublishCandidate.ps1',
     'tools/quality/Test-AndroidE2EEvidence.ps1',

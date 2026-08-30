@@ -47,7 +47,7 @@ function Capture-Source([string]$Name, [uri]$Uri, [string]$TargetPath) {
                     }
                 } finally { $response.Dispose() }
             } catch {
-                if ($attempt -eq 3) { throw "Source snapshot failed for $Name: $($_.Exception.Message)" }
+                if ($attempt -eq 3) { throw "Source snapshot failed for ${Name}: $($_.Exception.Message)" }
                 Start-Sleep -Seconds (2 * $attempt)
             }
         }

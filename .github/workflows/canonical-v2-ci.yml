@@ -42,6 +42,9 @@ jobs:
       - name: Live current-set catalog universe
         shell: pwsh
         run: ./tools/audit-live-current-set-universe.ps1
+      - name: Measure live emblem quality
+        shell: pwsh
+        run: ./tools/measure-emblem-quality.ps1
       - name: Trait-to-emblem mapping
         shell: pwsh
         run: ./tools/test-emblem-mapping.ps1

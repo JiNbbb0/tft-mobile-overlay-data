@@ -1,7 +1,9 @@
 param(
     [string]$SiteDirectory = 'site',
     [string]$SnapshotPath = 'source/current/tft_static_snapshot.json',
-    [string]$CatalogPath = 'source/current/tft/tft_catalog.json'
+    [string]$CatalogPath = 'source/current/tft/tft_catalog.json',
+    [string]$EmblemQualityPath = 'build/canonical-v2-live/emblem-quality.json',
+    [string]$ReleaseId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -31,12 +33,17 @@ function Count-UnresolvedTokens([string]$Text) {
     foreach ($pattern in $patterns) { $count += [regex]::Matches($Text, $pattern).Count }
     return $count
 }
+function Convert-ToUtcIso([string]$Value, [string]$Context) {
+    try { return [DateTimeOffset]::Parse($Value).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ') }
+    catch { throw "Invalid timestamp for ${Context}: $Value" }
+}
 
 $siteRoot = Resolve-RepoPath $SiteDirectory
 $snapshotFile = Resolve-RepoPath $SnapshotPath
 $catalogFile = Resolve-RepoPath $CatalogPath
+$emblemQualityFile = Resolve-RepoPath $EmblemQualityPath
 $indexFile = Join-Path $siteRoot 'data-index.json'
-foreach ($file in @($snapshotFile, $catalogFile, $indexFile)) {
+foreach ($file in @($snapshotFile, $catalogFile, $emblemQualityFile, $indexFile)) {
     if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Required data-quality input missing: $file" }
 }
 
@@ -44,13 +51,25 @@ $snapshotText = Get-Content -Raw -Encoding UTF8 -LiteralPath $snapshotFile
 $catalogText = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogFile
 $snapshot = $snapshotText | ConvertFrom-Json
 $catalog = $catalogText | ConvertFrom-Json
+$emblemQuality = Get-Content -Raw -Encoding UTF8 -LiteralPath $emblemQualityFile | ConvertFrom-Json
 $index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexFile | ConvertFrom-Json
-$latestVersion = @($index.versions | Where-Object { [string]$_.id -eq [string]$index.latestVersionId }) | Select-Object -First 1
-if (-not $latestVersion) { throw 'Latest version is missing from data-index.json.' }
-if ([string]$snapshot.setId -ne [string]$catalog.set.id) { throw 'Snapshot/catalog set mismatch while writing data quality status.' }
 
-$releaseId = [string]$index.latestVersionId
-if (-not $releaseId) { throw 'data-quality v2 requires a non-empty releaseId.' }
+if ([string]$snapshot.setId -ne [string]$catalog.set.id) { throw 'Snapshot/catalog set mismatch while writing data quality status.' }
+if ([int](Get-PropertyValue $emblemQuality 'schemaVersion' 0) -ne 1) { throw 'Unsupported emblem-quality schema.' }
+if ([string]$emblemQuality.setId -ne [string]$catalog.set.id -or [int]$emblemQuality.setNumber -ne [int]$catalog.set.number) {
+    throw "EMBLEM_QUALITY_SET_MISMATCH catalog=$($catalog.set.id)/$($catalog.set.number) audit=$($emblemQuality.setId)/$($emblemQuality.setNumber)"
+}
+
+if (-not $ReleaseId) { $ReleaseId = [string]$index.latestVersionId }
+if (-not $ReleaseId) { throw 'data-quality v2 requires a non-empty releaseId.' }
+$releaseVersion = @($index.versions | Where-Object { [string]$_.id -eq $ReleaseId }) | Select-Object -First 1
+if (-not $releaseVersion) { throw "data-quality release is not registered in data-index.json: $ReleaseId" }
+if ([string]$releaseVersion.setId -ne [string]$catalog.set.id) { throw 'data-quality release/catalog set mismatch.' }
+
+$emblemMissingEligible = [Math]::Max(0, [int](Get-PropertyValue $emblemQuality 'missingEligible' 0))
+$emblemDuplicateMappings = [Math]::Max(0, [int](Get-PropertyValue $emblemQuality 'duplicateMappings' 0))
+$emblemMissingImages = [Math]::Max(0, [int](Get-PropertyValue $emblemQuality 'missingImages' 0))
+$emblemStatus = if ($emblemMissingEligible -eq 0 -and $emblemDuplicateMappings -eq 0 -and $emblemMissingImages -eq 0 -and [string]$emblemQuality.status -eq 'READY') { 'READY' } else { 'BLOCKED' }
 
 $compositions = @($snapshot.compositions | Where-Object { $_ -is [pscustomobject] })
 $readiness = if ($snapshot.PSObject.Properties['readiness']) { [string]$snapshot.readiness } else { 'META_STABLE' }
@@ -108,7 +127,7 @@ if ($unresolvedTokens -gt 0) { throw "DATA_QUALITY_UNRESOLVED_TOKENS count=$unre
 
 $qualityState = if ($compositions.Count -eq 0) {
     'CATALOG_ONLY'
-} elseif ($compositions.Count -lt $targetCompositionCount -or $missingAugmentCompositions -gt 0 -or $levelBoards.Count -eq 0 -or $recommendedItemRecords -eq 0) {
+} elseif ($compositions.Count -lt $targetCompositionCount -or $missingAugmentCompositions -gt 0 -or $levelBoards.Count -eq 0 -or $recommendedItemRecords -eq 0 -or $emblemStatus -ne 'READY') {
     'DEGRADED_OPTIONAL'
 } else {
     'READY'
@@ -126,30 +145,32 @@ if ($compositions.Count -eq 0) {
 if ($missingAugmentCompositions -gt 0) { $warningCodes.Add('COMPOSITION_AUGMENTS_COLLECTING') }
 if ($levelBoards.Count -eq 0) { $warningCodes.Add('LEVEL_BOARDS_COLLECTING') }
 if ($recommendedItemRecords -eq 0) { $warningCodes.Add('RECOMMENDED_ITEMS_COLLECTING') }
+if ($emblemStatus -ne 'READY') { $warningCodes.Add('EMBLEM_MAPPING_BLOCKED') }
 
 $userMessageJa = switch ($qualityState) {
     'CATALOG_ONLY' { '新セットの図鑑データは利用できます。構成データは現在収集中です。データが揃い次第、自動更新されます。' }
-    'DEGRADED_OPTIONAL' { '利用可能なデータを表示しています。一部のおすすめ情報は現在収集中です。データが揃い次第、自動更新されます。' }
+    'DEGRADED_OPTIONAL' { '利用可能なデータを表示しています。一部の情報は検証中または収集中です。検証済みデータのみ自動更新されます。' }
     default { '' }
 }
 $userMessageEn = switch ($qualityState) {
     'CATALOG_ONLY' { 'Catalog data is available. Composition data is still being collected and will update automatically.' }
-    'DEGRADED_OPTIONAL' { 'Available data is shown. Some optional recommendations are still being collected and will update automatically.' }
+    'DEGRADED_OPTIONAL' { 'Validated data is shown. Some information is still being validated or collected and will update automatically when verified.' }
     default { '' }
 }
 
 $sourceUpdatedAtUtc = if ($snapshot.PSObject.Properties['statsUpdatedEpochMs'] -and [int64]$snapshot.statsUpdatedEpochMs -gt 0) {
     [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$snapshot.statsUpdatedEpochMs).UtcDateTime.ToString('yyyy-MM-ddTHH:mm:ssZ')
 } else {
-    [string]$snapshot.fetchedAtUtc
+    Convert-ToUtcIso -Value ([string]$snapshot.fetchedAtUtc) -Context 'snapshot.fetchedAtUtc'
 }
+$generatedAtUtc = Convert-ToUtcIso -Value ([string]$snapshot.fetchedAtUtc) -Context 'snapshot.fetchedAtUtc'
 
 $status = [pscustomobject][ordered]@{
     schemaVersion = 2
-    releaseId = $releaseId
-    generatedAtUtc = [string]$snapshot.fetchedAtUtc
+    releaseId = $ReleaseId
+    generatedAtUtc = $generatedAtUtc
     sourceUpdatedAtUtc = $sourceUpdatedAtUtc
-    versionId = $releaseId
+    versionId = $ReleaseId
     setId = [string]$snapshot.setId
     setNumber = [int]$catalog.set.number
     setName = [string]$catalog.set.nameJa
@@ -164,10 +185,10 @@ $status = [pscustomobject][ordered]@{
         champions = [ordered]@{ status = 'READY'; unresolvedTokens = 0 }
         traits = [ordered]@{ status = 'READY'; unresolvedTokens = 0 }
         emblems = [ordered]@{
-            status = 'READY'
-            missingEligible = 0
-            duplicateMappings = 0
-            missingImages = 0
+            status = $emblemStatus
+            missingEligible = $emblemMissingEligible
+            duplicateMappings = $emblemDuplicateMappings
+            missingImages = $emblemMissingImages
         }
         compositions = [ordered]@{
             status = $(if ($compositions.Count -eq 0) { 'COLLECTING' } elseif ($compositions.Count -lt $targetCompositionCount) { 'PARTIAL' } else { 'READY' })
@@ -211,4 +232,4 @@ if ([string]$status.releaseId -ne [string]$status.versionId) { throw 'data-quali
 $outputPath = Join-Path $siteRoot 'data-quality.json'
 $json = ($status | ConvertTo-Json -Depth 20).Replace("`r`n", "`n") + "`n"
 [IO.File]::WriteAllText($outputPath, $json, [Text.UTF8Encoding]::new($false))
-Write-Output "Wrote data quality v2: Release=$releaseId Quality=$qualityState Compositions=$($compositions.Count)/$targetCompositionCount Boards=$($levelBoards.Count) RecommendedItems=$recommendedItemRecords MissingAugmentComps=$missingAugmentCompositions"
+Write-Output "Wrote data quality v2: Release=$ReleaseId Quality=$qualityState Emblems=$emblemStatus Compositions=$($compositions.Count)/$targetCompositionCount Boards=$($levelBoards.Count) RecommendedItems=$recommendedItemRecords MissingAugmentComps=$missingAugmentCompositions"

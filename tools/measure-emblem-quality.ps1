@@ -42,7 +42,7 @@ $itemById = @{}
 foreach ($item in @($live.items)) {
     if ($null -ne $item -and $item.apiName) { $itemById[[string]$item.apiName] = $item }
 }
-$mappingResult = Get-TftEmblemMappings -Traits @($setData.traits) -Items @($live.items)
+$mappingResult = Get-TftEmblemMappings -Traits @($setData.traits) -Items @($live.items) -SetNumber $setNumber
 
 $mappedTraitIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($mapping in @($mappingResult.mappings)) {

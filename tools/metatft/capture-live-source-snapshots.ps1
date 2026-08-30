@@ -59,9 +59,12 @@ $outputRoot = Resolve-RepoPath $OutputDirectory
 if (-not (Test-Path -LiteralPath $dryRunFile -PathType Leaf)) { throw "Canonical dry-run not found: $dryRunFile" }
 New-Item -ItemType Directory -Force -Path $outputRoot | Out-Null
 $dryRun = Get-Content -Raw -Encoding UTF8 -LiteralPath $dryRunFile | ConvertFrom-Json
-$clusterId = [int]$dryRun.clusterId
-$setId = [string]$dryRun.setId
-if ($clusterId -le 0 -or -not $setId) { throw 'Canonical dry-run is missing setId/clusterId.' }
+if (-not $dryRun.PSObject.Properties['set'] -or $null -eq $dryRun.set) {
+    throw 'Canonical dry-run is missing the set identity object.'
+}
+$clusterId = [int]$dryRun.set.clusterId
+$setId = [string]$dryRun.set.id
+if ($clusterId -le 0 -or -not $setId) { throw 'Canonical dry-run set identity is missing set.id/set.clusterId.' }
 $compositionIds = @($dryRun.compositions | ForEach-Object { [string]$_.id } | Where-Object { $_ } | Sort-Object -Unique)
 if ($compositionIds.Count -eq 0) { throw 'Canonical dry-run contains no compositions for source snapshotting.' }
 

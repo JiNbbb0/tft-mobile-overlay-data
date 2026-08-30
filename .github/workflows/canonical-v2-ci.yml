@@ -15,6 +15,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
+      - name: Parse canonical PowerShell scripts
+        shell: pwsh
+        run: ./tools/test-canonical-script-syntax.ps1
       - name: Canonical quality fixtures
         shell: pwsh
         run: ./tools/test-canonical-quality.ps1
@@ -44,7 +47,7 @@ jobs:
         run: ./tools/audit-live-current-set-universe.ps1
       - name: Measure live emblem quality
         shell: pwsh
-        run: ./tools/measure-emblem-quality.ps1
+        run: ./tools/measure-emblem-quality.ps1 -RequireReady
       - name: Trait-to-emblem mapping
         shell: pwsh
         run: ./tools/test-emblem-mapping.ps1

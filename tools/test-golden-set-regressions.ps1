@@ -27,9 +27,9 @@ function Assert-JsonArrayProperty($Object, [string]$Name, [string]$Context) {
 
 $fixtureRoot = Join-Path $PSScriptRoot '..\test\fixtures\golden'
 $fixturePaths = @(
-    Join-Path $fixtureRoot 'set17.json',
-    Join-Path $fixtureRoot 'set18.json',
-    Join-Path $fixtureRoot 'future-set19.json'
+    (Join-Path $fixtureRoot 'set17.json'),
+    (Join-Path $fixtureRoot 'set18.json'),
+    (Join-Path $fixtureRoot 'future-set19.json')
 )
 
 $seenSetNumbers = [Collections.Generic.HashSet[int]]::new()

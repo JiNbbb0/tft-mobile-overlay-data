@@ -59,7 +59,7 @@ jobs:
           '@.Trim()
           if ($catalog.Contains($oldSelection)) {
             $catalog = $catalog.Replace($oldSelection, $newSelection)
-          } elseif (-not $catalog.Contains("$apiName = [string](Get-PropertyValue -Object $_ -Name 'apiName')")) {
+          } elseif (-not $catalog.Contains('Get-PropertyValue -Object $_ -Name ''apiName''')) {
             throw 'Could not locate or verify playable champion selection block.'
           }
 
@@ -86,6 +86,14 @@ jobs:
 
           $gatedPath = 'tools/refresh-live-data-gated.ps1'
           $gated = [IO.File]::ReadAllText($gatedPath).Replace("`r`n", "`n")
+          $oldGatedNewTraitNames = '$newTraitNames = ''$traitNames = @($playableChampions | ForEach-Object { @($_.traits) } | Where-Object { $_ } | Sort-Object -Unique)'''
+          $newGatedNewTraitNames = '$newTraitNames = ''$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''''traits'''') } | Where-Object { $_ } | Sort-Object -Unique)'''
+          if ($gated.Contains($oldGatedNewTraitNames)) {
+            $gated = $gated.Replace($oldGatedNewTraitNames, $newGatedNewTraitNames)
+          } elseif (-not $gated.Contains($newGatedNewTraitNames)) {
+            throw 'Could not locate or verify raw-fallback safe trait target.'
+          }
+
           $oldFallbackTraitPatch = @'
               if (-not $catalogText.Contains($oldTraitNames)) { throw 'Could not patch champion trait flattening.' }
               $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)

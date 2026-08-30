@@ -12,18 +12,30 @@ permissions:
 jobs:
   contract-tests:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
       - name: Canonical quality fixtures
         shell: pwsh
         run: ./tools/test-canonical-quality.ps1
+      - name: Data quality v2 contract
+        shell: pwsh
+        run: ./tools/test-data-quality-v2.ps1
+      - name: Published schema mirrors canonical schema
+        shell: pwsh
+        run: |
+          $canonical = (Get-Content -Raw -Encoding UTF8 schema/data-quality.schema.json).Replace("`r`n","`n")
+          $published = (Get-Content -Raw -Encoding UTF8 site/schema/data-quality.schema.json).Replace("`r`n","`n")
+          if ($canonical -ne $published) { throw 'Published data-quality schema drifted from canonical schema.' }
       - name: Typed display value resolver
         shell: pwsh
         run: ./tools/test-display-value-resolver.ps1
       - name: Current-set item universe
         shell: pwsh
         run: ./tools/test-current-set-universe.ps1
+      - name: Cross-set golden regressions
+        shell: pwsh
+        run: ./tools/test-golden-set-regressions.ps1
       - name: Current-set catalog integration
         shell: pwsh
         run: ./tools/test-current-set-catalog-integration.ps1
@@ -60,7 +72,10 @@ jobs:
       - name: Validate live Canonical v2 dry-run
         shell: pwsh
         run: ./tools/metatft/validate-live-canonical-dryrun.ps1
-      - name: Preserve live Canonical v2 dry-run
+      - name: Capture immutable live source snapshots
+        shell: pwsh
+        run: ./tools/metatft/capture-live-source-snapshots.ps1
+      - name: Preserve live Canonical v2 dry-run and sources
         if: always() && hashFiles('build/canonical-v2-live/**') != ''
         uses: actions/upload-artifact@v7
         with:

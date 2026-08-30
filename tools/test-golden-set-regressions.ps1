@@ -50,10 +50,17 @@ foreach ($fixturePath in $fixturePaths) {
     Assert-JsonArrayProperty $fixture.expect 'included' "$setId.expect"
     Assert-JsonArrayProperty $fixture.expect 'excluded' "$setId.expect"
 
+    # Emblems are supplemental seeds only after the trait->emblem resolver has
+    # established an unambiguous mapping. This deliberately proves we do not
+    # auto-seed an entire DA_<set> namespace just because the prefix matches.
+    $mappings = Get-TftEmblemMappings -Traits @($fixture.traits) -Items @($fixture.items)
+    $validatedEmblemIds = @($mappings.mappings | ForEach-Object { [string]$_.emblemId } | Where-Object { $_ } | Sort-Object -Unique)
+
     $result = Get-TftCurrentSetUniverse `
         -SetNumber $setNumber `
         -SetData $fixture.setData `
         -AllItems @($fixture.items) `
+        -AdditionalItemIds $validatedEmblemIds `
         -ExcludedItemIds @($fixture.setData.augments)
 
     foreach ($id in @($fixture.expect.included)) {
@@ -63,12 +70,12 @@ foreach ($fixturePath in $fixturePaths) {
         Assert-NotContains $result.itemIds ([string]$id) "$setId excluded/cross-set item leaked"
     }
 
-    $mappings = Get-TftEmblemMappings -Traits @($fixture.traits) -Items @($fixture.items)
     $expectedTraitId = [string]$fixture.expect.emblemTraitId
     $expectedEmblemId = [string]$fixture.expect.emblemItemId
     $mapping = @($mappings.mappings | Where-Object { [string]$_.traitId -eq $expectedTraitId }) | Select-Object -First 1
     Assert-True ($null -ne $mapping) "$setId expected emblem mapping missing: $expectedTraitId"
     Assert-True ([string]$mapping.emblemId -eq $expectedEmblemId) "$setId emblem mapping mismatch. Expected=$expectedEmblemId Actual=$($mapping.emblemId)"
+    Assert-Contains $result.supplementalSeedIds $expectedEmblemId "$setId validated emblem should enter current-set universe as a supplemental seed"
 }
 
 Assert-True ($seenSetNumbers.Contains(17)) 'Set17 golden coverage missing.'
@@ -77,13 +84,16 @@ Assert-True ($seenSetNumbers.Contains(19)) 'Future Set19 golden coverage missing
 
 # Explicitly prove future-set handling is data-driven rather than hard-coded to Set18.
 $futureFixture = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $fixtureRoot 'future-set19.json') | ConvertFrom-Json
+$futureMappings = Get-TftEmblemMappings -Traits @($futureFixture.traits) -Items @($futureFixture.items)
+$futureSupplementalIds = @($futureMappings.mappings | ForEach-Object { [string]$_.emblemId } | Where-Object { $_ } | Sort-Object -Unique)
 $futureResult = Get-TftCurrentSetUniverse `
     -SetNumber 19 `
     -SetData $futureFixture.setData `
     -AllItems @($futureFixture.items) `
+    -AdditionalItemIds $futureSupplementalIds `
     -ExcludedItemIds @($futureFixture.setData.augments)
-Assert-Contains $futureResult.itemIds 'TFT19_Item_CurrentMechanic' 'Future-set explicit TFT19 identity should be discovered'
-Assert-Contains $futureResult.itemIds 'DA_19_ForestEmblem' 'Future-set explicit DA_19 emblem should be discovered'
+Assert-Contains $futureResult.itemIds 'TFT19_Item_CurrentMechanic' 'Future-set authoritative TFT19 identity should be accepted'
+Assert-Contains $futureResult.itemIds 'DA_19_ForestEmblem' 'Future-set validated DA_19 emblem should be accepted'
 Assert-NotContains $futureResult.itemIds 'DA_18_MechanicConsumable' 'Set18-specific item must not leak into future Set19'
 
 Write-Output 'Set17/Set18/future-Set golden regressions passed.'

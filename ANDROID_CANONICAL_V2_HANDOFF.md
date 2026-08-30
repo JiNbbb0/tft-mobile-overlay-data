@@ -59,7 +59,7 @@ UX:
 - Do not imply every trait has an emblem.
 - Temporary/copy/phantom emblems must not be shown as the canonical emblem for a trait.
 
-### 3. Feature-level readiness UX
+### 3. Feature-level readiness and freshness UX
 
 The app must distinguish:
 
@@ -67,8 +67,37 @@ The app must distinguish:
 - data still collecting
 - feature blocked by validation
 - stale Last Known Good data
+- remote endpoint reachable but source data stale
 
 Do not show `0件` when the server says the feature is `COLLECTING` or `BLOCKED`.
+Do not collapse overall `META_COLLECTING` into a generic message such as `構成データを集計中` when compositions themselves are already `READY` and only an optional sub-feature such as composition augments is collecting.
+
+The settings/update screen must display separate concepts instead of one overloaded status line:
+
+- `最終確認`: when the app last reached the publication endpoint successfully
+- `最終データ`: timestamp of the active data/source snapshot
+- `データ経過時間`: relative age such as `46時間28分前`
+- feature status: e.g. `構成 READY / 構成オーグメント COLLECTING`
+- stale state: explicit warning once the configured freshness threshold is exceeded
+
+`配信先確認済み` only means the publication endpoint was reachable. It must never be presented as evidence that the underlying gameplay/statistics data is current.
+
+Observed regression to lock down from the 2026-08-31 settings screenshot:
+
+- app check time: `2026/08/31 2:53`
+- active source data time: `2026-08-29 04:25 JST`
+- age: about `46h28m`
+- UI showed `配信先確認済み・元データ更新遅延`
+- UI also showed `構成データを集計中`, even though the server quality document reported compositions `READY` and only composition augments `COLLECTING`
+- the large bottom status card was horizontally clipped/truncated instead of wrapping or using a concise multi-line layout
+
+Required regression behavior for the same state:
+
+- top-level status: `最後に確認済みのデータを表示中`
+- detail: `最終データ 2026-08-29 04:25 JST（約46時間前）`
+- feature detail: `構成 READY / 構成オーグメント 収集中`
+- endpoint detail may separately say `配信先: 接続正常`
+- no text clipping; status cards must wrap or use structured rows and remain readable at supported phone/tablet widths and font scales
 
 Suggested user-facing messages:
 
@@ -143,6 +172,10 @@ Add tests for:
 - Japanese locale
 - emblem list/detail
 - compositions `[]` versus collecting state
+- feature-level readiness: compositions READY while compositionAugments COLLECTING must not render `構成データを集計中`
+- endpoint reachable + stale source data must render stale-LKG state, not a healthy/current state
+- freshness age formatting and threshold transitions
+- settings/update layout at narrow widths, tablet widths, and enlarged font scale; no horizontal text clipping
 - all 28 board cells encode/decode
 - no double vertical flip
 - server data with missing Lv5 board does not fabricate Lv5 positions
@@ -161,12 +194,21 @@ Goals:
 2. Never convert null/unresolved values to fake values or 0.
 3. Add the encyclopedia emblem model and explicit 紋章 UI.
 4. Read feature-level readiness and show collecting/blocked/stale states instead of misleading 0件 screens.
-5. Use a single 0..27 board coordinate contract; add all-cell round-trip tests and prevent double vertical inversion.
-6. If a level-specific board has no source positions, show units only; do not invent cells.
-7. Preserve the canonical MetaTFT Platinum+ composition order and source-defined recommendation order.
-8. Keep recommended items, average-placement correlations, derived popularity, and three-item builds as separate concepts.
-9. Make online updates transactional: temp/versioned download -> schema/hash/identity validation -> atomic pointer swap; on failure retain LKG.
-10. Add JVM/UI/instrumentation regression tests and provide test output, screenshots, build SHA, APK hash, and final commit SHA.
+5. Separate publication reachability, source freshness, active LKG age, and per-feature readiness. Never show `構成データを集計中` if compositions are READY and only composition augments are collecting. Never treat `配信先確認済み` as proof that source data is current.
+6. Make the settings/update status layout responsive and multi-line; no horizontal clipping at supported widths/font scales.
+7. Use a single 0..27 board coordinate contract; add all-cell round-trip tests and prevent double vertical inversion.
+8. If a level-specific board has no source positions, show units only; do not invent cells.
+9. Preserve the canonical MetaTFT Platinum+ composition order and source-defined recommendation order.
+10. Keep recommended items, average-placement correlations, derived popularity, and three-item builds as separate concepts.
+11. Make online updates transactional: temp/versioned download -> schema/hash/identity validation -> atomic pointer swap; on failure retain LKG.
+12. Add JVM/UI/instrumentation regression tests and provide test output, screenshots, build SHA, APK hash, and final commit SHA.
+
+Observed regression fixture to reproduce:
+- app endpoint check: 2026-08-31 02:53 JST
+- active source timestamp: 2026-08-29 04:25 JST (~46h28m old)
+- server composition feature: READY
+- server compositionAugments feature: COLLECTING
+Expected UI: stale-LKG warning + endpoint reachable + `構成 READY / 構成オーグメント 収集中`; never generic `構成データを集計中`; no clipped status text.
 
 Do not claim success until unit tests, lint, build, connected tests, and representative screenshot/golden tests pass.
 ```

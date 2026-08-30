@@ -28,20 +28,14 @@ jobs:
           function Write-Utf8NoBom([string]$Path, [string]$Text) {
             [IO.File]::WriteAllText($Path, $Text, [Text.UTF8Encoding]::new($false))
           }
+          function Replace-ExactlyOnce([string]$Text, [string]$Pattern, [string]$Replacement, [string]$Context) {
+            $matches = [regex]::Matches($Text, $Pattern, [Text.RegularExpressions.RegexOptions]::Multiline)
+            if ($matches.Count -ne 1) { throw "$Context expected exactly one match, found $($matches.Count)." }
+            return [regex]::Replace($Text, $Pattern, [Text.RegularExpressions.MatchEvaluator]{ param($m) $Replacement }, [Text.RegularExpressions.RegexOptions]::Multiline)
+          }
 
           $catalogPath = 'tools/refresh-catalog.ps1'
           $catalog = [IO.File]::ReadAllText($catalogPath).Replace("`r`n", "`n")
-          $oldSelection = @'
-          $playableChampions = @(
-              $setJa.champions |
-                  Where-Object {
-                      $_.apiName -match "^TFT${SetNumber}_" -and
-                      $_.cost -ge 1 -and $_.cost -le 5 -and
-                      $_.name -and @($_.traits).Count -gt 0
-                  } |
-                  Sort-Object cost, name
-          )
-          '@.Trim()
           $newSelection = @'
           $playableChampions = @(
               $setJa.champions |
@@ -57,48 +51,39 @@ jobs:
                   Sort-Object cost, name
           )
           '@.Trim()
-          if ($catalog.Contains($oldSelection)) {
-            $catalog = $catalog.Replace($oldSelection, $newSelection)
-          } elseif (-not $catalog.Contains('Get-PropertyValue -Object $_ -Name ''apiName''')) {
-            throw 'Could not locate or verify playable champion selection block.'
+          if (-not $catalog.Contains("Get-PropertyValue -Object `$_ -Name 'apiName'")) {
+            $selectionPattern = '(?ms)^\$playableChampions\s*=\s*@\(\s*\$setJa\.champions\s*\|\s*Where-Object\s*\{.*?\}\s*\|\s*Sort-Object\s+cost,\s*name\s*\)'
+            $catalog = Replace-ExactlyOnce $catalog $selectionPattern $newSelection 'playable champion selection'
           }
 
-          $oldTraitNames = '$traitNames = @($playableChampions.traits | Sort-Object -Unique)'
-          $newTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''traits'') } | Where-Object { $_ } | Sort-Object -Unique)'
-          if ($catalog.Contains($oldTraitNames)) {
-            $catalog = $catalog.Replace($oldTraitNames, $newTraitNames)
-          } elseif (-not $catalog.Contains($newTraitNames)) {
-            throw 'Could not locate or verify trait flattening block.'
+          $safeTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''traits'') } | Where-Object { $_ } | Sort-Object -Unique)'
+          if (-not $catalog.Contains($safeTraitNames)) {
+            $traitPattern = '(?m)^\$traitNames\s*=\s*@\([^\r\n]*\$playableChampions\.traits[^\r\n]*\)$'
+            $catalog = Replace-ExactlyOnce $catalog $traitPattern $safeTraitNames 'champion trait flattening'
           }
 
-          $oldOutOfSet = '$outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })'
-          $newOutOfSet = @'
+          if (-not $catalog.Contains('$expectedChampionIds = @{}')) {
+            $newOutOfSet = @'
           $expectedChampionIds = @{}
           foreach ($expectedChampion in $playableChampions) { $expectedChampionIds[[string]$expectedChampion.apiName] = $true }
           $outOfSetChampions = @($champions | Where-Object { -not $expectedChampionIds.ContainsKey([string]$_.id) })
           '@.Trim()
-          if ($catalog.Contains($oldOutOfSet)) {
-            $catalog = $catalog.Replace($oldOutOfSet, $newOutOfSet)
-          } elseif (-not $catalog.Contains('$expectedChampionIds = @{}')) {
-            throw 'Could not locate or verify out-of-set champion validation block.'
+            $outOfSetPattern = '(?m)^\$outOfSetChampions\s*=\s*@\(\$champions\s*\|\s*Where-Object\s*\{[^\r\n]*-notmatch[^\r\n]*\}\)$'
+            $catalog = Replace-ExactlyOnce $catalog $outOfSetPattern $newOutOfSet 'out-of-set champion validation'
           }
           Write-Utf8NoBom $catalogPath $catalog
 
           $gatedPath = 'tools/refresh-live-data-gated.ps1'
           $gated = [IO.File]::ReadAllText($gatedPath).Replace("`r`n", "`n")
-          $oldGatedNewTraitNames = '$newTraitNames = ''$traitNames = @($playableChampions | ForEach-Object { @($_.traits) } | Where-Object { $_ } | Sort-Object -Unique)'''
-          $newGatedNewTraitNames = '$newTraitNames = ''$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''''traits'''') } | Where-Object { $_ } | Sort-Object -Unique)'''
-          if ($gated.Contains($oldGatedNewTraitNames)) {
-            $gated = $gated.Replace($oldGatedNewTraitNames, $newGatedNewTraitNames)
-          } elseif (-not $gated.Contains($newGatedNewTraitNames)) {
-            throw 'Could not locate or verify raw-fallback safe trait target.'
+          $safeTargetLine = '$newTraitNames = ''$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''''traits'''') } | Where-Object { $_ } | Sort-Object -Unique)'''
+          if (-not $gated.Contains($safeTargetLine)) {
+            $targetPattern = '(?m)^\s*\$newTraitNames\s*=\s*''\$traitNames = @\(\$playableChampions \| ForEach-Object \{ @\(\$_\.traits\) \} \| Where-Object \{ \$_ \} \| Sort-Object -Unique\)''\s*$'
+            $gated = Replace-ExactlyOnce $gated $targetPattern ('    ' + $safeTargetLine) 'raw-fallback safe trait target'
           }
 
-          $oldFallbackTraitPatch = @'
-              if (-not $catalogText.Contains($oldTraitNames)) { throw 'Could not patch champion trait flattening.' }
-              $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
-          '@.Trim()
-          $newFallbackTraitPatch = @'
+          if (-not $gated.Contains('if ($catalogText.Contains($newTraitNames))')) {
+            $fallbackPattern = '(?ms)^\s*if \(-not \$catalogText\.Contains\(\$oldTraitNames\)\) \{ throw ''Could not patch champion trait flattening\.'' \}\s*\n\s*\$catalogText = \$catalogText\.Replace\(\$oldTraitNames, \$newTraitNames\)'
+            $replacement = @'
               if ($catalogText.Contains($newTraitNames)) {
                   # Source is already namespace-safe; no replacement required.
               } elseif ($catalogText.Contains($oldTraitNames)) {
@@ -106,28 +91,24 @@ jobs:
               } else {
                   throw 'Could not patch or verify champion trait flattening.'
               }
-          '@.Trim()
-          if ($gated.Contains($oldFallbackTraitPatch)) {
-            $gated = $gated.Replace($oldFallbackTraitPatch, $newFallbackTraitPatch)
-          } elseif (-not $gated.Contains('if ($catalogText.Contains($newTraitNames))')) {
-            throw 'Could not locate or verify raw-fallback trait patch compatibility.'
+          '@.TrimEnd()
+            $gated = Replace-ExactlyOnce $gated $fallbackPattern $replacement 'raw-fallback trait compatibility'
           }
           Write-Utf8NoBom $gatedPath $gated
 
           $workflowPath = '.github/workflows/refresh-tft-data.yml'
           $workflow = [IO.File]::ReadAllText($workflowPath).Replace("`r`n", "`n")
-          $existingStep = @'
+          if (-not $workflow.Contains('Test current-set champion membership policy')) {
+            $step = @'
                 - name: Test current-set champion membership policy
                   shell: pwsh
                   run: ./tools/test-current-set-champion-membership.ps1
-          '@.TrimEnd()
-          if (-not $workflow.Contains('Test current-set champion membership policy')) {
-            $anchor = @'
-                - name: Test cross-source ID compatibility policy
-          '@.TrimEnd()
+
+          '@
+            $anchor = '      - name: Test cross-source ID compatibility policy'
             $index = $workflow.IndexOf($anchor, [StringComparison]::Ordinal)
             if ($index -lt 0) { throw 'Could not locate refresh workflow test insertion point.' }
-            $workflow = $workflow.Insert($index, $existingStep + "`n`n")
+            $workflow = $workflow.Insert($index, $step)
           }
           Write-Utf8NoBom $workflowPath $workflow
 

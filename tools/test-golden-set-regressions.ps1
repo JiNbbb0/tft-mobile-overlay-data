@@ -8,20 +8,20 @@ function Assert-True([bool]$Condition, [string]$Message) {
 }
 function Assert-Contains([object[]]$Values, [string]$Expected, [string]$Message) {
     if (-not (@($Values | ForEach-Object { [string]$_ }) -contains $Expected)) {
-        throw "$Message: $Expected"
+        throw "${Message}: $Expected"
     }
 }
 function Assert-NotContains([object[]]$Values, [string]$Unexpected, [string]$Message) {
     if (@($Values | ForEach-Object { [string]$_ }) -contains $Unexpected) {
-        throw "$Message: $Unexpected"
+        throw "${Message}: $Unexpected"
     }
 }
 function Assert-JsonArrayProperty($Object, [string]$Name, [string]$Context) {
     $property = $Object.PSObject.Properties[$Name]
-    if (-not $property) { throw "$Context missing array property: $Name" }
-    if ($null -eq $property.Value) { throw "$Context array property is null: $Name" }
+    if (-not $property) { throw "${Context} missing array property: $Name" }
+    if ($null -eq $property.Value) { throw "${Context} array property is null: $Name" }
     if ($property.Value -is [string] -or $property.Value -isnot [Collections.IEnumerable]) {
-        throw "$Context property is not array-like: $Name"
+        throw "${Context} property is not array-like: $Name"
     }
 }
 

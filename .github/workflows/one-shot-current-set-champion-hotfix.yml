@@ -1,0 +1,141 @@
+name: One-shot current-set champion hotfix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/one-shot-current-set-champion-hotfix.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Patch namespace-safe current-set champion selection
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-StrictMode -Version Latest
+          function Write-Utf8NoBom([string]$Path, [string]$Text) {
+            [IO.File]::WriteAllText($Path, $Text, [Text.UTF8Encoding]::new($false))
+          }
+
+          $catalogPath = 'tools/refresh-catalog.ps1'
+          $catalog = [IO.File]::ReadAllText($catalogPath).Replace("`r`n", "`n")
+          $oldSelection = @'
+          $playableChampions = @(
+              $setJa.champions |
+                  Where-Object {
+                      $_.apiName -match "^TFT${SetNumber}_" -and
+                      $_.cost -ge 1 -and $_.cost -le 5 -and
+                      $_.name -and @($_.traits).Count -gt 0
+                  } |
+                  Sort-Object cost, name
+          )
+          '@.Trim()
+          $newSelection = @'
+          $playableChampions = @(
+              $setJa.champions |
+                  Where-Object {
+                      $apiName = [string](Get-PropertyValue -Object $_ -Name 'apiName')
+                      $cost = Get-PropertyValue -Object $_ -Name 'cost'
+                      $name = Get-PropertyValue -Object $_ -Name 'name'
+                      $championTraits = Get-PropertyValue -Object $_ -Name 'traits'
+                      $apiName -and
+                      $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and
+                      $name -and @($championTraits).Count -gt 0
+                  } |
+                  Sort-Object cost, name
+          )
+          '@.Trim()
+          if ($catalog.Contains($oldSelection)) {
+            $catalog = $catalog.Replace($oldSelection, $newSelection)
+          } elseif (-not $catalog.Contains("$apiName = [string](Get-PropertyValue -Object $_ -Name 'apiName')")) {
+            throw 'Could not locate or verify playable champion selection block.'
+          }
+
+          $oldTraitNames = '$traitNames = @($playableChampions.traits | Sort-Object -Unique)'
+          $newTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''traits'') } | Where-Object { $_ } | Sort-Object -Unique)'
+          if ($catalog.Contains($oldTraitNames)) {
+            $catalog = $catalog.Replace($oldTraitNames, $newTraitNames)
+          } elseif (-not $catalog.Contains($newTraitNames)) {
+            throw 'Could not locate or verify trait flattening block.'
+          }
+
+          $oldOutOfSet = '$outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })'
+          $newOutOfSet = @'
+          $expectedChampionIds = @{}
+          foreach ($expectedChampion in $playableChampions) { $expectedChampionIds[[string]$expectedChampion.apiName] = $true }
+          $outOfSetChampions = @($champions | Where-Object { -not $expectedChampionIds.ContainsKey([string]$_.id) })
+          '@.Trim()
+          if ($catalog.Contains($oldOutOfSet)) {
+            $catalog = $catalog.Replace($oldOutOfSet, $newOutOfSet)
+          } elseif (-not $catalog.Contains('$expectedChampionIds = @{}')) {
+            throw 'Could not locate or verify out-of-set champion validation block.'
+          }
+          Write-Utf8NoBom $catalogPath $catalog
+
+          $gatedPath = 'tools/refresh-live-data-gated.ps1'
+          $gated = [IO.File]::ReadAllText($gatedPath).Replace("`r`n", "`n")
+          $oldFallbackTraitPatch = @'
+              if (-not $catalogText.Contains($oldTraitNames)) { throw 'Could not patch champion trait flattening.' }
+              $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
+          '@.Trim()
+          $newFallbackTraitPatch = @'
+              if ($catalogText.Contains($newTraitNames)) {
+                  # Source is already namespace-safe; no replacement required.
+              } elseif ($catalogText.Contains($oldTraitNames)) {
+                  $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
+              } else {
+                  throw 'Could not patch or verify champion trait flattening.'
+              }
+          '@.Trim()
+          if ($gated.Contains($oldFallbackTraitPatch)) {
+            $gated = $gated.Replace($oldFallbackTraitPatch, $newFallbackTraitPatch)
+          } elseif (-not $gated.Contains('if ($catalogText.Contains($newTraitNames))')) {
+            throw 'Could not locate or verify raw-fallback trait patch compatibility.'
+          }
+          Write-Utf8NoBom $gatedPath $gated
+
+          $workflowPath = '.github/workflows/refresh-tft-data.yml'
+          $workflow = [IO.File]::ReadAllText($workflowPath).Replace("`r`n", "`n")
+          $existingStep = @'
+                - name: Test current-set champion membership policy
+                  shell: pwsh
+                  run: ./tools/test-current-set-champion-membership.ps1
+          '@.TrimEnd()
+          if (-not $workflow.Contains('Test current-set champion membership policy')) {
+            $anchor = @'
+                - name: Test cross-source ID compatibility policy
+          '@.TrimEnd()
+            $index = $workflow.IndexOf($anchor, [StringComparison]::Ordinal)
+            if ($index -lt 0) { throw 'Could not locate refresh workflow test insertion point.' }
+            $workflow = $workflow.Insert($index, $existingStep + "`n`n")
+          }
+          Write-Utf8NoBom $workflowPath $workflow
+
+      - name: Run regression before commit
+        shell: pwsh
+        run: ./tools/test-current-set-champion-membership.ps1
+
+      - name: Commit source hotfix
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/refresh-catalog.ps1 tools/refresh-live-data-gated.ps1 .github/workflows/refresh-tft-data.yml
+          if (git diff --cached --quiet) {
+            Write-Output 'Hotfix already applied.'
+            exit 0
+          }
+          git commit -m "fix: make current-set champion selection namespace-safe"
+          git push origin HEAD:main

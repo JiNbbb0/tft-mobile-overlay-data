@@ -51,9 +51,13 @@ foreach ($fixturePath in $fixturePaths) {
     Assert-JsonArrayProperty $fixture.expect 'excluded' "$setId.expect"
 
     # Emblems are supplemental seeds only after the trait->emblem resolver has
-    # established an unambiguous mapping. This deliberately proves we do not
-    # auto-seed an entire DA_<set> namespace just because the prefix matches.
-    $mappings = Get-TftEmblemMappings -Traits @($fixture.traits) -Items @($fixture.items)
+    # established an unambiguous mapping inside the active set identity. This
+    # deliberately proves we do not auto-seed an entire DA_<set> namespace and
+    # do not let historical aliases compete with the active-set record.
+    $mappings = Get-TftEmblemMappings `
+        -Traits @($fixture.traits) `
+        -Items @($fixture.items) `
+        -SetNumber $setNumber
     $validatedEmblemIds = @($mappings.mappings | ForEach-Object { [string]$_.emblemId } | Where-Object { $_ } | Sort-Object -Unique)
 
     $result = Get-TftCurrentSetUniverse `
@@ -84,7 +88,10 @@ Assert-True ($seenSetNumbers.Contains(19)) 'Future Set19 golden coverage missing
 
 # Explicitly prove future-set handling is data-driven rather than hard-coded to Set18.
 $futureFixture = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $fixtureRoot 'future-set19.json') | ConvertFrom-Json
-$futureMappings = Get-TftEmblemMappings -Traits @($futureFixture.traits) -Items @($futureFixture.items)
+$futureMappings = Get-TftEmblemMappings `
+    -Traits @($futureFixture.traits) `
+    -Items @($futureFixture.items) `
+    -SetNumber 19
 $futureSupplementalIds = @($futureMappings.mappings | ForEach-Object { [string]$_.emblemId } | Where-Object { $_ } | Sort-Object -Unique)
 $futureResult = Get-TftCurrentSetUniverse `
     -SetNumber 19 `

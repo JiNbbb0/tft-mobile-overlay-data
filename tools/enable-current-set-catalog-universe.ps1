@@ -43,7 +43,10 @@ $declaredSetItemIds = [Collections.Generic.HashSet[string]]::new([StringComparer
 foreach ($id in @($setJa.items)) {
     if ($id) { [void]$declaredSetItemIds.Add([string]$id) }
 }
-$emblemMappingResult = Get-TftEmblemMappings -Traits @($setJa.traits) -Items @($ja.items)
+$emblemMappingResult = Get-TftEmblemMappings `
+    -Traits @($setJa.traits) `
+    -Items @($ja.items) `
+    -SetNumber $SetNumber
 $emblemTraitNameByItemId = @{}
 $mappedEmblemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($mapping in @($emblemMappingResult.mappings)) {
@@ -83,6 +86,21 @@ if (-not $text.Contains('$emblemMappingResult = Get-TftEmblemMappings')) {
         throw 'Legacy catalog item-universe block was not found; refusing an unsafe partial patch.'
     }
     $text = $text.Replace($legacyBlock, $canonicalBlock)
+} elseif (-not $text.Contains('-SetNumber $SetNumber')) {
+    # Upgrade an older canonical injection in place. Restrict the replacement to
+    # the mapping call so a pre-existing -SetNumber on the universe resolver
+    # does not mask missing set scoping on the emblem resolver.
+    $oldMappingCall = '$emblemMappingResult = Get-TftEmblemMappings -Traits @($setJa.traits) -Items @($ja.items)'
+    if (-not $text.Contains($oldMappingCall)) {
+        throw 'Existing emblem mapping call is not recognized; refusing an unsafe partial patch.'
+    }
+    $newMappingCall = @'
+$emblemMappingResult = Get-TftEmblemMappings `
+    -Traits @($setJa.traits) `
+    -Items @($ja.items) `
+    -SetNumber $SetNumber
+'@.TrimEnd()
+    $text = $text.Replace($oldMappingCall, $newMappingCall)
 }
 
 $itemDescriptionAnchor = @'
@@ -114,6 +132,8 @@ $requiredPostconditions = @(
     $currentSetModule,
     $emblemModule,
     '$emblemMappingResult = Get-TftEmblemMappings',
+    '-Items @($ja.items)',
+    '-SetNumber $SetNumber',
     '-AdditionalItemIds @($emblemMappingResult.mappings',
     '$itemDescriptionJa = Normalize-Text -Value $item.desc -Effects $item.effects',
     'descriptionJa = $itemDescriptionJa'

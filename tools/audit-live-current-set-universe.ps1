@@ -42,7 +42,7 @@ foreach ($id in @($setData.augments)) { if ($id) { [void]$augmentIds.Add([string
 $declaredIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($id in @($setData.items)) { if ($id) { [void]$declaredIds.Add([string]$id) } }
 
-$emblemMappingResult = Get-TftEmblemMappings -Traits @($setData.traits) -Items @($live.items)
+$emblemMappingResult = Get-TftEmblemMappings -Traits @($setData.traits) -Items @($live.items) -SetNumber $setNumber
 $mappedEmblemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($mapping in @($emblemMappingResult.mappings)) {
     if ($mapping.emblemId) { [void]$mappedEmblemIds.Add([string]$mapping.emblemId) }
@@ -86,12 +86,12 @@ $mappedWithoutSourceDescription = [Collections.Generic.List[string]]::new()
 foreach ($emblemIdValue in $mappedEmblemIds) {
     $emblemId = [string]$emblemIdValue
     if (-not $itemById.ContainsKey($emblemId)) {
-        $mappedDisplayFailures.Add("$emblemId:missing-source-record")
+        $mappedDisplayFailures.Add("${emblemId}:missing-source-record")
         continue
     }
     $item = $itemById[$emblemId]
     if (-not $item.name -or -not $item.icon) {
-        $mappedDisplayFailures.Add("$emblemId:missing-name-or-icon")
+        $mappedDisplayFailures.Add("${emblemId}:missing-name-or-icon")
         continue
     }
     if (-not $item.desc) { $mappedWithoutSourceDescription.Add($emblemId) }

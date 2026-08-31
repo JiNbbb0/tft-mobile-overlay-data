@@ -42,6 +42,12 @@ jobs:
       - name: Current-set catalog integration
         shell: pwsh
         run: ./tools/test-current-set-catalog-integration.ps1
+      - name: Strict Platinum+ rank scope
+        shell: pwsh
+        run: ./tools/test-rank-scope-policy.ps1
+      - name: Strict production MetaTFT source policy
+        shell: pwsh
+        run: ./tools/test-strict-production-source-policy.ps1
       - name: Live current-set catalog universe
         shell: pwsh
         run: ./tools/audit-live-current-set-universe.ps1

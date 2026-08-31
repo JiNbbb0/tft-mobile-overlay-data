@@ -42,7 +42,7 @@ try {
         $errors = $null
         [void][Management.Automation.Language.Parser]::ParseFile($path, [ref]$tokens, [ref]$errors)
         if (@($errors).Count -gt 0) {
-            throw "Candidate lifecycle patch produced parser errors in $path: $(@($errors | ForEach-Object Message) -join '; ')"
+            throw "Candidate lifecycle patch produced parser errors in ${path}: $(@($errors | ForEach-Object Message) -join '; ')"
         }
     }
 

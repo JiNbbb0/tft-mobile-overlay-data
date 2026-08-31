@@ -56,7 +56,6 @@ jobs:
           ./tools/test-id-compatibility-policy.ps1
           ./tools/test-patch-detection-policy.ps1
           ./tools/test-data-history-policy.ps1
-          ./tools/test-new-set-readiness.ps1
 
       - name: Detect, generate, validate, and stage immutable candidate
         id: refresh

@@ -19,6 +19,12 @@ function Get-Sha256Hex([byte[]]$Bytes) {
     try { return ([BitConverter]::ToString($sha.ComputeHash($Bytes))).Replace('-', '').ToLowerInvariant() }
     finally { $sha.Dispose() }
 }
+function Get-FirstHeaderValue([System.Net.Http.Headers.HttpHeaders]$Headers, [string]$Name) {
+    if ($null -eq $Headers -or -not $Headers.Contains($Name)) { return '' }
+    $values = @($Headers.GetValues($Name))
+    if ($values.Count -eq 0) { return '' }
+    return [string]$values[0]
+}
 function Capture-Source([string]$Name, [uri]$Uri, [string]$TargetPath) {
     $client = [Net.Http.HttpClient]::new()
     try {
@@ -31,10 +37,9 @@ function Capture-Source([string]$Name, [uri]$Uri, [string]$TargetPath) {
                     if (-not $response.IsSuccessStatusCode) { throw "HTTP $([int]$response.StatusCode)" }
                     if ($response.RequestMessage.RequestUri.Scheme -ne 'https') { throw 'Redirect left HTTPS.' }
                     $bytes = $response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+                    $etag = Get-FirstHeaderValue -Headers $response.Headers -Name 'ETag'
+                    if (-not $etag) { $etag = Get-FirstHeaderValue -Headers $response.Content.Headers -Name 'ETag' }
                     [IO.File]::WriteAllBytes($TargetPath, $bytes)
-                    $etag = ''
-                    if ($response.Headers.ETag) { $etag = [string]$response.Headers.ETag.Tag }
-                    elseif ($response.Content.Headers.ETag) { $etag = [string]$response.Content.Headers.ETag.Tag }
                     return [pscustomobject][ordered]@{
                         name = $Name
                         url = [string]$response.RequestMessage.RequestUri

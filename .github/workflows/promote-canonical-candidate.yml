@@ -1,0 +1,165 @@
+name: Promote verified Canonical v2 candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Immutable staged release ID to promote
+        required: true
+        type: string
+
+concurrency:
+  group: tft-data-publication
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  DATA_INDEX_URL: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+  PUBLIC_BASE_URL: https://jinbbb0.github.io/tft-mobile-overlay-data
+
+jobs:
+  promote:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      release_id: ${{ steps.identity.outputs.release_id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Resolve candidate identity and local hashes
+        id: identity
+        shell: pwsh
+        run: |
+          $release = '${{ inputs.release_id }}'.Trim()
+          if (-not $release -or $release -notmatch '^[a-z0-9._-]+$') { throw 'Invalid release_id.' }
+          $manifest = "site/bundles/$release/manifest.json"
+          $quality = "site/bundles/$release/data-quality.json"
+          foreach ($path in @($manifest,$quality)) {
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Staged candidate file missing: $path" }
+          }
+          ./tools/quality/Test-StagedPublishCandidate.ps1 `
+            -SiteDirectory site `
+            -ReleaseId $release `
+            -DataQualityPath $quality
+          "release_id=$release" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding UTF8
+          "manifest_sha256=$((Get-FileHash -Algorithm SHA256 -LiteralPath $manifest).Hash.ToLowerInvariant())" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding UTF8
+          "quality_sha256=$((Get-FileHash -Algorithm SHA256 -LiteralPath $quality).Hash.ToLowerInvariant())" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding UTF8
+
+      - name: Re-verify candidate on public staging before promotion
+        shell: pwsh
+        run: |
+          $release = '${{ steps.identity.outputs.release_id }}'
+          ./tools/quality/Test-RemoteStagedPublishCandidate.ps1 `
+            -ManifestUrl "$env:PUBLIC_BASE_URL/bundles/$release/manifest.json" `
+            -DataQualityUrl "$env:PUBLIC_BASE_URL/bundles/$release/data-quality.json" `
+            -ReleaseId $release `
+            -ExpectedManifestSha256 '${{ steps.identity.outputs.manifest_sha256 }}' `
+            -ExpectedDataQualitySha256 '${{ steps.identity.outputs.quality_sha256 }}'
+
+      - name: Require real Android E2E evidence
+        id: evidence
+        shell: pwsh
+        run: |
+          $release = '${{ steps.identity.outputs.release_id }}'
+          $path = "evidence/android/$release.json"
+          if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "ANDROID_E2E_EVIDENCE_MISSING: $path. Promotion is intentionally blocked."
+          }
+          ./tools/quality/Test-AndroidE2EEvidence.ps1 -EvidencePath $path -ReleaseId $release
+          "path=$path" | Add-Content -LiteralPath $env:GITHUB_OUTPUT -Encoding UTF8
+
+      - name: Promote latestVersionId last
+        shell: pwsh
+        run: |
+          $release = '${{ steps.identity.outputs.release_id }}'
+          ./tools/quality/Promote-PublishCandidate.ps1 `
+            -SiteDirectory site `
+            -ReleaseId $release `
+            -AndroidEvidencePath '${{ steps.evidence.outputs.path }}' `
+            -CandidateQualityPath "site/bundles/$release/data-quality.json"
+          ./tools/validate-site.ps1 -SiteDirectory site
+
+      - name: Commit verified promotion
+        shell: pwsh
+        run: |
+          $release = '${{ steps.identity.outputs.release_id }}'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data-index.json site/data-quality.json site/health.json
+          if (-not (git status --porcelain)) { throw 'Promotion produced no tracked public pointer/status change.' }
+          git commit -m "data: promote verified candidate $release"
+          git push origin HEAD:main
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload promoted Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - name: Write promotion summary
+        shell: pwsh
+        run: |
+          @"
+          ## Canonical v2 promotion prepared
+
+          - Release: ${{ steps.identity.outputs.release_id }}
+          - Remote candidate SHA verification: PASS
+          - Android E2E evidence: PASS
+          - Local candidate validation: PASS
+          - latestVersionId mutation: LAST
+          "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+
+  deploy:
+    needs: promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy promoted site atomically
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  verify-active:
+    needs: [promote, deploy]
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Verify promoted release is active and coherent
+        shell: pwsh
+        run: |
+          $release = '${{ needs.promote.outputs.release_id }}'
+          $verified = $false
+          for ($attempt = 1; $attempt -le 6; $attempt++) {
+            try {
+              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+              ./tools/check-public-data-quality.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+              $index = Invoke-RestMethod -Uri $env:DATA_INDEX_URL -Headers @{ 'Cache-Control'='no-cache' }
+              if ([string]$index.latestVersionId -ne $release) {
+                throw "Latest pointer mismatch expected=$release actual=$($index.latestVersionId)"
+              }
+              $quality = Invoke-RestMethod -Uri "$env:PUBLIC_BASE_URL/data-quality.json" -Headers @{ 'Cache-Control'='no-cache' }
+              if ([string]$quality.releaseId -ne $release -or [string]$quality.versionId -ne $release) {
+                throw "Active quality release mismatch expected=$release"
+              }
+              $verified = $true
+              break
+            } catch {
+              if ($attempt -eq 6) { throw }
+              Start-Sleep -Seconds (10 * $attempt)
+            }
+          }
+          if (-not $verified) { throw 'Promoted public state did not converge.' }
+          "- Public active release verification: PASS ($release)" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8

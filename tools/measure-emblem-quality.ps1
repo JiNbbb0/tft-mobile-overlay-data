@@ -41,7 +41,7 @@ $setNumber = [int]$catalog.set.number
 if (-not $setId -or $setNumber -le 0) { throw 'Catalog set identity is missing.' }
 
 $live = Get-LiveJson -Url $CommunityDragonUrl
-$setDataRows = @($live.setData | Where-Object { [string]$_.mutator -eq $setId | Select-Object -First 1)
+$setDataRows = @($live.setData | Where-Object { [string]$_.mutator -eq $setId } | Select-Object -First 1)
 if ($setDataRows.Count -ne 1) { throw "CommunityDragon setData mismatch for $setId." }
 $setData = $setDataRows[0]
 
@@ -113,7 +113,7 @@ $status = if (
 ) { 'READY' } else { 'BLOCKED' }
 
 $report = [pscustomobject][ordered]@{
-    schemaVersion = 2
+    schemaVersion = 1
     generatedAtUtc = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
     sourceUrl = $CommunityDragonUrl
     setId = $setId

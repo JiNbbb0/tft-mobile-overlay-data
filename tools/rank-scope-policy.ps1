@@ -30,20 +30,18 @@ function Resolve-RankScopeDecision {
         return [pscustomobject][ordered]@{
             effectiveScope = 'PLATINUM_PLUS'
             useFallback = $false
+            fallbackAllowed = $false
             reason = 'Preferred Platinum+ sample coverage is sufficient.'
         }
     }
-    if ($FallbackAttempted -and $FallbackQualified -gt $PreferredQualified) {
-        return [pscustomobject][ordered]@{
-            effectiveScope = 'ALL_RANKS_FALLBACK'
-            useFallback = $true
-            reason = "Platinum+ produced $PreferredQualified qualified compositions; all ranks produced $FallbackQualified."
-        }
-    }
+
+    # Canonical v2 is deliberately fail-closed on rank scope. A sparse new set
+    # may publish partial Platinum+ data, but it must never widen to all ranks.
     return [pscustomobject][ordered]@{
         effectiveScope = 'PLATINUM_PLUS_LIMITED'
         useFallback = $false
-        reason = "Neither scope improved coverage beyond $PreferredQualified qualified compositions."
+        fallbackAllowed = $false
+        reason = "Platinum+ produced $PreferredQualified qualified compositions; all-rank fallback is disabled by contract."
     }
 }
 
@@ -79,29 +77,22 @@ function Resolve-CompositionCoveragePolicy {
         return [pscustomobject][ordered]@{
             effectiveScope = 'PLATINUM_PLUS'
             useFallback = $false
+            fallbackAllowed = $false
             minimumSamples = $preferred.minimumSamples
             qualified = $preferred.qualified
             reason = "Platinum+ reached $($preferred.qualified) compositions at $($preferred.minimumSamples) samples."
         }
     }
 
-    $fallback = if ($null -ne $FallbackStats) {
-        Resolve-SampleCoverage -Stats $FallbackStats -RequiredCompositions $RequiredCompositions -Thresholds $Thresholds
-    } else { $null }
-    if ($fallback -and $fallback.qualified -gt $preferred.qualified) {
-        return [pscustomobject][ordered]@{
-            effectiveScope = 'ALL_RANKS_FALLBACK'
-            useFallback = $true
-            minimumSamples = $fallback.minimumSamples
-            qualified = $fallback.qualified
-            reason = "Platinum+ reached only $($preferred.qualified); all ranks reached $($fallback.qualified) at $($fallback.minimumSamples) samples."
-        }
-    }
+    # FallbackStats remains in the signature for compatibility with older
+    # callers, but is intentionally ignored. This prevents a delayed/new-set
+    # upstream from silently changing the statistical population.
     return [pscustomobject][ordered]@{
         effectiveScope = 'PLATINUM_PLUS_LIMITED'
         useFallback = $false
+        fallbackAllowed = $false
         minimumSamples = $preferred.minimumSamples
         qualified = $preferred.qualified
-        reason = "All-rank fallback did not improve Platinum+ coverage of $($preferred.qualified)."
+        reason = "Platinum+ reached only $($preferred.qualified) compositions at $($preferred.minimumSamples) samples; all-rank fallback is disabled by contract."
     }
 }

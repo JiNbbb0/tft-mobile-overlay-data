@@ -48,6 +48,9 @@ jobs:
       - name: Strict production MetaTFT source policy
         shell: pwsh
         run: ./tools/test-strict-production-source-policy.ps1
+      - name: Candidate publication lifecycle
+        shell: pwsh
+        run: ./tools/test-candidate-publication-lifecycle.ps1
       - name: Live current-set catalog universe
         shell: pwsh
         run: ./tools/audit-live-current-set-universe.ps1

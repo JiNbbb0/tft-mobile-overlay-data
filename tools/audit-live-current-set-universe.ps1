@@ -42,7 +42,11 @@ foreach ($id in @($setData.augments)) { if ($id) { [void]$augmentIds.Add([string
 $declaredIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($id in @($setData.items)) { if ($id) { [void]$declaredIds.Add([string]$id) } }
 
-$emblemMappingResult = Get-TftEmblemMappings -Traits @($setData.traits) -Items @($live.items) -SetNumber $setNumber
+$emblemMappingResult = Get-TftEmblemMappings `
+    -Traits @($setData.traits) `
+    -Items @($live.items) `
+    -SetNumber $setNumber `
+    -AllowedItemIds @($setData.items)
 $mappedEmblemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($mapping in @($emblemMappingResult.mappings)) {
     if ($mapping.emblemId) { [void]$mappedEmblemIds.Add([string]$mapping.emblemId) }

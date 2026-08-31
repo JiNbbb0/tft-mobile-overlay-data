@@ -47,6 +47,9 @@ foreach ($item in $candidateItems) {
     if (-not $patched.Contains('$emblemMappingResult = Get-TftEmblemMappings')) {
         throw 'Trait-to-emblem resolver was not wired into catalog discovery.'
     }
+    if (-not $patched.Contains('-AllowedItemIds @($setJa.items)')) {
+        throw 'Trait-to-emblem resolver was not restricted to the authoritative current-set item universe.'
+    }
     if (-not $patched.Contains('-AdditionalItemIds @($emblemMappingResult.mappings')) {
         throw 'Mapped emblem IDs were not supplied as validated supplemental seeds.'
     }

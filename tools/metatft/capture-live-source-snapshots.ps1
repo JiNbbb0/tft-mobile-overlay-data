@@ -19,11 +19,13 @@ function Get-Sha256Hex([byte[]]$Bytes) {
     try { return ([BitConverter]::ToString($sha.ComputeHash($Bytes))).Replace('-', '').ToLowerInvariant() }
     finally { $sha.Dispose() }
 }
-function Get-FirstHeaderValue([System.Net.Http.Headers.HttpHeaders]$Headers, [string]$Name) {
-    if ($null -eq $Headers -or -not $Headers.Contains($Name)) { return '' }
-    $values = @($Headers.GetValues($Name))
-    if ($values.Count -eq 0) { return '' }
-    return [string]$values[0]
+function Get-FirstHeaderValue([object]$Headers, [string]$Name) {
+    if ($null -eq $Headers) { return '' }
+    foreach ($header in $Headers) {
+        if (-not [string]::Equals([string]$header.Key, $Name, [StringComparison]::OrdinalIgnoreCase)) { continue }
+        foreach ($value in @($header.Value)) { return [string]$value }
+    }
+    return ''
 }
 function Capture-Source([string]$Name, [uri]$Uri, [string]$TargetPath) {
     $client = [Net.Http.HttpClient]::new()

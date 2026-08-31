@@ -24,15 +24,42 @@ function Get-TftEmblemItemSetNumber {
     return $null
 }
 
+function Test-TftExactLocalizedEmblemName {
+    param(
+        [Parameter(Mandatory = $true)][string]$TraitName,
+        [Parameter(Mandatory = $true)][string]$ItemName
+    )
+
+    $traitKey = Normalize-TftLookupText -Text $TraitName
+    $itemKey = Normalize-TftLookupText -Text $ItemName
+    if (-not $traitKey -or -not $itemKey) { return $false }
+
+    # This resolver intentionally accepts only an exact localized emblem label.
+    # It must never use substring/fuzzy similarity because a plausible-looking
+    # name is not sufficient evidence for a canonical trait->item identity.
+    foreach ($suffix in @('の紋章', '紋章', 'emblem')) {
+        $suffixKey = Normalize-TftLookupText -Text $suffix
+        if ($itemKey -eq "${traitKey}${suffixKey}") { return $true }
+    }
+    return $false
+}
+
 function Get-TftEmblemMappings {
     param(
         [Parameter(Mandatory = $true)][object[]]$Traits,
         [Parameter(Mandatory = $true)][object[]]$Items,
-        [int]$SetNumber = 0
+        [int]$SetNumber = 0,
+        [string[]]$AllowedItemIds = @()
     )
 
     $mappings = [Collections.Generic.List[object]]::new()
     $ambiguous = [Collections.Generic.List[object]]::new()
+
+    $allowedIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($allowedId in @($AllowedItemIds)) {
+        if ($allowedId) { [void]$allowedIds.Add([string]$allowedId) }
+    }
+    $restrictToAllowedIds = $allowedIds.Count -gt 0
 
     foreach ($trait in @($Traits)) {
         if ($null -eq $trait) { continue }
@@ -40,7 +67,6 @@ function Get-TftEmblemMappings {
         $traitName = [string]$trait.name
         if (-not $traitId -or -not $traitName) { continue }
 
-        $traitNameKey = Normalize-TftLookupText -Text $traitName
         $candidateRows = [Collections.Generic.List[object]]::new()
         foreach ($item in @($Items)) {
             if ($null -eq $item -or -not $item.apiName -or -not $item.name) { continue }
@@ -48,29 +74,40 @@ function Get-TftEmblemMappings {
 
             $id = [string]$item.apiName
             $name = [string]$item.name
-            $isEmblem = ($id -match '(?i)Emblem') -or ($name -match '紋章') -or ([string]$item.name -match '(?i) emblem$')
+            if ($restrictToAllowedIds -and -not $allowedIds.Contains($id)) { continue }
+
+            $isEmblem = ($id -match '(?i)Emblem') -or ($name -match '紋章') -or ($name -match '(?i) emblem$')
             if (-not $isEmblem) { continue }
 
-            # If a current set is known, explicit records from another set are
-            # never valid canonical candidates. This prevents historical emblem
-            # records whose associatedTraits were reused from competing with the
-            # actual current-set emblem.
+            # Explicit records from another set are never current-set evidence,
+            # even if a historical record reused the same associatedTraits.
             $explicitItemSet = Get-TftEmblemItemSetNumber -ItemId $id
             if ($SetNumber -gt 0 -and $null -ne $explicitItemSet -and [int]$explicitItemSet -ne $SetNumber) {
                 continue
             }
 
             $associatedTraits = @($item.associatedTraits | Where-Object { $_ } | ForEach-Object { [string]$_ })
-            $nameKey = Normalize-TftLookupText -Text $name
             $idMatch = $associatedTraits -contains $traitId
-            $nameMatch = $traitNameKey -and ($nameKey -match [regex]::Escape($traitNameKey))
+
+            # Localized-name fallback is accepted only when the name is exact
+            # AND there is independent current-set membership evidence:
+            # either an explicit current-set namespace or caller-supplied
+            # AllowedItemIds (normally authoritative setData.items).
+            $explicitCurrentSet = ($SetNumber -gt 0 -and $null -ne $explicitItemSet -and [int]$explicitItemSet -eq $SetNumber)
+            $allowedCurrentSet = ($restrictToAllowedIds -and $allowedIds.Contains($id))
+            $nameMatch = $false
+            if ($explicitCurrentSet -or $allowedCurrentSet) {
+                $nameMatch = Test-TftExactLocalizedEmblemName -TraitName $traitName -ItemName $name
+            }
 
             if ($idMatch -or $nameMatch) {
                 $candidateRows.Add([pscustomobject][ordered]@{
                     item = $item
                     confidence = $(if ($idMatch) { 2 } else { 1 })
-                    explicitCurrentSet = ($SetNumber -gt 0 -and $null -ne $explicitItemSet -and [int]$explicitItemSet -eq $SetNumber)
+                    explicitCurrentSet = $explicitCurrentSet
+                    allowedCurrentSet = $allowedCurrentSet
                     augmentVariant = ($id -match '(?i)Augment')
+                    exactLocalizedName = $nameMatch
                 })
             }
         }
@@ -81,19 +118,17 @@ function Get-TftEmblemMappings {
         )
         if ($candidates.Count -eq 0) { continue }
 
-        # Current-set explicit identity is stronger provenance than a generic
-        # or legacy namespace. Only use this preference when the caller supplies
-        # SetNumber and at least one explicit current-set candidate exists.
+        # Explicit current-set identity is stronger provenance than a generic or
+        # legacy namespace. Do not use this preference to mask two conflicting
+        # explicit current-set candidates; those still reach the ambiguity gate.
         $currentSetCandidates = @($candidates | Where-Object { [bool]$_.explicitCurrentSet })
         if ($SetNumber -gt 0 -and $currentSetCandidates.Count -gt 0) {
             $candidates = @($currentSetCandidates)
         }
 
-        # Some sets expose a secondary Augment-suffixed emblem record beside
-        # the normal emblem. When an otherwise equivalent non-Augment record is
-        # available, use the normal record for the encyclopedia mapping. If the
-        # source only exposes an Augment variant, keep it unresolved rather than
-        # manufacturing a canonical mapping.
+        # Some sets expose an Augment-suffixed helper record beside the normal
+        # emblem. Prefer the normal item only when it exists. Augment-only source
+        # data remains unresolved rather than becoming an encyclopedia item.
         $nonAugmentCandidates = @($candidates | Where-Object { -not [bool]$_.augmentVariant })
         if ($nonAugmentCandidates.Count -gt 0) {
             $candidates = @($nonAugmentCandidates)
@@ -121,8 +156,13 @@ function Get-TftEmblemMappings {
 
         $item = $best[0].item
         $recipe = @($item.from | Where-Object { $_ } | ForEach-Object { [string]$_ })
-        $provenance = if ($bestConfidence -eq 2) { 'ASSOCIATED_TRAIT' } else { 'LOCALIZED_NAME' }
-        if ([bool]$best[0].explicitCurrentSet) { $provenance = "${provenance}_CURRENT_SET" }
+        $provenance = if ($bestConfidence -eq 2) { 'ASSOCIATED_TRAIT' } else { 'EXACT_LOCALIZED_NAME' }
+        if ([bool]$best[0].explicitCurrentSet) {
+            $provenance = "${provenance}_CURRENT_SET"
+        } elseif ([bool]$best[0].allowedCurrentSet) {
+            $provenance = "${provenance}_DECLARED_CURRENT_SET"
+        }
+
         $mappings.Add([pscustomobject][ordered]@{
             traitId = $traitId
             traitName = $traitName

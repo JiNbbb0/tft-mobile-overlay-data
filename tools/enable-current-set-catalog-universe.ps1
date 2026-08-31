@@ -46,7 +46,8 @@ foreach ($id in @($setJa.items)) {
 $emblemMappingResult = Get-TftEmblemMappings `
     -Traits @($setJa.traits) `
     -Items @($ja.items) `
-    -SetNumber $SetNumber
+    -SetNumber $SetNumber `
+    -AllowedItemIds @($setJa.items)
 $emblemTraitNameByItemId = @{}
 $mappedEmblemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($mapping in @($emblemMappingResult.mappings)) {
@@ -86,21 +87,31 @@ if (-not $text.Contains('$emblemMappingResult = Get-TftEmblemMappings')) {
         throw 'Legacy catalog item-universe block was not found; refusing an unsafe partial patch.'
     }
     $text = $text.Replace($legacyBlock, $canonicalBlock)
-} elseif (-not $text.Contains('-SetNumber $SetNumber')) {
-    # Upgrade an older canonical injection in place. Restrict the replacement to
-    # the mapping call so a pre-existing -SetNumber on the universe resolver
-    # does not mask missing set scoping on the emblem resolver.
-    $oldMappingCall = '$emblemMappingResult = Get-TftEmblemMappings -Traits @($setJa.traits) -Items @($ja.items)'
-    if (-not $text.Contains($oldMappingCall)) {
-        throw 'Existing emblem mapping call is not recognized; refusing an unsafe partial patch.'
-    }
-    $newMappingCall = @'
+} else {
+    $oldMappingCall = @'
 $emblemMappingResult = Get-TftEmblemMappings `
     -Traits @($setJa.traits) `
     -Items @($ja.items) `
     -SetNumber $SetNumber
 '@.TrimEnd()
-    $text = $text.Replace($oldMappingCall, $newMappingCall)
+    $newMappingCall = @'
+$emblemMappingResult = Get-TftEmblemMappings `
+    -Traits @($setJa.traits) `
+    -Items @($ja.items) `
+    -SetNumber $SetNumber `
+    -AllowedItemIds @($setJa.items)
+'@.TrimEnd()
+    if (-not $text.Contains('-AllowedItemIds @($setJa.items)')) {
+        if ($text.Contains($oldMappingCall)) {
+            $text = $text.Replace($oldMappingCall, $newMappingCall)
+        } else {
+            $oldOneLineMappingCall = '$emblemMappingResult = Get-TftEmblemMappings -Traits @($setJa.traits) -Items @($ja.items)'
+            if (-not $text.Contains($oldOneLineMappingCall)) {
+                throw 'Existing emblem mapping call is not recognized; refusing an unsafe partial patch.'
+            }
+            $text = $text.Replace($oldOneLineMappingCall, $newMappingCall)
+        }
+    }
 }
 
 $itemDescriptionAnchor = @'
@@ -134,6 +145,7 @@ $requiredPostconditions = @(
     '$emblemMappingResult = Get-TftEmblemMappings',
     '-Items @($ja.items)',
     '-SetNumber $SetNumber',
+    '-AllowedItemIds @($setJa.items)',
     '-AdditionalItemIds @($emblemMappingResult.mappings',
     '$itemDescriptionJa = Normalize-Text -Value $item.desc -Effects $item.effects',
     'descriptionJa = $itemDescriptionJa'

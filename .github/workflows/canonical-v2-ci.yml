@@ -33,6 +33,9 @@ jobs:
       - name: Typed display value resolver
         shell: pwsh
         run: ./tools/test-display-value-resolver.ps1
+      - name: Typed display production catalog integration
+        shell: pwsh
+        run: ./tools/test-typed-display-catalog-integration.ps1
       - name: Current-set item universe
         shell: pwsh
         run: ./tools/test-current-set-universe.ps1

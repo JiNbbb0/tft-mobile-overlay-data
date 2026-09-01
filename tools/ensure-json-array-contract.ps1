@@ -62,7 +62,9 @@ $newAugmentGate = @'
         continue
     }
 '@
-if ($metaText.Contains($newAugmentGate)) {
+if (-not $metaText.Contains($oldAugmentGate) -and -not $metaText.Contains($newAugmentGate) -and $metaText.Contains('preserving the source result without generic padding')) {
+    Write-Output "Optional composition candidate policy is integrated."
+} elseif ($metaText.Contains($newAugmentGate)) {
     Write-Output "Partial composition candidate policy already patched."
 } elseif ($metaText.Contains($oldAugmentGate)) {
     $metaText = $metaText.Replace($oldAugmentGate, $newAugmentGate)
@@ -137,7 +139,9 @@ foreach ($sourceItemIdValue in @($itemMap.Keys)) {
     }
 }
 '@
-if ($metaText.Contains($newItemMapBlock)) {
+if ($metaText.Contains('function Resolve-CanonicalPublicationItemId')) {
+    Write-Output "Fail-closed canonical item resolution is integrated."
+} elseif ($metaText.Contains($newItemMapBlock)) {
     Write-Output "MetaTFT item ID canonicalization already patched."
 } elseif ($metaText.Contains($oldItemMapBlock)) {
     $metaText = $metaText.Replace($oldItemMapBlock, $newItemMapBlock)
@@ -163,7 +167,9 @@ $newFullBuildIds = @'
                     Where-Object { $_ -and $catalogItemIds.ContainsKey([string]$_) -and $itemMap.ContainsKey([string]$_) }
             )
 '@
-if ($metaText.Contains($newFullBuildIds)) {
+if ($metaText.Contains('ForEach-Object { Resolve-CanonicalPublicationItemId -RawId ([string]$_) }')) {
+    Write-Output "Composition item-stat IDs use the integrated fail-closed resolver."
+} elseif ($metaText.Contains($newFullBuildIds)) {
     Write-Output "Composition item-stat IDs already canonicalized."
 } elseif ($metaText.Contains($oldFullBuildIds)) {
     $metaText = $metaText.Replace($oldFullBuildIds, $newFullBuildIds)
@@ -204,7 +210,9 @@ $newRecommendedBuild = @'
             }
         )
 '@
-if ($metaText.Contains($newRecommendedBuild)) {
+if ($metaText.Contains('$canonicalItemId = Resolve-CanonicalPublicationItemId -RawId ([string]$_)')) {
+    Write-Output "Recommended overview item IDs use the integrated fail-closed resolver."
+} elseif ($metaText.Contains($newRecommendedBuild)) {
     Write-Output "Recommended overview item IDs already canonicalized."
 } elseif ($metaText.Contains($oldRecommendedBuild)) {
     $metaText = $metaText.Replace($oldRecommendedBuild, $newRecommendedBuild)

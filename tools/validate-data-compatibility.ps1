@@ -6,6 +6,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
+. (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 function Resolve-RepoPath([string]$Path) {
@@ -79,6 +80,7 @@ $readiness = if ($snapshot.PSObject.Properties['readiness']) { [string]$snapshot
 if ($readiness -notin @('CATALOG_READY', 'META_COLLECTING', 'META_STABLE')) { throw "Unknown readiness: $readiness" }
 $targetCompositionCount = 18
 $qualifiedSourceCompositions = 0
+$effectiveScope = 'PLATINUM_PLUS'
 if ($snapshot.PSObject.Properties['statisticsScope']) {
     if ($snapshot.statisticsScope.PSObject.Properties['minimumPreferredCompositions']) {
         $targetCompositionCount = [Math]::Max(1, [int]$snapshot.statisticsScope.minimumPreferredCompositions)
@@ -86,7 +88,12 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
     if ($snapshot.statisticsScope.PSObject.Properties['qualifiedEffectiveCompositions']) {
         $qualifiedSourceCompositions = [Math]::Max(0, [int]$snapshot.statisticsScope.qualifiedEffectiveCompositions)
     }
+    if ($snapshot.statisticsScope.PSObject.Properties['effective'] -and $snapshot.statisticsScope.effective) {
+        $effectiveScope = [string]$snapshot.statisticsScope.effective
+    }
 }
+$scopeContract = Resolve-RankScopeQualityContract -EffectiveScope $effectiveScope
+$limitedPlatinumCoverage = [bool]$scopeContract.isLimited
 
 $compositionIds = @{}
 $missingAugmentCompositions = 0
@@ -137,12 +144,10 @@ if ($readiness -eq 'META_STABLE') {
     if ($compositions.Count -lt $targetCompositionCount) {
         throw "META_STABLE cannot publish fewer than $targetCompositionCount compositions: $($compositions.Count)"
     }
-    if ($missingAugmentCompositions -gt 0) {
-        throw "META_STABLE cannot contain compositions with missing augment recommendations: $missingAugmentCompositions"
-    }
 }
 
 $warnings = [Collections.Generic.List[string]]::new()
+if ($limitedPlatinumCoverage) { $warnings.Add('PLATINUM_PLUS_COVERAGE_LIMITED') }
 if ($compositions.Count -eq 0) {
     $warnings.Add('COMPOSITIONS_COLLECTING')
     if ($qualifiedSourceCompositions -ge $targetCompositionCount) {
@@ -157,7 +162,7 @@ if ($missingAugmentCompositions -gt 0) {
 
 $qualityState = if ($compositions.Count -eq 0) {
     'CATALOG_ONLY'
-} elseif ($compositions.Count -lt $targetCompositionCount -or $missingAugmentCompositions -gt 0) {
+} elseif ($limitedPlatinumCoverage -or $compositions.Count -lt $targetCompositionCount -or $missingAugmentCompositions -gt 0) {
     'DEGRADED_OPTIONAL'
 } else {
     'READY'

@@ -1,4 +1,4 @@
-name: Refresh and publish TFT data
+name: Refresh and stage TFT data
 
 on:
   workflow_dispatch:
@@ -23,54 +23,41 @@ permissions:
 
 env:
   DATA_INDEX_URL: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+  PUBLIC_BASE_URL: https://jinbbb0.github.io/tft-mobile-overlay-data
 
 jobs:
-  refresh:
+  stage-candidate:
     runs-on: windows-latest
-    timeout-minutes: 50
+    timeout-minutes: 55
     outputs:
       changed: ${{ steps.refresh.outputs.changed }}
-      publish_required: ${{ steps.reconcile.outputs.publish_required }}
-      detected_version: ${{ steps.refresh.outputs.detected_version }}
+      candidate_version: ${{ steps.refresh.outputs.detected_version }}
+      manifest_sha256: ${{ steps.candidate.outputs.manifest_sha256 }}
+      quality_sha256: ${{ steps.candidate.outputs.quality_sha256 }}
+      lkg_version: ${{ steps.candidate.outputs.lkg_version }}
     steps:
       - name: Check out data repository
         uses: actions/checkout@v6
         with:
           ref: main
 
-      - name: Enforce runtime compatibility contracts
+      - name: Prepare Canonical v2 production runtime
         shell: pwsh
-        run: ./tools/ensure-json-array-contract.ps1
+        run: ./tools/prepare-production-runtime.ps1
 
-      - name: Verify runtime hardening postconditions
+      - name: Production contract regressions
         shell: pwsh
-        run: ./tools/verify-runtime-hardening.ps1
+        run: |
+          ./tools/test-current-set-universe.ps1
+          ./tools/test-current-set-catalog-integration.ps1
+          ./tools/test-rank-scope-policy.ps1
+          ./tools/test-strict-production-source-policy.ps1
+          ./tools/test-candidate-publication-lifecycle.ps1
+          ./tools/test-id-compatibility-policy.ps1
+          ./tools/test-patch-detection-policy.ps1
+          ./tools/test-data-history-policy.ps1
 
-      - name: Test cross-source ID compatibility policy
-        shell: pwsh
-        run: ./tools/test-id-compatibility-policy.ps1
-
-      - name: Test bounded new-set rank fallback policy
-        shell: pwsh
-        run: ./tools/test-rank-scope-policy.ps1
-
-      - name: Test resilient official patch detection policy
-        shell: pwsh
-        run: ./tools/test-patch-detection-policy.ps1
-
-      - name: Test append-only data history policy
-        shell: pwsh
-        run: ./tools/test-data-history-policy.ps1
-
-      - name: Test unattended publication reconciliation policy
-        shell: pwsh
-        run: ./tools/test-publication-state.ps1
-
-      - name: Test new-set catalog-first readiness and rollback
-        shell: pwsh
-        run: ./tools/test-new-set-readiness.ps1
-
-      - name: Detect, generate, validate, and stage a new version
+      - name: Detect, generate, validate, and stage immutable candidate
         id: refresh
         shell: pwsh
         run: |
@@ -80,23 +67,46 @@ jobs:
             ./tools/refresh-live-data-gated.ps1
           }
 
-      - name: Validate generated cross-source compatibility
-        id: compatibility
-        if: success()
+      - name: Measure live emblem quality
+        if: success() && steps.refresh.outputs.changed == 'true'
         shell: pwsh
-        run: ./tools/validate-data-compatibility.ps1
+        run: ./tools/measure-emblem-quality.ps1 -RequireReady
 
-      - name: Write user-visible data quality status
-        if: success()
+      - name: Write candidate-scoped data quality
+        if: success() && steps.refresh.outputs.changed == 'true'
         shell: pwsh
-        run: ./tools/write-data-quality-status.ps1
+        run: |
+          $release = '${{ steps.refresh.outputs.detected_version }}'
+          if (-not $release) { throw 'Refresh did not expose a candidate release id.' }
+          $activeQuality = 'site/data-quality.json'
+          if (-not (Test-Path -LiteralPath $activeQuality -PathType Leaf)) {
+            throw 'Active LKG data-quality.json is missing; refusing candidate staging.'
+          }
+          $savedActiveQuality = 'build/active-data-quality.json'
+          Copy-Item -LiteralPath $activeQuality -Destination $savedActiveQuality -Force
+          ./tools/write-data-quality-status.ps1 -ReleaseId $release
+          $candidateQuality = "site/bundles/$release/data-quality.json"
+          Move-Item -LiteralPath $activeQuality -Destination $candidateQuality -Force
+          Copy-Item -LiteralPath $savedActiveQuality -Destination $activeQuality -Force
 
-      - name: Validate complete site
-        if: success()
+      - name: Preserve active LKG public status
+        if: success() && steps.refresh.outputs.changed == 'true'
         shell: pwsh
-        run: ./tools/validate-site.ps1
+        run: ./tools/quality/Write-StagedPublicStatus.ps1 -SiteDirectory site
 
-      - name: Commit validated history only when changed
+      - name: Validate immutable candidate locally
+        id: candidate
+        if: success() && steps.refresh.outputs.changed == 'true'
+        shell: pwsh
+        run: |
+          $release = '${{ steps.refresh.outputs.detected_version }}'
+          ./tools/quality/Test-StagedPublishCandidate.ps1 `
+            -SiteDirectory site `
+            -ReleaseId $release `
+            -DataQualityPath "site/bundles/$release/data-quality.json"
+          ./tools/validate-site.ps1 -SiteDirectory site
+
+      - name: Commit staged candidate without moving latest
         if: success() && steps.refresh.outputs.changed == 'true'
         shell: pwsh
         run: |
@@ -104,39 +114,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add source/current site
           if (-not (git status --porcelain)) {
-            throw "Refresh reported a change but produced no tracked diff"
+            throw 'Refresh reported a candidate change but produced no tracked diff.'
           }
-          git commit -m "data: publish ${{ steps.refresh.outputs.detected_version }}"
+          git commit -m "data: stage candidate ${{ steps.refresh.outputs.detected_version }}"
           $pushed = $false
           for ($attempt = 1; $attempt -le 3; $attempt++) {
             git push origin HEAD:main
-            if ($LASTEXITCODE -eq 0) {
-              $pushed = $true
-              break
-            }
+            if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
             if ($attempt -lt 3) { Start-Sleep -Seconds (5 * $attempt) }
           }
-          if (-not $pushed) {
-            git fetch origin main
-            git merge-base --is-ancestor origin/main HEAD
-            if ($LASTEXITCODE -ne 0) {
-              throw "Remote main advanced during publication; the next scheduled run will regenerate from that commit."
-            }
-            throw "Push failed after 3 bounded attempts; the next scheduled run will retry."
-          }
+          if (-not $pushed) { throw 'Candidate push failed after 3 bounded attempts.' }
 
-      - name: Reconcile tracked latest with public Pages
-        id: reconcile
-        if: success()
-        shell: pwsh
-        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
-
-      - name: Configure Pages
-        if: success() && steps.reconcile.outputs.publish_required == 'true'
+      - name: Configure Pages for staged candidate
+        if: success() && steps.refresh.outputs.changed == 'true'
         uses: actions/configure-pages@v6
 
-      - name: Upload Pages artifact
-        if: success() && steps.reconcile.outputs.publish_required == 'true'
+      - name: Upload staged Pages artifact
+        if: success() && steps.refresh.outputs.changed == 'true'
         uses: actions/upload-pages-artifact@v5
         with:
           path: site
@@ -150,83 +144,91 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-      - name: Write Actions summary
+      - name: Write staging summary
         if: always()
         shell: pwsh
         run: |
-          $result = '${{ steps.refresh.outputs.result }}'
-          if (-not $result) { $result = '${{ job.status }}' }
           @"
-          ## TFT data refresh
+          ## TFT Canonical v2 candidate staging
 
-          - Result: $result
-          - Detected version: ${{ steps.refresh.outputs.detected_version }}
-          - Set: ${{ steps.refresh.outputs.detected_set }}
-          - Patch: ${{ steps.refresh.outputs.detected_patch }}
-          - Revision: ${{ steps.refresh.outputs.detected_revision }}
-          - Update kind: ${{ steps.refresh.outputs.detected_kind }}
+          - Result: ${{ steps.refresh.outputs.result }}
+          - Candidate: ${{ steps.refresh.outputs.detected_version }}
           - Changed: ${{ steps.refresh.outputs.changed }}
-          - Publication required: ${{ steps.reconcile.outputs.publish_required }}
-          - Public state before deployment: ${{ steps.reconcile.outputs.public_state }}
-          - Published artifact prepared: ${{ steps.refresh.outputs.published }}
-          - Data quality: ${{ steps.compatibility.outputs.quality_state }}
-          - Composition coverage: ${{ steps.compatibility.outputs.composition_count }}/${{ steps.compatibility.outputs.target_composition_count }}
-          - Qualified source compositions: ${{ steps.compatibility.outputs.qualified_source_compositions }}
-          - Compositions missing optional augment recommendations: ${{ steps.compatibility.outputs.missing_augment_compositions }}
-          - Data warnings: ${{ steps.compatibility.outputs.warning_codes }}
-          - No change means: sources were checked and no semantic catalog/meta change was published.
-          - Validation/job status: ${{ job.status }}
-          - Pages URL: https://jinbbb0.github.io/tft-mobile-overlay-data/
-          - Data index: $env:DATA_INDEX_URL
-          - Data quality: https://jinbbb0.github.io/tft-mobile-overlay-data/data-quality.json
-          - Failed stage: ${{ steps.refresh.outputs.failed_stage }}
-          - Next action: Inspect the failure artifact only when this run failed.
+          - LKG remains active: ${{ steps.candidate.outputs.lkg_version }}
+          - Local manifest SHA-256: ${{ steps.candidate.outputs.manifest_sha256 }}
+          - Local quality SHA-256: ${{ steps.candidate.outputs.quality_sha256 }}
+          - No Android evidence is fabricated or bypassed here.
+          - latestVersionId is not promoted by this workflow.
           "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
 
-  deploy:
-    if: needs.refresh.result == 'success' && needs.refresh.outputs.publish_required == 'true'
-    needs: refresh
+  deploy-staged-candidate:
+    if: needs.stage-candidate.result == 'success' && needs.stage-candidate.outputs.changed == 'true'
+    needs: stage-candidate
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy validated artifact atomically
+      - name: Deploy candidate while LKG pointer remains unchanged
         id: deployment
         uses: actions/deploy-pages@v5
 
-  verify-publication:
-    if: needs.deploy.result == 'success'
-    needs: [refresh, deploy]
+  verify-staged-candidate:
+    if: needs.deploy-staged-candidate.result == 'success'
+    needs: [stage-candidate, deploy-staged-candidate]
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v6
         with:
           ref: main
-      - name: Verify HTTPS index, manifest, JSON, sample blob, and quality status
+
+      - name: Verify remote immutable candidate and all payload hashes
         shell: pwsh
         run: |
+          $release = '${{ needs.stage-candidate.outputs.candidate_version }}'
+          $manifestUrl = "$env:PUBLIC_BASE_URL/bundles/$release/manifest.json"
+          $qualityUrl = "$env:PUBLIC_BASE_URL/bundles/$release/data-quality.json"
           $verified = $false
           for ($attempt = 1; $attempt -le 6; $attempt++) {
             try {
-              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
-              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
-              ./tools/check-public-data-quality.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+              ./tools/quality/Test-RemoteStagedPublishCandidate.ps1 `
+                -ManifestUrl $manifestUrl `
+                -DataQualityUrl $qualityUrl `
+                -ReleaseId $release `
+                -ExpectedManifestSha256 '${{ needs.stage-candidate.outputs.manifest_sha256 }}' `
+                -ExpectedDataQualitySha256 '${{ needs.stage-candidate.outputs.quality_sha256 }}'
               $verified = $true
               break
             } catch {
               if ($attempt -eq 6) { throw }
-              Write-Warning "Public verification attempt $attempt failed while Pages propagates."
+              Write-Warning "Remote candidate verification attempt $attempt failed while Pages propagates: $($_.Exception.Message)"
               Start-Sleep -Seconds (10 * $attempt)
             }
           }
-          if (-not $verified) { throw "Public Pages validation did not converge."
-          }
-      - name: Record public verification
+          if (-not $verified) { throw 'Remote staged candidate verification did not converge.' }
+
+      - name: Verify active public LKG remains coherent
         shell: pwsh
         run: |
-          "- Public E2E validation: PASS" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
-          "- Data index: $env:DATA_INDEX_URL" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
-          "- Data quality: https://jinbbb0.github.io/tft-mobile-overlay-data/data-quality.json" | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+          ./tools/check-public-data-quality.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+          $index = Invoke-RestMethod -Uri $env:DATA_INDEX_URL -Headers @{ 'Cache-Control'='no-cache' }
+          if ([string]$index.latestVersionId -eq '${{ needs.stage-candidate.outputs.candidate_version }}') {
+            throw 'Candidate was promoted before Android E2E.'
+          }
+
+      - name: Record staged gate result
+        shell: pwsh
+        run: |
+          @"
+          ## Staged candidate verified
+
+          - Candidate: ${{ needs.stage-candidate.outputs.candidate_version }}
+          - Remote manifest/payload SHA-256: PASS
+          - Remote candidate quality SHA-256: PASS
+          - Active LKG: ${{ needs.stage-candidate.outputs.lkg_version }}
+          - Android E2E: REQUIRED BEFORE PROMOTION
+          - Promotion: NOT PERFORMED
+          "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8

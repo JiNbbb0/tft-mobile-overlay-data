@@ -1,11 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://jinbbb0.github.io/tft-mobile-overlay-data/schema/data-quality.schema.json",
-  "title": "TFT Mobile Overlay Data Quality Status",
+  "title": "TFT Mobile Overlay Data Quality Status v2",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schemaVersion",
+    "releaseId",
     "generatedAtUtc",
     "sourceUpdatedAtUtc",
     "versionId",
@@ -16,6 +17,7 @@
     "revision",
     "readiness",
     "qualityState",
+    "overall",
     "userMessageJa",
     "userMessageEn",
     "features",
@@ -23,9 +25,10 @@
     "warnings"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "generatedAtUtc": { "type": "string" },
-    "sourceUpdatedAtUtc": { "type": "string" },
+    "schemaVersion": { "const": 2 },
+    "releaseId": { "type": "string", "minLength": 1 },
+    "generatedAtUtc": { "type": "string", "format": "date-time" },
+    "sourceUpdatedAtUtc": { "type": "string", "format": "date-time" },
     "versionId": { "type": "string", "minLength": 1 },
     "setId": { "type": "string", "minLength": 1 },
     "setNumber": { "type": "integer", "minimum": 1 },
@@ -34,16 +37,78 @@
     "revision": { "type": "string", "minLength": 1 },
     "readiness": { "enum": ["CATALOG_READY", "META_COLLECTING", "META_STABLE"] },
     "qualityState": { "enum": ["READY", "DEGRADED_OPTIONAL", "CATALOG_ONLY"] },
+    "overall": { "enum": ["READY", "DEGRADED_OPTIONAL", "CATALOG_ONLY"] },
     "userMessageJa": { "type": "string" },
     "userMessageEn": { "type": "string" },
     "features": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["catalog", "compositions", "compositionAugments"],
+      "required": [
+        "champions",
+        "traits",
+        "emblems",
+        "compositions",
+        "boards",
+        "recommendedItems",
+        "compositionAugments"
+      ],
       "properties": {
-        "catalog": { "enum": ["READY", "COLLECTING", "UNAVAILABLE"] },
-        "compositions": { "enum": ["READY", "PARTIAL", "COLLECTING", "UNAVAILABLE"] },
-        "compositionAugments": { "enum": ["READY", "COLLECTING", "UNAVAILABLE"] }
+        "champions": { "$ref": "#/$defs/tokenFeature" },
+        "traits": { "$ref": "#/$defs/tokenFeature" },
+        "emblems": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "missingEligible", "duplicateMappings", "missingImages"],
+          "properties": {
+            "status": { "$ref": "#/$defs/status" },
+            "missingEligible": { "type": "integer", "minimum": 0 },
+            "duplicateMappings": { "type": "integer", "minimum": 0 },
+            "missingImages": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "compositions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "filter", "sourceScope", "coverage", "queue", "patch", "days", "permitFilterAdjustment"],
+          "properties": {
+            "status": { "$ref": "#/$defs/status" },
+            "filter": { "enum": ["PLATINUM_PLUS"] },
+            "sourceScope": { "enum": ["PLATINUM_PLUS", "PLATINUM_PLUS_LIMITED"] },
+            "coverage": { "enum": ["SUFFICIENT", "LIMITED"] },
+            "queue": { "enum": ["RANKED"] },
+            "patch": { "enum": ["CURRENT"] },
+            "days": { "const": 3 },
+            "permitFilterAdjustment": { "const": false }
+          }
+        },
+        "boards": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "syntheticBoardCount", "unknownUnitCount"],
+          "properties": {
+            "status": { "$ref": "#/$defs/status" },
+            "syntheticBoardCount": { "type": "integer", "minimum": 0 },
+            "unknownUnitCount": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "recommendedItems": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "unresolvedItemIds"],
+          "properties": {
+            "status": { "$ref": "#/$defs/status" },
+            "unresolvedItemIds": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "compositionAugments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "missingCompositions"],
+          "properties": {
+            "status": { "$ref": "#/$defs/status" },
+            "missingCompositions": { "type": "integer", "minimum": 0 }
+          }
+        }
       }
     },
     "counts": {
@@ -57,7 +122,10 @@
         "compositions",
         "targetCompositions",
         "qualifiedSourceCompositions",
-        "missingAugmentCompositions"
+        "missingAugmentCompositions",
+        "levelBoards",
+        "recommendedItemRecords",
+        "unresolvedTokens"
       ],
       "properties": {
         "champions": { "type": "integer", "minimum": 0 },
@@ -67,13 +135,28 @@
         "compositions": { "type": "integer", "minimum": 0 },
         "targetCompositions": { "type": "integer", "minimum": 1 },
         "qualifiedSourceCompositions": { "type": "integer", "minimum": 0 },
-        "missingAugmentCompositions": { "type": "integer", "minimum": 0 }
+        "missingAugmentCompositions": { "type": "integer", "minimum": 0 },
+        "levelBoards": { "type": "integer", "minimum": 0 },
+        "recommendedItemRecords": { "type": "integer", "minimum": 0 },
+        "unresolvedTokens": { "type": "integer", "minimum": 0 }
       }
     },
     "warnings": {
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "status": { "enum": ["READY", "PARTIAL", "COLLECTING", "UNAVAILABLE", "BLOCKED"] },
+    "tokenFeature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "unresolvedTokens"],
+      "properties": {
+        "status": { "$ref": "#/$defs/status" },
+        "unresolvedTokens": { "type": "integer", "minimum": 0 }
+      }
     }
   }
 }

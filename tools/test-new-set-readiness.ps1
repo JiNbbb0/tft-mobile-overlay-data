@@ -15,6 +15,9 @@ $testSite = Join-Path $repositoryRoot 'build/new-set-readiness-site'
 foreach ($path in @($testSource, $testSite)) {
     if (Test-Path -LiteralPath $path) { Remove-Item -Recurse -Force -LiteralPath $path }
 }
+# Fail with the site's own integrity diagnostics before copying a broken
+# retained-history graph into the synthetic new-set fixture.
+& (Join-Path $PSScriptRoot 'validate-site.ps1') -SiteDirectory $sitePath
 Copy-Item -Recurse -Force -LiteralPath $sourcePath -Destination $testSource
 Copy-Item -Recurse -Force -LiteralPath $sitePath -Destination $testSite
 

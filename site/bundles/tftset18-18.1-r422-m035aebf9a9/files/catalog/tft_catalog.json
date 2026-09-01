@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "fetchedAtUtc": "2026-08-28T09:35:33Z",
+  "fetchedAtUtc": "2026-09-01T05:33:11Z",
   "set": {
     "id": "TFTSet18",
     "number": 18,
-    "nameJa": "神秘の森",
-    "nameEn": "Enchanted Wilds",
+    "nameJa": "Set10",
+    "nameEn": "Set10",
     "tftPatch": "18.1",
     "dataDragonVersion": "16.17.1",
     "modes": [
@@ -25,10 +25,7 @@
     "communityDragonDocs": "https://communitydragon.org/documentation/assets",
     "communityDragonJa": "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json",
     "communityDragonEn": "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json",
-    "communityDragonChampionBinTemplate": "https://raw.communitydragon.org/latest/game/characters/{0}.cdtb.bin.json",
-    "communityDragonRawMap22": "https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json",
-    "communityDragonJaStringTable": "https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json",
-    "communityDragonEnStringTable": "https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json"
+    "communityDragonChampionBinTemplate": "https://raw.communitydragon.org/latest/game/characters/{0}.cdtb.bin.json"
   },
   "champions": [
     {
@@ -1108,7 +1105,7 @@
         "nameEn": "Explosive Charge",
         "descriptionJa": "対象に戦闘中に変動秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が戦闘中に変動 [魔力]増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを分散して与え、戦闘中に変動 [攻撃力]の物理ダメージ + 詠唱中の通常攻撃1回ごとに戦闘中に変動 [攻撃力]のダメージを与える。\r\\n\r\\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
         "valuesSource": "CommunityDragon latest TFT JSON + champion game bin calculations",
-        "icon": ""
+        "icon": "tft/images/eb56b0d42a0036750ef9fa26.png"
       },
       "mana": {
         "initial": 0,
@@ -3745,310 +3742,6 @@
   ],
   "items": [
     {
-      "id": "TFT_Assist_1x2star2cost",
-      "nameJa": "★2のコスト2チャンピオン",
-      "nameEn": "2-star 2-cost champion",
-      "image": "tft/images/51cc26fedbbac79049b9ef15.png",
-      "descriptionJa": "★2のコスト2チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "starLevel": 2,
-        "{7e1ab625}": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★2のコスト2チャンピオン 2-star 2-cost champion tft_assist_1x2star2cost"
-    },
-    {
-      "id": "TFT_Assist_2x2star2cost",
-      "nameJa": "★2のコスト2チャンピオン2体",
-      "nameEn": "2 2-star 2-cost champions",
-      "image": "tft/images/51cc26fedbbac79049b9ef15.png",
-      "descriptionJa": "★2のコスト2チャンピオン2体",
-      "stats": {
-        "NumUnits": 2,
-        "starLevel": 2,
-        "{7e1ab625}": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★2のコスト2チャンピオン2体 2 2-star 2-cost champions tft_assist_2x2star2cost"
-    },
-    {
-      "id": "TFT_Assist_1x2star3cost",
-      "nameJa": "★2のコスト3チャンピオン",
-      "nameEn": "2-star 3-cost champion",
-      "image": "tft/images/2584f1da903c2d557bbfbfdf.png",
-      "descriptionJa": "★2のコスト3チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "starLevel": 2,
-        "{7e1ab625}": 3
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★2のコスト3チャンピオン 2-star 3-cost champion tft_assist_1x2star3cost"
-    },
-    {
-      "id": "TFT_Assist_1x2star4cost",
-      "nameJa": "★2のコスト4チャンピオン",
-      "nameEn": "2-star 4-cost champion",
-      "image": "tft/images/3d6ebf1fff6664e58e751ee9.png",
-      "descriptionJa": "★2のコスト4チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "starLevel": 2,
-        "{7e1ab625}": 4
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★2のコスト4チャンピオン 2-star 4-cost champion tft_assist_1x2star4cost"
-    },
-    {
-      "id": "TFT_Assist_1x2star5cost",
-      "nameJa": "★2のコスト5チャンピオン",
-      "nameEn": "2-star 5-cost champion",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "★2のコスト5チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "starLevel": 2,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★2のコスト5チャンピオン 2-star 5-cost champion tft_assist_1x2star5cost"
-    },
-    {
-      "id": "TFT14_CypherArmoryItem_Specific5Costs",
-      "nameJa": "★2のザック、オーロラ、アーゴット、サミーラ",
-      "nameEn": "2 star Zac, Aurora, Urgot, and Samira",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "★2のザック、オーロラ、アーゴット、サミーラ",
-      "stats": {
-        "starLevel": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "★2のザック、オーロラ、アーゴット、サミーラ 2 star zac, aurora, urgot, and samira tft14_cypherarmoryitem_specific5costs"
-    },
-    {
-      "id": "TFT_Assist_1x3star5cost",
-      "nameJa": "★3のコスト5チャンピオン",
-      "nameEn": "3-star 5-cost champion",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "★3のコスト5チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "starLevel": 3,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★3のコスト5チャンピオン 3-star 5-cost champion tft_assist_1x3star5cost"
-    },
-    {
-      "id": "TFT_Assist_1x4cost",
-      "nameJa": "★のコスト4チャンピオン",
-      "nameEn": "1-star 4-cost champion",
-      "image": "tft/images/3d6ebf1fff6664e58e751ee9.png",
-      "descriptionJa": "★のコスト4チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "{7e1ab625}": 4
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★のコスト4チャンピオン 1-star 4-cost champion tft_assist_1x4cost"
-    },
-    {
-      "id": "TFT_Assist_1x5cost",
-      "nameJa": "★のコスト5チャンピオン",
-      "nameEn": "1-star 5-cost champion",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "★のコスト5チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "★のコスト5チャンピオン 1-star 5-cost champion tft_assist_1x5cost"
-    },
-    {
-      "id": "TFT_Assist_Gold_10",
-      "nameJa": "10ゴールド",
-      "nameEn": "10 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "10ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "10ゴールド 10 gold tft_assist_gold_10"
-    },
-    {
-      "id": "TFT_Assist_Gold_15",
-      "nameJa": "15ゴールド",
-      "nameEn": "15 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "15ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "15ゴールド 15 gold tft_assist_gold_15"
-    },
-    {
-      "id": "TFT_Assist_Gold_1",
-      "nameJa": "1ゴールド",
-      "nameEn": "1 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "1ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "1ゴールド 1 gold tft_assist_gold_1"
-    },
-    {
-      "id": "TFT_Assist_Gold_20",
-      "nameJa": "20ゴールド",
-      "nameEn": "20 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "20ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "20ゴールド 20 gold tft_assist_gold_20"
-    },
-    {
-      "id": "TFT_Assist_Gold_2",
-      "nameJa": "2ゴールド",
-      "nameEn": "2 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "2ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "2ゴールド 2 gold tft_assist_gold_2"
-    },
-    {
-      "id": "TFT_Assist_Gold_30",
-      "nameJa": "30ゴールド",
-      "nameEn": "30 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "30ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "30ゴールド 30 gold tft_assist_gold_30"
-    },
-    {
-      "id": "TFT_Assist_Gold_34",
-      "nameJa": "34ゴールド",
-      "nameEn": "34 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "34ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "34ゴールド 34 gold tft_assist_gold_34"
-    },
-    {
-      "id": "TFT_Assist_Gold_3",
-      "nameJa": "3ゴールド",
-      "nameEn": "3 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "3ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "3ゴールド 3 gold tft_assist_gold_3"
-    },
-    {
       "id": "DA_ThreeMe18",
       "nameJa": "3を私に",
       "nameEn": "Three Me",
@@ -4081,118 +3774,6 @@
       "searchKeywords": "3を私に three me da_threeme18_upgrade"
     },
     {
-      "id": "TFT_Assist_Gold_4",
-      "nameJa": "4ゴールド",
-      "nameEn": "4 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "4ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "4ゴールド 4 gold tft_assist_gold_4"
-    },
-    {
-      "id": "TFT_Assist_Gold_55",
-      "nameJa": "55ゴールド",
-      "nameEn": "55 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "55ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "55ゴールド 55 gold tft_assist_gold_55"
-    },
-    {
-      "id": "TFT_Assist_Gold_5",
-      "nameJa": "5ゴールド",
-      "nameEn": "5 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "5ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "5ゴールド 5 gold tft_assist_gold_5"
-    },
-    {
-      "id": "TFT_Assist_Gold_6",
-      "nameJa": "6ゴールド",
-      "nameEn": "6 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "6ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "6ゴールド 6 gold tft_assist_gold_6"
-    },
-    {
-      "id": "TFT_Assist_Gold_7",
-      "nameJa": "7ゴールド",
-      "nameEn": "7 Gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "7ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "7ゴールド 7 gold tft_assist_gold_7"
-    },
-    {
-      "id": "TFT_Assist_Gold_8",
-      "nameJa": "8ゴールド",
-      "nameEn": "8 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "8ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "8ゴールド 8 gold tft_assist_gold_8"
-    },
-    {
-      "id": "TFT_Assist_Gold_9",
-      "nameJa": "9ゴールド",
-      "nameEn": "9 gold",
-      "image": "tft/images/890b3e2d7976471f52f8233b.png",
-      "descriptionJa": "9ゴールド",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "9ゴールド 9 gold tft_assist_gold_9"
-    },
-    {
       "id": "TFT_Item_BFSword",
       "nameJa": "B.F.ソード",
       "nameEn": "B.F. Sword",
@@ -4209,22 +3790,6 @@
       },
       "category": "素材アイテム",
       "searchKeywords": "b.f.ソード b.f. sword tft_item_bfsword"
-    },
-    {
-      "id": "TFT_Item_DebugBase",
-      "nameJa": "MissingNo",
-      "nameEn": "MissingNo",
-      "image": "tft/images/ce881cf2c0822956bcece59d.png",
-      "descriptionJa": "エラー404: デバッグコマンドが見つかりません。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "missingno tft_item_debugbase"
     },
     {
       "id": "DA_ManaRichSoil18",
@@ -4360,38 +3925,6 @@
       "searchKeywords": "アーティファクティネート artifactinate da_artifactinate18_upgrade"
     },
     {
-      "id": "TFT_Assist_RandomOrnnItem",
-      "nameJa": "アーティファクトアイテム",
-      "nameEn": "Artifact Item",
-      "image": "tft/images/038a1218d9f74320e0c27008.png",
-      "descriptionJa": "アーティファクトアイテム",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "アーティファクト",
-      "searchKeywords": "アーティファクトアイテム artifact item tft_assist_randomornnitem"
-    },
-    {
-      "id": "TFT_Assist_ItemArmoryOrnn",
-      "nameJa": "アーティファクトの金床",
-      "nameEn": "Artifact Anvil",
-      "image": "tft/images/1a2a3bab8fcd8e7a8c7c3f08.png",
-      "descriptionJa": "アーティファクトの金床",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "アーティファクトの金床 artifact anvil tft_assist_itemarmoryornn"
-    },
-    {
       "id": "DA_Ironwood18",
       "nameJa": "アイアンウッド",
       "nameEn": "Ironwood",
@@ -4489,22 +4022,6 @@
       },
       "category": "その他",
       "searchKeywords": "アイオニック スパーク ionic spark tft_item_ionicspark"
-    },
-    {
-      "id": "TFT_Assist_Remover_2",
-      "nameJa": "アイテム除去装置x2",
-      "nameEn": "2 Item Removers",
-      "image": "tft/images/a07d424158b0acdd9a07568d.png",
-      "descriptionJa": "アイテム除去装置x2",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "アイテム除去装置x2 2 item removers tft_assist_remover_2"
     },
     {
       "id": "TFT_Item_AdaptiveHelm",
@@ -4634,6 +4151,25 @@
       "searchKeywords": "イカサマダイス loaded dice tft_consumable_shopreroller"
     },
     {
+      "id": "DA_18_EmblemInvoker",
+      "nameJa": "インヴォーカーの紋章",
+      "nameEn": "Invoker Emblem",
+      "image": "tft/images/03b94976f158029ffeeb0cdf.png",
+      "descriptionJa": "装備者に「インヴォーカー」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_TearOfTheGoddess"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "インヴォーカーの紋章 invoker emblem da_18_embleminvoker"
+    },
+    {
       "id": "TFT_Item_InfinityEdge",
       "nameJa": "インフィニティ エッジ",
       "nameEn": "Infinity Edge",
@@ -4657,6 +4193,22 @@
       "searchKeywords": "インフィニティ エッジ infinity edge tft_item_infinityedge"
     },
     {
+      "id": "DA_Artifact_InfinityForce",
+      "nameJa": "インフィニティ フォース",
+      "nameEn": "Infinity Force",
+      "image": "tft/images/38c3381d9049e7b1f603b149.png",
+      "descriptionJa": "色んな効果がたくさん！",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "インフィニティ フォース infinity force da_artifact_infinityforce"
+    },
+    {
       "id": "TFT4_Item_OrnnInfinityForce",
       "nameJa": "インフィニティ フォース",
       "nameEn": "Infinity Force",
@@ -4678,6 +4230,60 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "インフィニティ フォース infinity force tft4_item_ornninfinityforce"
+    },
+    {
+      "id": "DA_18_EmblemInferno",
+      "nameJa": "インフェルノの紋章",
+      "nameEn": "Inferno Emblem",
+      "image": "tft/images/e9a06ea4b4f7a204c760c246.png",
+      "descriptionJa": "装備者に「インフェルノ」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_RecurveBow"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "インフェルノの紋章 inferno emblem da_18_embleminferno"
+    },
+    {
+      "id": "DA_18_EmblemVanguard",
+      "nameJa": "ヴァンガードの紋章",
+      "nameEn": "Vanguard Emblem",
+      "image": "tft/images/3391af96b0b46bddb2d543cb.png",
+      "descriptionJa": "装備者に「ヴァンガード」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_ChainVest"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ヴァンガードの紋章 vanguard emblem da_18_emblemvanguard"
+    },
+    {
+      "id": "DA_Artifact_WitsEnd",
+      "nameJa": "ウィッツ エンド",
+      "nameEn": "Wit's End",
+      "image": "tft/images/547ec883e36750bf387f1bf7.png",
+      "descriptionJa": "通常攻撃が戦闘中の値の追加魔法ダメージを与える。\n\n装備者が与えたすべての魔法ダメージの30%にあたる体力を回復する。\n\nダメージはステージに応じて増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ウィッツ エンド wit's end da_artifact_witsend"
     },
     {
       "id": "TFT_Item_Artifact_WitsEnd",
@@ -4708,6 +4314,22 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "ウィッツ エンド wit's end tft_item_artifact_witsend"
+    },
+    {
+      "id": "DA_Artifact_VoidGauntlet",
+      "nameJa": "ヴォイド ガントレット",
+      "nameEn": "Void Gauntlet",
+      "image": "tft/images/35182c81a5b7c96d8bd321bc.png",
+      "descriptionJa": "戦闘開始時: 最大体力の30%を蓄え、毎秒2.5%を追加で蓄える。デス時、蓄えた体力を魔法ダメージとして4マス以内の敵に分散して与える。\n\n[重複不可 - チャンピオン1体に1つのみ]",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ヴォイド ガントレット void gauntlet da_artifact_voidgauntlet"
     },
     {
       "id": "TFT_Item_Artifact_VoidGauntlet",
@@ -4814,20 +4436,42 @@
       "searchKeywords": "ウルトラアセンション ultra ascension da_18_ultraascension_upgrade"
     },
     {
-      "id": "TFT_Item_DebugFirstHit",
-      "nameJa": "エース",
-      "nameEn": "Ace",
-      "image": "tft/images/cb3d33ccb24332b0e932f2e5.png",
-      "descriptionJa": "次の通常攻撃で、このユニットは戦闘中の値%のダメージを与える。",
+      "id": "DA_18_EmblemExecutioner",
+      "nameJa": "エクセキューショナーの紋章",
+      "nameEn": "Executioner Emblem",
+      "image": "tft/images/b014a6e15ec8637177eaf91d.png",
+      "descriptionJa": "装備者に「エクセキューショナー」特性を付与する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
         "unique": false,
-        "composition": [],
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_SparringGloves"
+        ],
         "incompatibleTraits": []
       },
-      "category": "その他",
-      "searchKeywords": "エース ace tft_item_debugfirsthit"
+      "category": "紋章",
+      "searchKeywords": "エクセキューショナーの紋章 executioner emblem da_18_emblemexecutioner"
+    },
+    {
+      "id": "DA_18_EmblemElderwood",
+      "nameJa": "エルダーウッドの紋章",
+      "nameEn": "Elderwood Emblem",
+      "image": "tft/images/f0ca0d45ee404e1082a2c458.png",
+      "descriptionJa": "装備者に「エルダーウッド」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_ChainVest"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "エルダーウッドの紋章 elderwood emblem da_18_emblemelderwood"
     },
     {
       "id": "DA_18_CircleofElders",
@@ -5293,52 +4937,20 @@
       "searchKeywords": "カメの来訪 turtle's visit da_turtlesvisit18_upgrade"
     },
     {
-      "id": "TFT7_Item_ShimmerscaleGamblersBlade",
+      "id": "DA_Artifact_GamblersBlade",
       "nameJa": "ギャンブラーの剣",
       "nameEn": "Gambler's Blade",
       "image": "tft/images/3b9fd828c0b32461f0bd4254.png",
       "descriptionJa": "ゴールド所持ゴールド1につき、攻撃速度が追加で[攻撃速度] 1%増加する(最大ゴールド 30ゴールド)。\n\n通常攻撃のたびに6%の確率でゴールド 1ゴールドをドロップする。\n\nこの試合で生成されたゴールド: 戦闘中の値\n\n[重複不可 - チャンピオン1体に1つのみ]",
-      "stats": {
-        "AS": 55.0,
-        "AttackSpeedGoldLimit": 30.0,
-        "AttackSpeedPerGold": 0.009999999776482582,
-        "ChanceToProc": 0.05999999865889549,
-        "GoldPerProc": 1.0,
-        "{46736b3f}": 4.0,
-        "{b38e1643}": 20.0
-      },
+      "stats": {},
       "recipe": [],
       "restrictions": {
-        "unique": true,
+        "unique": false,
         "composition": [],
         "incompatibleTraits": []
       },
-      "category": "その他",
-      "searchKeywords": "ギャンブラーの剣 gambler's blade tft7_item_shimmerscalegamblersblade"
-    },
-    {
-      "id": "TFT7_Item_ShimmerscaleGamblersBlade_HR",
-      "nameJa": "ギャンブラーの剣",
-      "nameEn": "Gambler's Blade",
-      "image": "tft/images/4aa765e9e2904647a37c5b1e.png",
-      "descriptionJa": "ゴールド所持ゴールド1につき、攻撃速度が追加で[攻撃速度] 2%増加する(最大ゴールド 15ゴールド)。\n\n通常攻撃のたびに10%の確率でゴールド 1ゴールドをドロップする。\n\nこの試合で生成されたゴールド: 戦闘中の値\n\n[重複不可 - チャンピオン1体に1つのみ]",
-      "stats": {
-        "AS": 15.0,
-        "AttackSpeedGoldLimit": 15.0,
-        "AttackSpeedPerGold": 0.019999999552965164,
-        "ChanceToProc": 0.10000000149011612,
-        "GoldPerProc": 1.0,
-        "{46736b3f}": 4.0,
-        "{b38e1643}": 10.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": true,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ギャンブラーの剣 gambler's blade tft7_item_shimmerscalegamblersblade_hr"
+      "category": "アーティファクト",
+      "searchKeywords": "ギャンブラーの剣 gambler's blade da_artifact_gamblersblade"
     },
     {
       "id": "DA_18_KillingFrenzy",
@@ -5425,96 +5037,6 @@
       },
       "category": "その他",
       "searchKeywords": "グインソー レイジブレード guinsoo's rageblade tft_item_guinsoosrageblade"
-    },
-    {
-      "id": "TFT16_Consumable_GwensScissors",
-      "nameJa": "グウェンのハサミ",
-      "nameEn": "Gwen's Scissors",
-      "image": "tft/images/2f1d5e00452a5fb73c996fe3.png",
-      "descriptionJa": "チャンピオンに使用すると所持アイテムをすべて取り除き、素材アイテムに分解する。\n\n[消費アイテム - 使用すると消滅する。]",
-      "stats": {
-        "{27d80030}": 1
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "グウェンのハサミ gwen's scissors tft16_consumable_gwensscissors"
-    },
-    {
-      "id": "TFT16_Consumable_GwensScissors_2",
-      "nameJa": "グウェンのハサミ(残り使用回数2回)",
-      "nameEn": "Gwen's Scissors (2 uses left!)",
-      "image": "tft/images/20bcf24d07a9b26bb90a0eb2.png",
-      "descriptionJa": "チャンピオンに使用すると所持アイテムをすべて取り除き、素材アイテムに分解する。\n\n[消費アイテム - 使用すると消滅する。]",
-      "stats": {
-        "{27d80030}": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "グウェンのハサミ<rules>(残り使用回数2回)</rules> gwen's scissors <rules>(2 uses left!)</rules> tft16_consumable_gwensscissors_2"
-    },
-    {
-      "id": "TFT16_Consumable_GwensScissors_3",
-      "nameJa": "グウェンのハサミ(残り使用回数3回)",
-      "nameEn": "Gwen's Scissors (3 uses left!)",
-      "image": "tft/images/ddf878d0051a3732a0a2d4da.png",
-      "descriptionJa": "チャンピオンに使用すると所持アイテムをすべて取り除き、素材アイテムに分解する。\n\n[消費アイテム - 使用すると消滅する。]",
-      "stats": {
-        "{27d80030}": 3
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "グウェンのハサミ<rules>(残り使用回数3回)</rules> gwen's scissors <rules>(3 uses left!)</rules> tft16_consumable_gwensscissors_3"
-    },
-    {
-      "id": "TFT16_Consumable_GwensScissors_4",
-      "nameJa": "グウェンのハサミ(残り使用回数4回)",
-      "nameEn": "Gwen's Scissors (4 uses left!)",
-      "image": "tft/images/52165642788a77f001d528aa.png",
-      "descriptionJa": "チャンピオンに使用すると所持アイテムをすべて取り除き、素材アイテムに分解する。\n\n[消費アイテム - 使用すると消滅する。]",
-      "stats": {
-        "{27d80030}": 4
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "グウェンのハサミ<rules>(残り使用回数4回)</rules> gwen's scissors <rules>(4 uses left!)</rules> tft16_consumable_gwensscissors_4"
-    },
-    {
-      "id": "TFT16_Consumable_GwensScissors_5",
-      "nameJa": "グウェンのハサミ(残り使用回数5回)",
-      "nameEn": "Gwen's Scissors (5 uses left!)",
-      "image": "tft/images/ebd9adf2ae9dcb387a491d5c.png",
-      "descriptionJa": "チャンピオンに使用すると所持アイテムをすべて取り除き、素材アイテムに分解する。\n\n[消費アイテム - 使用すると消滅する。]",
-      "stats": {
-        "{27d80030}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "グウェンのハサミ<rules>(残り使用回数5回)</rules> gwen's scissors <rules>(5 uses left!)</rules> tft16_consumable_gwensscissors_5"
     },
     {
       "id": "DA_BearsVisit18",
@@ -5617,11 +5139,11 @@
       "searchKeywords": "グランドマスター grandmaster da_grandmaster18_upgrade"
     },
     {
-      "id": "TFT_Item_DebugCrit",
-      "nameJa": "クリティカルヒット！",
-      "nameEn": "Critical Hit!",
-      "image": "tft/images/249ce3e5acf8645badd61a03.png",
-      "descriptionJa": "チャンピオンのクリティカル率が100%増加し、そのスキルがクリティカル判定を持つ。",
+      "id": "DA_Artifact_GoldCollector",
+      "nameJa": "ゴールド コレクター",
+      "nameEn": "Gold Collector",
+      "image": "tft/images/039817217f24441553a7c134.png",
+      "descriptionJa": "通常攻撃とスキルで、体力が最大体力の12%未満の敵にとどめを刺す。とどめを刺すと33%の確率で ゴールド 1ゴールドがドロップする。\n\n獲得したゴールド: 戦闘中の値ゴールド\n[重複不可 - チャンピオン1体に1つのみ]",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -5629,8 +5151,8 @@
         "composition": [],
         "incompatibleTraits": []
       },
-      "category": "その他",
-      "searchKeywords": "クリティカルヒット！ critical hit! tft_item_debugcrit"
+      "category": "アーティファクト",
+      "searchKeywords": "ゴールド コレクター gold collector da_artifact_goldcollector"
     },
     {
       "id": "TFT4_Item_OrnnTheCollector",
@@ -5652,22 +5174,6 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "ゴールド コレクター gold collector tft4_item_ornnthecollector"
-    },
-    {
-      "id": "TFT_Assist_Golem_2xAegis",
-      "nameJa": "ゴーレム(盾x2装備)",
-      "nameEn": "Golem with 2 Aegises.",
-      "image": "tft/images/4ad3305a375ae497ae59bacb.png",
-      "descriptionJa": "「イージスの盾」2個を装備したゴーレム。アイテムは装備者の背後にいる味方に物理防御、魔法防御、攻撃速度を付与する。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ゴーレム(盾x2装備) golem with 2 aegises. tft_assist_golem_2xaegis"
     },
     {
       "id": "DA_CoinFlip18",
@@ -5741,272 +5247,6 @@
       },
       "category": "その他",
       "searchKeywords": "コイントス フィーバー flip frenzy da_flipfrenzy18_upgrade"
-    },
-    {
-      "id": "TFT_Assist_5x1cost",
-      "nameJa": "コスト1チャンピオン5体",
-      "nameEn": "5 1-cost champions",
-      "image": "tft/images/8417f78a9e8156a3fe400451.png",
-      "descriptionJa": "コスト1チャンピオン5体",
-      "stats": {
-        "NumUnits": 5,
-        "{7e1ab625}": 1
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト1チャンピオン5体 5 1-cost champions tft_assist_5x1cost"
-    },
-    {
-      "id": "TFT_Assist_1x2cost",
-      "nameJa": "コスト2チャンピオン",
-      "nameEn": "2-cost champion",
-      "image": "tft/images/51cc26fedbbac79049b9ef15.png",
-      "descriptionJa": "コスト2チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "{7e1ab625}": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト2チャンピオン 2-cost champion tft_assist_1x2cost"
-    },
-    {
-      "id": "TFT_Assist_3x2cost",
-      "nameJa": "コスト2チャンピオン3体",
-      "nameEn": "3 2-cost champions",
-      "image": "tft/images/51cc26fedbbac79049b9ef15.png",
-      "descriptionJa": "コスト2チャンピオン3体",
-      "stats": {
-        "NumUnits": 3,
-        "{7e1ab625}": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト2チャンピオン3体 3 2-cost champions tft_assist_3x2cost"
-    },
-    {
-      "id": "TFT_Assist_4x2cost",
-      "nameJa": "コスト2チャンピオン4体",
-      "nameEn": "4 2-cost champions",
-      "image": "tft/images/51cc26fedbbac79049b9ef15.png",
-      "descriptionJa": "コスト2チャンピオン4体",
-      "stats": {
-        "NumUnits": 4,
-        "{7e1ab625}": 2
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト2チャンピオン4体 4 2-cost champions tft_assist_4x2cost"
-    },
-    {
-      "id": "TFT_Assist_1x3cost",
-      "nameJa": "コスト3チャンピオン",
-      "nameEn": "3-cost champion",
-      "image": "tft/images/2584f1da903c2d557bbfbfdf.png",
-      "descriptionJa": "コスト3チャンピオン",
-      "stats": {
-        "NumUnits": 1,
-        "{7e1ab625}": 3
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト3チャンピオン 3-cost champion tft_assist_1x3cost"
-    },
-    {
-      "id": "TFT_Assist_2x3cost",
-      "nameJa": "コスト3チャンピオン2体",
-      "nameEn": "2 3-cost champions",
-      "image": "tft/images/2584f1da903c2d557bbfbfdf.png",
-      "descriptionJa": "コスト3チャンピオン2体",
-      "stats": {
-        "NumUnits": 2,
-        "{7e1ab625}": 3
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト3チャンピオン2体 2 3-cost champions tft_assist_2x3cost"
-    },
-    {
-      "id": "TFT_Assist_3x3cost",
-      "nameJa": "コスト3チャンピオン3体",
-      "nameEn": "3 3-cost champions",
-      "image": "tft/images/2584f1da903c2d557bbfbfdf.png",
-      "descriptionJa": "コスト3チャンピオン3体",
-      "stats": {
-        "NumUnits": 3,
-        "{7e1ab625}": 3
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト3チャンピオン3体 3 3-cost champions tft_assist_3x3cost"
-    },
-    {
-      "id": "TFT_Assist_2x4cost",
-      "nameJa": "コスト4チャンピオン2体",
-      "nameEn": "2 4-cost champions",
-      "image": "tft/images/3d6ebf1fff6664e58e751ee9.png",
-      "descriptionJa": "コスト4チャンピオン2体",
-      "stats": {
-        "NumUnits": 2,
-        "{7e1ab625}": 4
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト4チャンピオン2体 2 4-cost champions tft_assist_2x4cost"
-    },
-    {
-      "id": "TFT_Assist_3x4cost",
-      "nameJa": "コスト4チャンピオン3体",
-      "nameEn": "3 4-cost champions",
-      "image": "tft/images/3d6ebf1fff6664e58e751ee9.png",
-      "descriptionJa": "コスト4チャンピオン3体",
-      "stats": {
-        "NumUnits": 3,
-        "{7e1ab625}": 4
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト4チャンピオン3体 3 4-cost champions tft_assist_3x4cost"
-    },
-    {
-      "id": "TFT_Assist_5x4cost",
-      "nameJa": "コスト4チャンピオン5体",
-      "nameEn": "5 4-cost champions",
-      "image": "tft/images/3d6ebf1fff6664e58e751ee9.png",
-      "descriptionJa": "コスト4チャンピオン5体",
-      "stats": {
-        "NumUnits": 5,
-        "{7e1ab625}": 4
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト4チャンピオン5体 5 4-cost champions tft_assist_5x4cost"
-    },
-    {
-      "id": "TFT_Assist_3x5cost",
-      "nameJa": "コスト5チャンピオン3体",
-      "nameEn": "3 5-cost champions",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "コスト5チャンピオン3体",
-      "stats": {
-        "NumUnits": 3,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト5チャンピオン3体 3 5-cost champions tft_assist_3x5cost"
-    },
-    {
-      "id": "TFT_Assist_4x5cost",
-      "nameJa": "コスト5チャンピオン4体",
-      "nameEn": "4 5-cost champions",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "コスト5チャンピオン4体",
-      "stats": {
-        "NumUnits": 4,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト5チャンピオン4体 4 5-cost champions tft_assist_4x5cost"
-    },
-    {
-      "id": "TFT_Assist_6x5cost",
-      "nameJa": "コスト5チャンピオン6体",
-      "nameEn": "6 5-cost champions",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "コスト5チャンピオン6体",
-      "stats": {
-        "NumUnits": 6,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト5チャンピオン6体 6 5-cost champions tft_assist_6x5cost"
-    },
-    {
-      "id": "TFT_Assist_7x5cost",
-      "nameJa": "コスト5チャンピオン7体",
-      "nameEn": "7 5-cost champions",
-      "image": "tft/images/b94bb7ae525bf0a1be0a3966.png",
-      "descriptionJa": "コスト5チャンピオン7体",
-      "stats": {
-        "NumUnits": 7,
-        "{7e1ab625}": 5
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "コスト5チャンピオン7体 7 5-cost champions tft_assist_7x5cost"
     },
     {
       "id": "DA_Combust18",
@@ -6149,22 +5389,6 @@
       "searchKeywords": "サイコロ die roll da_dieroll18_upgrade"
     },
     {
-      "id": "TFT_Assist_ItemArmorySupport",
-      "nameJa": "サポートアイテムの金床",
-      "nameEn": "Support Anvil",
-      "image": "tft/images/1a2a3bab8fcd8e7a8c7c3f08.png",
-      "descriptionJa": "サポートアイテムの金床",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "サポートアイテムの金床 support anvil tft_assist_itemarmorysupport"
-    },
-    {
       "id": "DA_Salvager18",
       "nameJa": "サルベージャー",
       "nameEn": "Salvager",
@@ -6197,22 +5421,6 @@
       },
       "category": "その他",
       "searchKeywords": "サルベージャー salvager da_salvagerupgrade18"
-    },
-    {
-      "id": "TFT14_Consumable_Salvager",
-      "nameJa": "サルベージャー",
-      "nameEn": "Salvager",
-      "image": "tft/images/74f399dae7930deebca2e81a.png",
-      "descriptionJa": "チャンピオンに使用すると所持アイテムをすべて取り除き、素材アイテムに分解する。\n\n[消費アイテム - 使用すると消滅する。]",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "サルベージャー salvager tft14_consumable_salvager"
     },
     {
       "id": "TFT_Item_RedBuff",
@@ -6321,6 +5529,22 @@
       "searchKeywords": "ジ＝ロット ポータル zz'rot portal tft5_item_zzrotportalradiant"
     },
     {
+      "id": "DA_Artifact_SeekersArmguard",
+      "nameJa": "シーカー アームガード",
+      "nameEn": "Seeker's Armguard",
+      "image": "tft/images/10a7af50a5eba2749ef90d21.png",
+      "descriptionJa": "キルまたはアシストを獲得すると、装備者の物理防御、魔法防御、魔力が20増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "シーカー アームガード seeker's armguard da_artifact_seekersarmguard"
+    },
+    {
       "id": "TFT_Item_Artifact_SeekersArmguard",
       "nameJa": "シーカー アームガード",
       "nameEn": "Seeker's Armguard",
@@ -6407,6 +5631,22 @@
       "searchKeywords": "ジャイアント ベルト giant's belt tft_item_giantsbelt"
     },
     {
+      "id": "DA_18_EmblemJuggernaut",
+      "nameJa": "ジャガーノートの紋章",
+      "nameEn": "Juggernaut Emblem",
+      "image": "tft/images/e908281d45a49ade7ad5e689.png",
+      "descriptionJa": "装備者に「ジャガーノート」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ジャガーノートの紋章 juggernaut emblem da_18_emblemjuggernaut"
+    },
+    {
       "id": "DA_Jungling18",
       "nameJa": "ジャングリング",
       "nameEn": "Jungling",
@@ -6486,6 +5726,22 @@
       "searchKeywords": "ショウジンの矛 spear of shojin tft_item_spearofshojin"
     },
     {
+      "id": "DA_Artifact_SilvermereDawn",
+      "nameJa": "シルバーミアの夜明け",
+      "nameEn": "Silvermere Dawn",
+      "image": "tft/images/f7188d9fa0f9948accdf3ba5.png",
+      "descriptionJa": "スタンを受けなくなり、通常攻撃が対象を0.8秒間スタンさせる。\n\n攻撃速度が0.5に固定される。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "シルバーミアの夜明け silvermere dawn da_artifact_silvermeredawn"
+    },
+    {
       "id": "TFT_Item_Artifact_SilvermereDawn",
       "nameJa": "シルバーミアの夜明け",
       "nameEn": "Silvermere Dawn",
@@ -6507,22 +5763,6 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "シルバーミアの夜明け silvermere dawn tft_item_artifact_silvermeredawn"
-    },
-    {
-      "id": "TFT_Assist_AllDoubleNonSpatItems",
-      "nameJa": "すべてのダブル素材アイテム",
-      "nameEn": "All double component items",
-      "image": "tft/images/99bc3529e638b8462d9e3088.png",
-      "descriptionJa": "デスブレード、ラバドン デスキャップ、レッドバフ、ブランブル ベスト、ドラゴン クロウ、ワーモグ アーマー、ブルーバフ、盗賊のグローブ。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "すべてのダブル素材アイテム all double component items tft_assist_alldoublenonspatitems"
     },
     {
       "id": "DA_Scrappy18",
@@ -6559,6 +5799,22 @@
       },
       "category": "その他",
       "searchKeywords": "スクラッピー scrappy da_scrappy18_upgrade"
+    },
+    {
+      "id": "DA_Artifact_StatikkShiv",
+      "nameJa": "スタティック シヴ",
+      "nameEn": "Statikk Shiv",
+      "image": "tft/images/78cb2049a6f7c01e18138299.png",
+      "descriptionJa": "通常攻撃3回ごとに、30 + 装備者の魔力の50%を追加魔法ダメージとして敵4体に与える。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "スタティック シヴ statikk shiv da_artifact_statikkshiv"
     },
     {
       "id": "TFT_Item_Artifact_StatikkShiv",
@@ -6741,6 +5997,25 @@
       "searchKeywords": "スピリット ビサージュ spirit visage tft_item_redemption"
     },
     {
+      "id": "DA_18_EmblemSprykin",
+      "nameJa": "スプライキンの紋章",
+      "nameEn": "Sprykin Emblem",
+      "image": "tft/images/2a4a43109c9ccc58edb51d06.png",
+      "descriptionJa": "装備者に「スプライキン」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_NegatronCloak"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "スプライキンの紋章 sprykin emblem da_18_emblemsprykin"
+    },
+    {
       "id": "TFT_Item_Artifact_SpectralCutlass",
       "nameJa": "スペクトラル カトラス",
       "nameEn": "Spectral Cutlass",
@@ -6760,6 +6035,25 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "スペクトラル カトラス spectral cutlass tft_item_artifact_spectralcutlass"
+    },
+    {
+      "id": "DA_18_EmblemSpellweaver",
+      "nameJa": "スペルウィーバーの紋章",
+      "nameEn": "Spellweaver Emblem",
+      "image": "tft/images/f15e1602ae6438a3a533891c.png",
+      "descriptionJa": "装備者に「スペルウィーバー」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_NeedlesslyLargeRod"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "スペルウィーバーの紋章 spellweaver emblem da_18_emblemspellweaver"
     },
     {
       "id": "DA_Smurfing18",
@@ -6908,6 +6202,22 @@
       "searchKeywords": "センチネル スワーム sentinel swarm tft_item_sentinelswarm"
     },
     {
+      "id": "DA_Artifact_ZhonyasParadox",
+      "nameJa": "ゾーニャの遡時計",
+      "nameEn": "Zhonya's Paradox",
+      "image": "tft/images/d19a579f85e62408d69e1ec7.png",
+      "descriptionJa": "各戦闘で1回のみ、体力が40%になると、3秒間、無敵状態になって対象指定されなくなる。\n\n[重複不可 - チャンピオン1体に1つのみ]",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ゾーニャの遡時計 zhonya's paradox da_artifact_zhonyasparadox"
+    },
+    {
       "id": "TFT4_Item_OrnnZhonyasParadox",
       "nameJa": "ゾーニャの遡時計",
       "nameEn": "Zhonya's Paradox",
@@ -6988,6 +6298,22 @@
       "searchKeywords": "たくさんのベルト bunch-o'-belts da_bunchobeltsupgrade18"
     },
     {
+      "id": "DA_Artifact_TitanicHydra",
+      "nameJa": "タイタン ハイドラ",
+      "nameEn": "Titanic Hydra",
+      "image": "tft/images/55fa1449b2b17d9d7809fa05.png",
+      "descriptionJa": "通常攻撃が対象および隣接する敵に、装備者の最大体力の4% + 攻撃力の6%の追加物理ダメージを与える。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "タイタン ハイドラ titanic hydra da_artifact_titanichydra"
+    },
+    {
       "id": "TFT_Item_Artifact_TitanicHydra",
       "nameJa": "タイタン ハイドラ",
       "nameEn": "Titanic Hydra",
@@ -7008,29 +6334,6 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "タイタン ハイドラ titanic hydra tft_item_artifact_titanichydra"
-    },
-    {
-      "id": "TFT7_Item_ShimmerscaleDiamondHands",
-      "nameJa": "ダイヤモンド ハンド",
-      "nameEn": "Diamond Hands",
-      "image": "tft/images/9afcf39e90399ad6bf52fde0.png",
-      "descriptionJa": "各戦闘で1回のみ: 体力が50%になった時、1.5秒間、無敵状態になり、ゴールド 1ゴールドを獲得する。",
-      "stats": {
-        "AP": 25.0,
-        "BaseDamageImmunityTime": 1.5,
-        "GoldPerImmunityProc": 1.0,
-        "HPThreshold1": 0.5,
-        "HPThreshold2": -2.0,
-        "Health": 200.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": true,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ダイヤモンド ハンド diamond hands tft7_item_shimmerscalediamondhands"
     },
     {
       "id": "TFT_Item_TacticiansRing",
@@ -7054,22 +6357,6 @@
       },
       "category": "その他",
       "searchKeywords": "タクティシャンのケープ tactician's cape tft_item_tacticiansring"
-    },
-    {
-      "id": "TFT_Assist_TacticiansCape_2",
-      "nameJa": "タクティシャンのケープx2",
-      "nameEn": "2 Tacticians' Capes",
-      "image": "tft/images/5d28ccdd70001878fdcd78b9.png",
-      "descriptionJa": "タクティシャンのケープx2",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "タクティシャンのケープx2 2 tacticians' capes tft_assist_tacticianscape_2"
     },
     {
       "id": "TFT_Item_ForceOfNature",
@@ -7114,86 +6401,6 @@
       },
       "category": "その他",
       "searchKeywords": "タクティシャンの盾 tactician's shield tft_item_tacticiansscepter"
-    },
-    {
-      "id": "TFT_Consumable_TrainingDummy",
-      "nameJa": "ダミー",
-      "nameEn": "Training Dummy",
-      "image": "tft/images/d6f64f87ee0e292687efa3a4.png",
-      "descriptionJa": "チャンピオンに使用すると、その近くに移動可能な「ダミー」が出現する。 \n\n [戦闘中は使用できない。 \n消費アイテム - 使用すると消滅する。]",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "ダミー training dummy tft_consumable_trainingdummy"
-    },
-    {
-      "id": "TFT_Assist_Dummy_2xZekes",
-      "nameJa": "ダミー(ジークx2装備)",
-      "nameEn": "Dummy with 2 Zeke's",
-      "image": "tft/images/9c3a759145bbe1ae7d13de38.png",
-      "descriptionJa": "「ジークの使者」2個を装備したダミー。周囲の味方の攻撃速度を増加させる。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ダミー(ジークx2装備) dummy with 2 zeke's tft_assist_dummy_2xzekes"
-    },
-    {
-      "id": "TFT_Assist_Dummy_2xLocked",
-      "nameJa": "ダミー(ソラリx2装備)",
-      "nameEn": "Dummy with 2 Lockets",
-      "image": "tft/images/9c3a759145bbe1ae7d13de38.png",
-      "descriptionJa": "「ソラリのロケット」2個を装備したダミー。アイテムは戦闘開始時、味方にシールドを付与する。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ダミー(ソラリx2装備) dummy with 2 lockets tft_assist_dummy_2xlocked"
-    },
-    {
-      "id": "TFT_Assist_Dummy_Shroud",
-      "nameJa": "ダミー(帳x1装備)",
-      "nameEn": "Dummy with Shroud",
-      "image": "tft/images/9c3a759145bbe1ae7d13de38.png",
-      "descriptionJa": "「沈黙の帳」1個を装備したダミー。このアイテムは敵のマナコストを増加させる。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ダミー(帳x1装備) dummy with shroud tft_assist_dummy_shroud"
-    },
-    {
-      "id": "TFT_Item_DebugDamageAmp",
-      "nameJa": "ダメージ増加効果",
-      "nameEn": "Damage Amp",
-      "image": "tft/images/e4667e12c446f2c78743b634.png",
-      "descriptionJa": "このユニットが与えるダメージを戦闘中の値%増加させる。スタックはしない。ダメージ増加効果はこのユニットが分解されるまで持続する。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ダメージ増加効果 damage amp tft_item_debugdamageamp"
     },
     {
       "id": "DA_RolyPolys18",
@@ -7266,11 +6473,11 @@
       "searchKeywords": "チャンピオン複製器 champion duplicator tft_consumable_neekoshelp"
     },
     {
-      "id": "TFT_Assist_ChampionDuplicator_2",
-      "nameJa": "チャンピオン複製器x2",
-      "nameEn": "2 Champion Duplicators",
-      "image": "tft/images/cd216afdaaee804f7292220b.png",
-      "descriptionJa": "チャンピオン複製器x2",
+      "id": "DA_18_EmblemDefender",
+      "nameJa": "ディフェンダーの紋章",
+      "nameEn": "Defender Emblem",
+      "image": "tft/images/3de1ee69816f7e28e486dc9c.png",
+      "descriptionJa": "装備者に「ディフェンダー」特性を付与する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -7278,8 +6485,24 @@
         "composition": [],
         "incompatibleTraits": []
       },
-      "category": "消耗品",
-      "searchKeywords": "チャンピオン複製器x2 2 champion duplicators tft_assist_championduplicator_2"
+      "category": "紋章",
+      "searchKeywords": "ディフェンダーの紋章 defender emblem da_18_emblemdefender"
+    },
+    {
+      "id": "DA_Artifact_DeathsDefiance",
+      "nameJa": "デス ディファイアンス",
+      "nameEn": "Death's Defiance",
+      "image": "tft/images/cba96e5b787b6de61a4e353f.png",
+      "descriptionJa": "受けるダメージの50%を4秒かけて非致命ダメージとして受ける。\n\n[重複不可 - チャンピオン1体に1つのみ]",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "デス ディファイアンス death's defiance da_artifact_deathsdefiance"
     },
     {
       "id": "TFT4_Item_OrnnDeathsDefiance",
@@ -7351,22 +6574,6 @@
       "searchKeywords": "デスブレード deathblade tft_item_deathblade"
     },
     {
-      "id": "TFT_Assist_Deathblade_2",
-      "nameJa": "デスブレードx2",
-      "nameEn": "2 Deathblades",
-      "image": "tft/images/9970624604326bd5d72e063a.png",
-      "descriptionJa": "デスブレードx2",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "デスブレードx2 2 deathblades tft_assist_deathblade_2"
-    },
-    {
       "id": "DA_Terraforming18",
       "nameJa": "テラフォーミング",
       "nameEn": "Terraforming",
@@ -7401,6 +6608,22 @@
       },
       "category": "その他",
       "searchKeywords": "テラフォーミング terraforming da_terraforming18_upgrade"
+    },
+    {
+      "id": "DA_Artifact_Dawncore",
+      "nameJa": "ドーンコア",
+      "nameEn": "Dawncore",
+      "image": "tft/images/2c73470ceecefcc88d1175dc.png",
+      "descriptionJa": "装備者の最大マナが10低下する。これ以降にスキルを使用するたびに最大マナが10%低下する(最小10まで)。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ドーンコア dawncore da_artifact_dawncore"
     },
     {
       "id": "TFT_Item_Artifact_Dawncore",
@@ -7802,6 +7025,22 @@
       "searchKeywords": "バリア barrier da_barrier18_upgrade"
     },
     {
+      "id": "DA_Artifact_Hullcrusher",
+      "nameJa": "ハルクラッシャー",
+      "nameEn": "Hullcrusher",
+      "image": "tft/images/4d644776131ad1bcd44a9e03.png",
+      "descriptionJa": "戦闘開始時: 隣接する味方がいない場合、体力が400、攻撃力が10%、魔力が10%増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ハルクラッシャー hullcrusher da_artifact_hullcrusher"
+    },
+    {
       "id": "TFT9_Item_OrnnHullbreaker",
       "nameJa": "ハルクラッシャー",
       "nameEn": "Hullcrusher",
@@ -7874,6 +7113,25 @@
       },
       "category": "その他",
       "searchKeywords": "バンシー ヴェール banshee's veil tft_item_bansheesveil"
+    },
+    {
+      "id": "DA_18_EmblemHunter",
+      "nameJa": "ハンターの紋章",
+      "nameEn": "Hunter Emblem",
+      "image": "tft/images/149174cdf8b1eac54e704530.png",
+      "descriptionJa": "装備者に「ハンター」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_BFSword"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ハンターの紋章 hunter emblem da_18_emblemhunter"
     },
     {
       "id": "TFT_Item_UnstableConcoction",
@@ -8023,6 +7281,22 @@
       "searchKeywords": "ファントムスプラッシュ phantom splash da_phantomsplashupgrade18"
     },
     {
+      "id": "DA_Artifact_Fishbones",
+      "nameJa": "フィッシュボーン",
+      "nameEn": "Fishbones",
+      "image": "tft/images/13b7c40f82811e5ecf836d58.png",
+      "descriptionJa": "装備者の通常攻撃がランダムな敵を標的にする。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "フィッシュボーン fishbones da_artifact_fishbones"
+    },
+    {
       "id": "TFT_Item_Artifact_Fishbones",
       "nameJa": "フィッシュボーン",
       "nameEn": "Fishbones",
@@ -8040,6 +7314,41 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "フィッシュボーン fishbones tft_item_artifact_fishbones"
+    },
+    {
+      "id": "DA_18_EmblemFae",
+      "nameJa": "フェイの紋章",
+      "nameEn": "Fae Emblem",
+      "image": "tft/images/474c6503de75be1f410d98c2.png",
+      "descriptionJa": "装備者に「フェイ」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_BFSword"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "フェイの紋章 fae emblem da_18_emblemfae"
+    },
+    {
+      "id": "DA_Artifact_ForbiddenIdol",
+      "nameJa": "フォビドゥン アイドル",
+      "nameEn": "Forbidden Idol",
+      "image": "tft/images/aee1957eb7a348997d69fcfe.png",
+      "descriptionJa": "シールドの耐久値の50%が最大体力に変換される。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "フォビドゥン アイドル forbidden idol da_artifact_forbiddenidol"
     },
     {
       "id": "TFT_Item_Artifact_ForbiddenIdol",
@@ -8079,6 +7388,25 @@
       "searchKeywords": "フライパン frying pan tft_item_fryingpan"
     },
     {
+      "id": "DA_18_EmblemPrimal",
+      "nameJa": "プライマルの紋章",
+      "nameEn": "Primal Emblem",
+      "image": "tft/images/b4292e36838764f76dae1a52.png",
+      "descriptionJa": "装備者に「プライマル」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_SparringGloves"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "プライマルの紋章 primal emblem da_18_emblemprimal"
+    },
+    {
       "id": "DA_BlastPotion18_Charm",
       "nameJa": "ブラストポーション",
       "nameEn": "Blast Potion",
@@ -8109,6 +7437,25 @@
       },
       "category": "その他",
       "searchKeywords": "ブラストポーション blast potion da_blastpotion18_upgrade_charm"
+    },
+    {
+      "id": "DA_18_EmblemBlackthorn",
+      "nameJa": "ブラックソーンの紋章",
+      "nameEn": "Blackthorn Emblem",
+      "image": "tft/images/a9ecb6e26d93d7aee1a03185.png",
+      "descriptionJa": "装備者に「ブラックソーン」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_GiantsBelt"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ブラックソーンの紋章 blackthorn emblem da_18_emblemblackthorn"
     },
     {
       "id": "TFT_Item_Bloodthirster",
@@ -8241,6 +7588,22 @@
       "searchKeywords": "フリーローラー freeroller da_18_freeroller_upgrade"
     },
     {
+      "id": "DA_Artifact_NavoriFlickerblade",
+      "nameJa": "フリッカーブレード",
+      "nameEn": "Flickerblades",
+      "image": "tft/images/598541a68e42e4034664f986.png",
+      "descriptionJa": "通常攻撃するたびに、攻撃速度が5%増加するスタックを獲得する。通常攻撃3回ごとに、攻撃力が2%、魔力が2%増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "フリッカーブレード flickerblades da_artifact_navoriflickerblade"
+    },
+    {
       "id": "TFT_Item_Artifact_NavoriFlickerblades",
       "nameJa": "フリッカーブレード",
       "nameEn": "Flickerblades",
@@ -8366,6 +7729,22 @@
       "searchKeywords": "プレートシールド plated shields da_platedshields18_upgrade"
     },
     {
+      "id": "DA_18_EmblemFloraFatalis",
+      "nameJa": "フローラ・ファターリスの紋章",
+      "nameEn": "Flora Fatalis Emblem",
+      "image": "tft/images/6c04c560abbc9d222a0903cf.png",
+      "descriptionJa": "装備者に「フローラ・ファターリス」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "フローラ・ファターリスの紋章 flora fatalis emblem da_18_emblemflorafatalis"
+    },
+    {
       "id": "TFT_Item_Artifact_ProwlersClaw",
       "nameJa": "プローラー クロウ",
       "nameEn": "Prowler's Claw",
@@ -8386,6 +7765,44 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "プローラー クロウ prowler's claw tft_item_artifact_prowlersclaw"
+    },
+    {
+      "id": "DA_18_EmblemBrawler",
+      "nameJa": "ブローラーの紋章",
+      "nameEn": "Brawler Emblem",
+      "image": "tft/images/a6807473110611964d1b0706.png",
+      "descriptionJa": "装備者に「ブローラー」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_GiantsBelt"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ブローラーの紋章 brawler emblem da_18_emblembrawler"
+    },
+    {
+      "id": "DA_18_EmblemBlossom",
+      "nameJa": "ブロッサムの紋章",
+      "nameEn": "Blossom Emblem",
+      "image": "tft/images/14a6d1da1f344d0578202c78.png",
+      "descriptionJa": "装備者に「ブロッサム」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_NeedlesslyLargeRod"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ブロッサムの紋章 blossom emblem da_18_emblemblossom"
     },
     {
       "id": "TFT_Item_FrozenHeart",
@@ -8470,22 +7887,6 @@
       "searchKeywords": "へら spatula tft_item_spatula"
     },
     {
-      "id": "TFT_Assist_Spatula_3",
-      "nameJa": "へらx3",
-      "nameEn": "3 Spatulas",
-      "image": "tft/images/3b2450a7822c613a92459024.png",
-      "descriptionJa": "へらx3",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "へらx3 3 spatulas tft_assist_spatula_3"
-    },
-    {
       "id": "DA_18_Payday",
       "nameJa": "ペイデイ",
       "nameEn": "Payday",
@@ -8548,22 +7949,6 @@
       "searchKeywords": "ヘクステック ガンブレード hextech gunblade tft_item_hextechgunblade"
     },
     {
-      "id": "TFT_Item_DebugShield",
-      "nameJa": "ペングの加護",
-      "nameEn": "Pengu's Protection",
-      "image": "tft/images/050cdc419700b1f43b99c413.png",
-      "descriptionJa": "耐久値戦闘中の値のシールドを付与する。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ペングの加護 pengu's protection tft_item_debugshield"
-    },
-    {
       "id": "DA_Potioncraft18",
       "nameJa": "ポーションクラフト",
       "nameEn": "Potioncraft",
@@ -8594,22 +7979,6 @@
       },
       "category": "その他",
       "searchKeywords": "ポーションクラフト potioncraft da_potioncraft18_upgrade"
-    },
-    {
-      "id": "TFT_Item_DebugDamage",
-      "nameJa": "ポータブルペイン",
-      "nameEn": "Portable Pain",
-      "image": "tft/images/992bc7f355987e02302b37d0.png",
-      "descriptionJa": "戦闘中の値ダメージを与える。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ポータブルペイン portable pain tft_item_debugdamage"
     },
     {
       "id": "DA_HomingFireflies18",
@@ -8685,6 +8054,22 @@
       },
       "category": "その他",
       "searchKeywords": "ポケットの小銭 pocket change da_18_pocketchange_upgrade"
+    },
+    {
+      "id": "DA_Artifact_HorizonFocus",
+      "nameJa": "ホライゾン フォーカス",
+      "nameEn": "Horizon Focus",
+      "image": "tft/images/6a56d88b75c569f5989ee3a3.png",
+      "descriptionJa": "敵をスタンさせると対象に電撃が放たれ、対象の最大体力の30%にあたる魔法ダメージを与える。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ホライゾン フォーカス horizon focus da_artifact_horizonfocus"
     },
     {
       "id": "DA_MarksmensMarks18",
@@ -8838,22 +8223,6 @@
       "searchKeywords": "マスターワーク アップグレード masterwork upgrade tft_consumable_masterworkupgrade"
     },
     {
-      "id": "TFT_Assist_MasterworkUpgrade_3",
-      "nameJa": "マスターワーク アップグレードx3",
-      "nameEn": "3 Masterwork Upgrades",
-      "image": "tft/images/296da4245119a006f96cf125.png",
-      "descriptionJa": "マスターワーク アップグレードx3",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "マスターワーク アップグレードx3 3 masterwork upgrades tft_assist_masterworkupgrade_3"
-    },
-    {
       "id": "DA_ManaPotion18_Charm",
       "nameJa": "マナ ポーション",
       "nameEn": "Mana Potion",
@@ -8886,6 +8255,22 @@
       "searchKeywords": "マナ ポーション mana potion da_manapotion18_upgrade_charm"
     },
     {
+      "id": "DA_Artifact_Manazane",
+      "nameJa": "マナザネ",
+      "nameEn": "Manazane",
+      "image": "tft/images/357986fbbe9441553b25c31b.png",
+      "descriptionJa": "各戦闘での最初のスキル発動後、5秒かけて100マナを回復する。\n\n[重複不可 - チャンピオン1体に1つのみ]",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "マナザネ manazane da_artifact_manazane"
+    },
+    {
       "id": "TFT4_Item_OrnnMuramana",
       "nameJa": "マナザネ",
       "nameEn": "Manazane",
@@ -8907,6 +8292,22 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "マナザネ manazane tft4_item_ornnmuramana"
+    },
+    {
+      "id": "DA_Artifact_Mittens",
+      "nameJa": "ミトン",
+      "nameEn": "Mittens",
+      "image": "tft/images/595848dca9fc8df0ae08791b.png",
+      "descriptionJa": "装備者が小さくなり、移動速度が上昇し、スロウ効果、燃焼、負傷の影響を受けなくなる。\n\n冷気\n特殊効果\n特殊効果",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ミトン mittens da_artifact_mittens"
     },
     {
       "id": "TFT_Item_Artifact_Mittens",
@@ -8953,51 +8354,6 @@
       "searchKeywords": "ムーンストーンの再生 moonstone renewer tft_item_moonstone"
     },
     {
-      "id": "TFT7_Item_ShimmerscaleHeartOfGold",
-      "nameJa": "ムダニ デカイ ジェム",
-      "nameEn": "Needlessly Big Gem",
-      "image": "tft/images/ed86bde61e9d4fb8a862019e.png",
-      "descriptionJa": "味方チームが5%のダメージ増加効果を獲得する。装備者の生存中は、毎秒味方チームがさらに1%(最大で合計20%)のダメージ増加効果を獲得する。\n\n[サポートアイテム]",
-      "stats": {
-        "AmpPerSec": 0.009999999776482582,
-        "BaseBonusDamage": 0.05000000074505806,
-        "Health": 150.0,
-        "MaxDamageAmp": 0.20000000298023224,
-        "ProcTimeInSeconds": 15.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ムダニ デカイ ジェム needlessly big gem tft7_item_shimmerscaleheartofgold"
-    },
-    {
-      "id": "TFT7_Item_ShimmerscaleHeartOfGold_HR",
-      "nameJa": "ムダニ デカイ ジェム",
-      "nameEn": "Needlessly Big Gem",
-      "image": "tft/images/21f53b1813e05e869959f3a9.png",
-      "descriptionJa": "味方チームが25%のダメージ増加効果を獲得する。装備者の生存中は、毎秒味方チームがさらに可変値%(最大で合計可変値%)のダメージ増加効果を獲得する。\n\n[サポートアイテム]",
-      "stats": {
-        "BaseBonusDamage": 0.25,
-        "BonusDamagePerGold": 0.029999999329447746,
-        "GoldLimit": 15.0,
-        "Health": 250.0,
-        "ProcTimeInSeconds": 15.0,
-        "UnitsPerGold": 2.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "ムダニ デカイ ジェム needlessly big gem tft7_item_shimmerscaleheartofgold_hr"
-    },
-    {
       "id": "TFT_Item_NeedlesslyLargeRod",
       "nameJa": "ムダニ デカイ ロッド",
       "nameEn": "Needlessly Large Rod",
@@ -9016,50 +8372,20 @@
       "searchKeywords": "ムダニ デカイ ロッド needlessly large rod tft_item_needlesslylargerod"
     },
     {
-      "id": "TFT7_Item_ShimmerscaleMogulsMail",
+      "id": "DA_Artifact_MogulsMail",
       "nameJa": "モーグル メイル",
-      "nameEn": "Mogul's Mail",
+      "nameEn": "Mogul'sMail",
       "image": "tft/images/03d7b11225ccfe5e99adf207.png",
       "descriptionJa": "ダメージを受けた際、物理防御が1、魔法防御が1、体力が5増加する。この効果は35回までスタックする。\n\n最大スタックになると、ゴールド 1ゴールドを獲得し、その後も11秒ごとにゴールド 1ゴールドを獲得する。\n\nこの試合で生成されたゴールド: 戦闘中の値\n\n[重複不可 - チャンピオン1体に1つのみ]",
-      "stats": {
-        "BaseHealthPerStack": 5.0,
-        "BaseResistsPerStack": 1.0,
-        "GoldAtFullStacks": 1.0,
-        "GoldInterval": 11.0,
-        "Health": 300.0,
-        "StackCap": 35.0
-      },
+      "stats": {},
       "recipe": [],
       "restrictions": {
-        "unique": true,
+        "unique": false,
         "composition": [],
         "incompatibleTraits": []
       },
-      "category": "その他",
-      "searchKeywords": "モーグル メイル mogul's mail tft7_item_shimmerscalemogulsmail"
-    },
-    {
-      "id": "TFT7_Item_ShimmerscaleMogulsMail_HR",
-      "nameJa": "モーグル メイル",
-      "nameEn": "Mogul's Mail",
-      "image": "tft/images/03d7b11225ccfe5e99adf207.png",
-      "descriptionJa": "ダメージを受けた際、物理防御が1、魔法防御が1、体力が5増加する。この効果は35回までスタックする。\n\n最大スタックになると、ゴールド 3ゴールドを獲得し、その後も11秒ごとにゴールド 3ゴールドを獲得する。\n\nこの試合で生成されたゴールド: 戦闘中の値\n\n[重複不可 - チャンピオン1体に1つのみ]",
-      "stats": {
-        "BaseHealthPerStack": 5.0,
-        "BaseResistsPerStack": 1.0,
-        "GoldAtFullStacks": 3.0,
-        "GoldInterval": 11.0,
-        "Health": 300.0,
-        "StackCap": 35.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": true,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "モーグル メイル mogul's mail tft7_item_shimmerscalemogulsmail_hr"
+      "category": "アーティファクト",
+      "searchKeywords": "モーグル メイル mogul'smail da_artifact_mogulsmail"
     },
     {
       "id": "TFT_Item_Morellonomicon",
@@ -9126,6 +8452,22 @@
       },
       "category": "その他",
       "searchKeywords": "ヨードルの精神 yordle spirit da_18_yordlespirit_upgrade"
+    },
+    {
+      "id": "DA_Artifact_LightshieldCrest",
+      "nameJa": "ライトシールドのクレスト",
+      "nameEn": "Lightshield Crest",
+      "image": "tft/images/2369fa65f20e819025afc8e5.png",
+      "descriptionJa": "3秒ごとに、最も体力割合が低い味方に、装備者の物理防御と魔法防御の合計の70%の耐久値のシールドを5秒間付与する。\n\n倒されると、このシールドをすべての味方に付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ライトシールドのクレスト lightshield crest da_artifact_lightshieldcrest"
     },
     {
       "id": "TFT_Item_Artifact_LightshieldCrest",
@@ -9243,6 +8585,25 @@
       "searchKeywords": "ライトニングストライク lightning strike da_18_lightningstrike_upgrade"
     },
     {
+      "id": "DA_18_EmblemSlayer",
+      "nameJa": "ラヴィジャーの紋章",
+      "nameEn": "Ravager Emblem",
+      "image": "tft/images/cc354d092cc9f7662d3183b9.png",
+      "descriptionJa": "装備者に「ラヴィジャー」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_NegatronCloak"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ラヴィジャーの紋章 ravager emblem da_18_emblemslayer"
+    },
+    {
       "id": "TFT_Item_LastWhisper",
       "nameJa": "ラスト ウィスパー",
       "nameEn": "Last Whisper",
@@ -9345,6 +8706,22 @@
       "searchKeywords": "ラバドン デスキャップ rabadon's deathcap tft_item_rabadonsdeathcap"
     },
     {
+      "id": "DA_Artifact_RapidFireCannon",
+      "nameJa": "ラピッド ファイアキャノン",
+      "nameEn": "Rapid Firecannon",
+      "image": "tft/images/3934b91d87bc0b00733ce2d6.png",
+      "descriptionJa": "射程距離が+1増加し、装備者が敵をキルするたびにさらに1増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ラピッド ファイアキャノン rapid firecannon da_artifact_rapidfirecannon"
+    },
+    {
       "id": "TFT_Item_Artifact_RapidFirecannon",
       "nameJa": "ラピッド ファイアキャノン",
       "nameEn": "Rapid Firecannon",
@@ -9364,20 +8741,23 @@
       "searchKeywords": "ラピッド ファイアキャノン rapid firecannon tft_item_artifact_rapidfirecannon"
     },
     {
-      "id": "TFT_Assist_RandomComponent",
-      "nameJa": "ランダムな素材アイテム",
-      "nameEn": "Random Component",
-      "image": "tft/images/99bc3529e638b8462d9e3088.png",
-      "descriptionJa": "ランダムな素材アイテム",
+      "id": "DA_18_EmblemRapidfire",
+      "nameJa": "ラピッドファイアの紋章",
+      "nameEn": "Rapidfire Emblem",
+      "image": "tft/images/333ff9495fcfa462174519ea.png",
+      "descriptionJa": "装備者に「ラピッドファイア」特性を付与する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
         "unique": false,
-        "composition": [],
+        "composition": [
+          "DA_Component_FryingPan",
+          "DA_Component_RecurveBow"
+        ],
         "incompatibleTraits": []
       },
-      "category": "その他",
-      "searchKeywords": "ランダムな素材アイテム random component tft_assist_randomcomponent"
+      "category": "紋章",
+      "searchKeywords": "ラピッドファイアの紋章 rapidfire emblem da_18_emblemrapidfire"
     },
     {
       "id": "TFT4_Item_OrnnRanduinsSanctum",
@@ -9415,6 +8795,22 @@
       },
       "category": "素材アイテム",
       "searchKeywords": "リカーブ ボウ recurve bow tft_item_recurvebow"
+    },
+    {
+      "id": "DA_Artifact_LichBane",
+      "nameJa": "リッチ ベイン",
+      "nameEn": "Lich Bane",
+      "image": "tft/images/aaa0a602681a9774114b638b.png",
+      "descriptionJa": "スキル使用後、最初の通常攻撃が戦闘中の値の追加魔法ダメージを与える。\n\nダメージはステージに応じて増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "リッチ ベイン lich bane da_artifact_lichbane"
     },
     {
       "id": "TFT_Item_Artifact_LichBane",
@@ -9480,6 +8876,22 @@
       "searchKeywords": "リベンジ revenge da_revengeupgrade18"
     },
     {
+      "id": "DA_Artifact_LudensTempest",
+      "nameJa": "ルーデン テンペスト",
+      "nameEn": "Luden's Tempest",
+      "image": "tft/images/36092736f85358970c33e2b1.png",
+      "descriptionJa": "オーバーキルダメージの100%に100を加えた値に等しい魔法ダメージを、対象に最も近い2体の敵に与える。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ルーデン テンペスト luden's tempest da_artifact_ludenstempest"
+    },
+    {
       "id": "TFT_Item_Artifact_LudensTempest",
       "nameJa": "ルーデン テンペスト",
       "nameEn": "Luden's Tempest",
@@ -9499,6 +8911,25 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "ルーデン テンペスト luden's tempest tft_item_artifact_ludenstempest"
+    },
+    {
+      "id": "DA_18_EmblemLunar",
+      "nameJa": "ルナーの紋章",
+      "nameEn": "Lunar Emblem",
+      "image": "tft/images/54424501c4fd422e46473fd6.png",
+      "descriptionJa": "装備者に「ルナー」特性を付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [
+          "DA_Component_Spatula",
+          "DA_Component_TearOfTheGoddess"
+        ],
+        "incompatibleTraits": []
+      },
+      "category": "紋章",
+      "searchKeywords": "ルナーの紋章 lunar emblem da_18_emblemlunar"
     },
     {
       "id": "TFT_Item_RapidFireCannon",
@@ -10350,70 +9781,6 @@
       "searchKeywords": "レディアント 盗賊のグローブ radiant thief's gloves tft5_item_thiefsglovesradiant"
     },
     {
-      "id": "TFT_Assist_RandomRadiantItem",
-      "nameJa": "レディアントアイテム",
-      "nameEn": "Radiant Item",
-      "image": "tft/images/3030d2371c7320efa1e02f43.png",
-      "descriptionJa": "レディアントアイテム",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "レディアント",
-      "searchKeywords": "レディアントアイテム radiant item tft_assist_randomradiantitem"
-    },
-    {
-      "id": "TFT14_CypherArmoryItem_SpecificRadiantItems",
-      "nameJa": "レディアントアイテムx12",
-      "nameEn": "12 radiant items",
-      "image": "tft/images/3030d2371c7320efa1e02f43.png",
-      "descriptionJa": "コヴェイラント スパーク、変幻自在のジャック＝ショー、ブルワークの誓約、ヒラナの矛、超越せしラバドン デスキャップ、グラマラス ガントレット、グインソー レコニング、ルナーン テンペスト、ルミナス デスブレード、ゼニス エッジ、フィスト オブ フェアネス、エターナル ウィスパー",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "レディアントアイテムx12 12 radiant items tft14_cypherarmoryitem_specificradiantitems"
-    },
-    {
-      "id": "TFT_Assist_RandomRadiantItem_2",
-      "nameJa": "レディアントアイテムx2",
-      "nameEn": "2 Radiant Items",
-      "image": "tft/images/3030d2371c7320efa1e02f43.png",
-      "descriptionJa": "レディアントアイテムx2",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "レディアント",
-      "searchKeywords": "レディアントアイテムx2 2 radiant items tft_assist_randomradiantitem_2"
-    },
-    {
-      "id": "TFT_Assist_RandomRadiantItem_3",
-      "nameJa": "レディアントアイテムx3",
-      "nameEn": "3 Radiant Items",
-      "image": "tft/images/3030d2371c7320efa1e02f43.png",
-      "descriptionJa": "レディアントアイテムx3",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "レディアント",
-      "searchKeywords": "レディアントアイテムx3 3 radiant items tft_assist_randomradiantitem_3"
-    },
-    {
       "id": "DA_18_Radiantize",
       "nameJa": "レディアント化",
       "nameEn": "Radiantize",
@@ -10633,6 +10000,22 @@
       "searchKeywords": "不安定なトレジャーチェスト unstable treasure chest tft_item_unstabletreasurechest"
     },
     {
+      "id": "DA_Artifact_TheIndomitable",
+      "nameJa": "不屈",
+      "nameEn": "The Indomitable",
+      "image": "tft/images/5e197c31d84b4241e0434c25.png",
+      "descriptionJa": "装備者の移動速度が大幅に低減する。\n\n最大体力が15%増加し、スタンを受けなくなり、現在の対象を近接攻撃の射程まで引き寄せる。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "不屈 the indomitable da_artifact_theindomitable"
+    },
+    {
       "id": "TFT_Item_Artifact_TheIndomitable",
       "nameJa": "不屈",
       "nameEn": "The Indomitable",
@@ -10652,6 +10035,22 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "不屈 the indomitable tft_item_artifact_theindomitable"
+    },
+    {
+      "id": "DA_Artifact_EternalPact",
+      "nameJa": "不滅の協定",
+      "nameEn": "Eternal Pact",
+      "image": "tft/images/c272a7af490157f0f3b09644.png",
+      "descriptionJa": "戦闘開始時: 最も体力が高い味方チャンピオンと協定を結び、そのチャンピオンが倒されると、マナ自動回復10と魔力40%を獲得する。\n\nその味方がスキルを発動すると、マナを15獲得する。6秒ごとに、味方に装備者の魔力の200%にあたる耐久値を持つシールドを付与する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "不滅の協定 eternal pact da_artifact_eternalpact"
     },
     {
       "id": "TFT_Item_Artifact_EternalPact",
@@ -11126,22 +10525,6 @@
       "searchKeywords": "再合成装置 <rules>(残り使用回数9回！)</rules> reforger <rules>(9 uses left!)</rules> tft_consumable_itemreroller_usesleft9"
     },
     {
-      "id": "TFT_Assist_Reforger_2",
-      "nameJa": "再合成装置x2",
-      "nameEn": "2 Reforgers",
-      "image": "tft/images/09425518ce52f43c3d6411ee.png",
-      "descriptionJa": "再合成装置x2",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "再合成装置x2 2 reforgers tft_assist_reforger_2"
-    },
-    {
       "id": "DA_Diversified18",
       "nameJa": "分散",
       "nameEn": "Diversified",
@@ -11539,6 +10922,22 @@
       "searchKeywords": "変身術 polymorph da_18_polymorph_upgrade"
     },
     {
+      "id": "DA_Artifact_AegisOfDusk",
+      "nameJa": "夕闇の加護",
+      "nameEn": "Aegis of Dusk",
+      "image": "tft/images/9e9851c1b56904aad13c71ca.png",
+      "descriptionJa": "2.5秒ごとに、1マス以内の敵から魔法防御を3盗み、装備者の魔法防御の戦闘中の値%にあたる魔法ダメージを与える。\n\n「夜明けの加護」を同時に装備している場合、このアイテムの効果が代わりに1.25秒ごとに発生する。\n\nステージに応じてダメージが増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "夕闇の加護 aegis of dusk da_artifact_aegisofdusk"
+    },
+    {
       "id": "TFT_Item_Artifact_AegisOfDusk",
       "nameJa": "夕闇の加護",
       "nameEn": "Aegis of Dusk",
@@ -11567,6 +10966,22 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "夕闇の加護 aegis of dusk tft_item_artifact_aegisofdusk"
+    },
+    {
+      "id": "DA_Artifact_AegisOfDawn",
+      "nameJa": "夜明けの加護",
+      "nameEn": "Aegis of Dawn",
+      "image": "tft/images/1c29b2644771aa0abb30fd27.png",
+      "descriptionJa": "2.5秒ごとに、1マス以内の敵から物理防御を3盗み、装備者の物理防御の戦闘中の値%にあたる体力を回復する。\n\n「夕闇の加護」を同時に装備している場合、このアイテムの効果が代わりに1.25秒ごとに発生する。\n\nステージに応じて体力回復量が増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "夜明けの加護 aegis of dawn da_artifact_aegisofdawn"
     },
     {
       "id": "TFT_Item_Artifact_AegisOfDawn",
@@ -11792,38 +11207,6 @@
       "searchKeywords": "孤独のクローク solitude's cloak da_solitudescloakupgrade18"
     },
     {
-      "id": "TFT_Assist_RandomCompletedItem",
-      "nameJa": "完成アイテム",
-      "nameEn": "Completed Item",
-      "image": "tft/images/99bc3529e638b8462d9e3088.png",
-      "descriptionJa": "完成アイテム",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "完成アイテム completed item tft_assist_randomcompleteditem"
-    },
-    {
-      "id": "TFT_Assist_ItemArmoryCompleted",
-      "nameJa": "完成アイテムの金床",
-      "nameEn": "Completed Item Anvil",
-      "image": "tft/images/24703d2d03d3ec2f3f74f947.png",
-      "descriptionJa": "完成アイテムの金床",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "完成アイテムの金床 completed item anvil tft_assist_itemarmorycompleted"
-    },
-    {
       "id": "DA_18_Counterspell",
       "nameJa": "対抗呪文",
       "nameEn": "Counterspell",
@@ -11908,38 +11291,6 @@
       },
       "category": "消耗品",
       "searchKeywords": "小型チャンピオン複製器 lesser champion duplicator tft_consumable_championduplicator_iii"
-    },
-    {
-      "id": "TFT_Assist_LesserDuplicator_3",
-      "nameJa": "小型チャンピオン複製器x3",
-      "nameEn": "3 Lesser Champion Duplicators",
-      "image": "tft/images/bb60d88389eb2885757264e1.png",
-      "descriptionJa": "小型チャンピオン複製器x3",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "小型チャンピオン複製器x3 3 lesser champion duplicators tft_assist_lesserduplicator_3"
-    },
-    {
-      "id": "TFT_Assist_LesserDuplicator_6",
-      "nameJa": "小型チャンピオン複製器x6",
-      "nameEn": "6 Lesser Champion Duplicators",
-      "image": "tft/images/bb60d88389eb2885757264e1.png",
-      "descriptionJa": "小型チャンピオン複製器x6",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "小型チャンピオン複製器x6 6 lesser champion duplicators tft_assist_lesserduplicator_6"
     },
     {
       "id": "DA_KnickKnackBag18",
@@ -12515,22 +11866,6 @@
       "searchKeywords": "成長 grow up da_growup18_upgrade"
     },
     {
-      "id": "TFT_Item_DebugMana",
-      "nameJa": "我が敵の涙",
-      "nameEn": "The Tears of My Enemies",
-      "image": "tft/images/f6c3870357361ab8c6368690.png",
-      "descriptionJa": "戦闘中の値マナを付与する。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "我が敵の涙 the tears of my enemies tft_item_debugmana"
-    },
-    {
       "id": "DA_18_Resistant",
       "nameJa": "抵抗",
       "nameEn": "Resistant",
@@ -12565,22 +11900,6 @@
       },
       "category": "その他",
       "searchKeywords": "抵抗 resistant da_18_resistant_upgrade"
-    },
-    {
-      "id": "TFT_Item_DebugTaunt",
-      "nameJa": "挑発",
-      "nameEn": "Taunt",
-      "image": "tft/images/c589fa52d32d2af18427e7a0.png",
-      "descriptionJa": "射程内にいる全ユニットをタウントし、装備者を攻撃させる",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "挑発 taunt tft_item_debugtaunt"
     },
     {
       "id": "DA_SearchParty18",
@@ -12883,6 +12202,22 @@
       "searchKeywords": "有糸分裂 mitosis da_18_mitosis_upgrade"
     },
     {
+      "id": "DA_Artifact_BlightingJewel",
+      "nameJa": "枯死の宝石",
+      "nameEn": "Blighting Jewel",
+      "image": "tft/images/d414888af0386d82d723dda6.png",
+      "descriptionJa": "魔法ダメージを与えると、対象の魔法防御を6低下させる。魔法防御が0の場合は、代わりに装備者のマナが2増加する。\n\nスキルダメージは同じ敵には0.5秒に1回しか発動しない。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "枯死の宝石 blighting jewel da_artifact_blightingjewel"
+    },
+    {
       "id": "TFT_Item_Artifact_BlightingJewel",
       "nameJa": "枯死の宝石",
       "nameEn": "Blighting Jewel",
@@ -13177,26 +12512,6 @@
       "searchKeywords": "永遠の炎 the eternal flame tft_item_eternalflame"
     },
     {
-      "id": "TFT7_Item_ShimmerscaleDeterminedInvestor",
-      "nameJa": "決断せし投資家",
-      "nameEn": "Determined Investor",
-      "image": "tft/images/17207cc249076bd83775cbfc.png",
-      "descriptionJa": "戦闘中に8回倒されると、このアイテムが破壊される。破壊時にアイテムの「ダイヤモンド ハンド」を1個、「チャンピオン複製器」を1個、ゴールド 5ゴールドを付与する。",
-      "stats": {
-        "GoldGranted": 5.0,
-        "Health": 150.0,
-        "StackLimit": 8.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": true,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "決断せし投資家 determined investor tft7_item_shimmerscaledeterminedinvestor"
-    },
-    {
       "id": "TFT_Item_Shroud",
       "nameJa": "沈黙の帳",
       "nameEn": "Shroud of Stillness",
@@ -13476,6 +12791,22 @@
       },
       "category": "その他",
       "searchKeywords": "炎上 blaze da_blaze18_upgrade"
+    },
+    {
+      "id": "DA_Artifact_HellfireHatchet",
+      "nameJa": "獄炎のハチェット",
+      "nameEn": "Hellfire Hatchet",
+      "image": "tft/images/b2a7b4673875611a03555223.png",
+      "descriptionJa": "通常攻撃が装備者の最大体力の3%にあたる追加物理ダメージを与える。減少体力1%ごとに、攻撃速度が1%増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "獄炎のハチェット hellfire hatchet da_artifact_hellfirehatchet"
     },
     {
       "id": "TFT_Item_Artifact_HellfireHatchet",
@@ -13937,22 +13268,6 @@
       "searchKeywords": "磁力式除去装置 <rules>(残り使用回数9回！)</rules> magnetic remover <rules>(9 uses left!)</rules> tft_consumable_itemremover_usesleft9"
     },
     {
-      "id": "TFT_Item_DebugUnitID",
-      "nameJa": "私を誰だと思っているんだ？",
-      "nameEn": "Do You Know Who I Am?",
-      "image": "tft/images/569da36136a0220a86f24cfd.png",
-      "descriptionJa": "ユニットIDをチャットに表示。",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "私を誰だと思っているんだ？ do you know who i am? tft_item_debugunitid"
-    },
-    {
       "id": "TFT_Item_Artifact_CursedVampiricScepter",
       "nameJa": "穢れたヴァンパイア セプター",
       "nameEn": "Corrupt Vampiric Scepter",
@@ -13970,70 +13285,6 @@
       },
       "category": "アーティファクト",
       "searchKeywords": "穢れたヴァンパイア セプター corrupt vampiric scepter tft_item_artifact_cursedvampiricscepter"
-    },
-    {
-      "id": "TFT_Assist_RandomComponent_2",
-      "nameJa": "素材アイテムx2",
-      "nameEn": "2 Components",
-      "image": "tft/images/99bc3529e638b8462d9e3088.png",
-      "descriptionJa": "素材アイテムx2",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "素材アイテムx2 2 components tft_assist_randomcomponent_2"
-    },
-    {
-      "id": "TFT_Assist_RandomComponent_4",
-      "nameJa": "素材アイテムx4",
-      "nameEn": "4 components",
-      "image": "tft/images/99bc3529e638b8462d9e3088.png",
-      "descriptionJa": "素材アイテムx4",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "素材アイテムx4 4 components tft_assist_randomcomponent_4"
-    },
-    {
-      "id": "TFT_Assist_RandomComponent_9",
-      "nameJa": "素材アイテムx9",
-      "nameEn": "9 components",
-      "image": "tft/images/99bc3529e638b8462d9e3088.png",
-      "descriptionJa": "素材アイテムx9",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "素材アイテムx9 9 components tft_assist_randomcomponent_9"
-    },
-    {
-      "id": "TFT_Assist_ItemArmoryComponent",
-      "nameJa": "素材アイテムの金床",
-      "nameEn": "Component Anvil",
-      "image": "tft/images/0ae0d1de15e6889d7f91d66d.png",
-      "descriptionJa": "素材アイテムの金床",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "消耗品",
-      "searchKeywords": "素材アイテムの金床 component anvil tft_assist_itemarmorycomponent"
     },
     {
       "id": "TFT_Item_Artifact_UnendingDespair",
@@ -15204,22 +14455,6 @@
       "searchKeywords": "預言の勇者 hero of prophecy da_heroofprophecy18_upgrade"
     },
     {
-      "id": "TFT_Item_DebugStun",
-      "nameJa": "顔面ハンマー",
-      "nameEn": "Hammer to the Face",
-      "image": "tft/images/c8bcd55b0be9d236a3cd62f5.png",
-      "descriptionJa": "戦闘中の値秒間スタンさせる。​​",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "顔面ハンマー hammer to the face tft_item_debugstun"
-    },
-    {
       "id": "TFT_Item_SupportKnightsVow",
       "nameJa": "騎士の誓い",
       "nameEn": "Knight's Vow",
@@ -15242,11 +14477,11 @@
       "searchKeywords": "騎士の誓い knight's vow tft_item_supportknightsvow"
     },
     {
-      "id": "TFT9_Consumable_GoldenItemRemover",
-      "nameJa": "黄金のアイテム除去装置",
-      "nameEn": "Golden Item Remover",
-      "image": "tft/images/0c63773f06c8699e120f74ec.png",
-      "descriptionJa": "チャンピオンに使用すると全アイテムを取り外せる。何度でも使用可能。今後すべての「磁力式除去装置」を「再合成装置」に変換する。",
+      "id": "DA_18_EmblemCoven",
+      "nameJa": "魔女の紋章",
+      "nameEn": "Coven Emblem",
+      "image": "tft/images/a7ae8ee222a7b3fbd3b31fb5.png",
+      "descriptionJa": "装備者に「魔女」特性を付与する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -15254,8 +14489,8 @@
         "composition": [],
         "incompatibleTraits": []
       },
-      "category": "消耗品",
-      "searchKeywords": "黄金のアイテム除去装置 golden item remover tft9_consumable_goldenitemremover"
+      "category": "紋章",
+      "searchKeywords": "魔女の紋章 coven emblem da_18_emblemcoven"
     },
     {
       "id": "DA_GoldenGoose18",

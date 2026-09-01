@@ -11,6 +11,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
+. (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
@@ -211,9 +212,9 @@ function New-BoardUnits {
             $assigned[[string]$instance.key] = [int]$choice.position
             $occupied[[string]$choice.position] = $true
         } else {
-            $fallback = 0..27 | Where-Object { -not $occupied.ContainsKey([string]$_) } | Select-Object -First 1
-            $assigned[[string]$instance.key] = [int]$fallback
-            $occupied[[string]$fallback] = $true
+            # Never invent a free hex. If MetaTFT positioning cannot support a
+            # complete collision-free board, reject this snapshot and keep LKG.
+            throw "METATFT_BOARD_POSITION_UNAVAILABLE unit=$unitId occurrence=$($instance.occurrence)"
         }
     }
 
@@ -248,6 +249,7 @@ function New-BoardReference {
         source = $Source
         averagePlacement = [Math]::Round($AveragePlacement, 4)
         sampleCount = $SampleCount
+        synthetic = $false
         units = @(New-BoardUnits -UnitIds $UnitIds -Details $Details -UnitMap $UnitMap -StarTargets $StarTargets)
     }
 }
@@ -403,34 +405,23 @@ $preferredCoverage = Resolve-SampleCoverage `
     -Stats $compsStats `
     -RequiredCompositions $candidatePoolTarget `
     -Thresholds $sampleThresholds
-$fallbackCompsStats = $null
-$fallbackAttempted = $preferredCoverage.qualified -lt $candidatePoolTarget
-if ($fallbackAttempted) {
-    $fallbackAttempted = $true
-    Start-Sleep -Milliseconds 350
-    # Omitting rank is MetaTFT's public all-rank query. `rank=ALL` is not
-    # equivalent on this endpoint, so the absence itself is part of the
-    # contract and implicit adjustment remains disabled.
-    $fallbackCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&permit_filter_adjustment=false"
-    $fallbackCompsStats = Get-Json -Url $fallbackCompsStatsUrl
-    Assert-MetaTftStatsContract -Stats $fallbackCompsStats `
-        -ExpectedSetId ([string]$clusterInfo.tft_set) `
-        -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
-        -ExpectedRankFilter '' `
-        -Context 'MetaTFT all-rank fallback comps_stats'
-}
+# CANONICAL_V2_STRICT_RANK_SCOPE_BEGIN
+# Rank population is immutable: Ranked / Platinum+ / current patch / 3 days.
+# Sparse upstream data may lower the sample threshold inside Platinum+, but it
+# must never widen to all ranks or permit MetaTFT to adjust the filter.
+$fallbackAttempted = $false
 $rankScopeDecision = Resolve-CompositionCoveragePolicy `
     -PreferredStats $preferredCompsStats `
-    -FallbackStats $fallbackCompsStats `
+    -FallbackStats $null `
     -RequiredCompositions $candidatePoolTarget `
     -Thresholds $sampleThresholds
-if ($rankScopeDecision.useFallback) {
-    $compsStats = $fallbackCompsStats
-    $compsStatsUrl = $fallbackCompsStatsUrl
+if ($rankScopeDecision.useFallback -or [string]$rankScopeDecision.effectiveScope -eq 'ALL_RANKS_FALLBACK') {
+    throw 'CANONICAL_RANK_SCOPE_WIDENING_REFUSED'
 }
 $effectiveMinimumCompSamples = [int]$rankScopeDecision.minimumSamples
 $preferredQualifiedCompositions = Get-QualifiedCompositionCount -Stats $preferredCompsStats -MinimumSamples $effectiveMinimumCompSamples
 $effectiveQualifiedCompositions = [int]$rankScopeDecision.qualified
+# CANONICAL_V2_STRICT_RANK_SCOPE_END
 Write-Output "Composition rank scope: $($rankScopeDecision.effectiveScope) Threshold=$effectiveMinimumCompSamples Effective=$effectiveQualifiedCompositions Display=$requiredPreferredCompositions PoolTarget=$candidatePoolTarget"
 
 Start-Sleep -Milliseconds 350
@@ -479,6 +470,29 @@ foreach ($item in $communityDragon.items) {
     }
 }
 
+$canonicalCatalogPath = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
+if (-not (Test-Path -LiteralPath $canonicalCatalogPath -PathType Leaf)) {
+    throw "Canonical item catalog missing before static-meta refresh: $canonicalCatalogPath"
+}
+$canonicalCatalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $canonicalCatalogPath | ConvertFrom-Json
+$canonicalItemIndex = New-TftCanonicalIdIndex -Entries @($canonicalCatalog.items)
+$canonicalItemMap = @{}
+foreach ($canonicalItem in @($canonicalCatalog.items)) {
+    if ($canonicalItem.id) { $canonicalItemMap[[string]$canonicalItem.id] = $canonicalItem }
+}
+if ($canonicalItemMap.Count -eq 0) { throw 'Canonical item catalog is empty.' }
+
+function Resolve-CanonicalPublicationItemId([string]$RawId) {
+    if (-not $RawId) { throw 'Empty MetaTFT item ID cannot be published.' }
+    $sourceName = if ($itemMap.ContainsKey($RawId)) { [string]$itemMap[$RawId].name } else { '' }
+    $resolution = Resolve-TftCanonicalId -Index $canonicalItemIndex -SourceId $RawId -SourceName $sourceName
+    if ($resolution.status -in @('EXACT','ALIAS','NAME')) { return [string]$resolution.canonicalId }
+    if ($resolution.status -eq 'AMBIGUOUS') {
+        throw "AMBIGUOUS_CANONICAL_ITEM_ID raw=$RawId candidates=$($resolution.candidates -join ',')"
+    }
+    throw "UNRESOLVED_CANONICAL_ITEM_ID raw=$RawId"
+}
+
 $activeAugments = @{}
 foreach ($augmentId in $setData.augments) {
     $activeAugments[[string]$augmentId] = $true
@@ -518,10 +532,6 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
     if (-not $clusters.ContainsKey($clusterId)) {
         continue
     }
-    if (-not $compAugmentTiers.results.PSObject.Properties[$clusterId]) {
-        continue
-    }
-
     $places = @($stats.places)
     if ($places.Count -lt 9) {
         continue
@@ -642,9 +652,6 @@ $compositions = foreach ($composition in $compositionCandidates) {
                 }
         }
     )
-    if ($recommendedAugments.Count -eq 0 -and -not $AllowPartial) {
-        throw "No comp-specific augments for composition $($composition.id)."
-    }
     if ($recommendedAugments.Count -lt 3) {
         Write-Warning "MetaTFT currently exposes only $($recommendedAugments.Count) comp-specific augment(s) for composition $($composition.id); preserving the source result without generic padding."
     }
@@ -667,8 +674,8 @@ $compositions = foreach ($composition in $compositionCandidates) {
             $averagePlacement = [double]$build.avg
             $fullBuildItemIds = @(
                 @($build.buildName) |
-                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
-                    ForEach-Object { [string]$_ }
+                    Where-Object { $_ } |
+                    ForEach-Object { Resolve-CanonicalPublicationItemId -RawId ([string]$_) }
             )
             $buildItemIds = @($fullBuildItemIds | Select-Object -Unique)
             foreach ($itemId in $buildItemIds) {
@@ -698,7 +705,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
             $itemAverage = $aggregate.weightedPlacement / $aggregate.sampleCount
             [pscustomobject][ordered]@{
                 itemId = [string]$itemId
-                itemName = [string]$itemMap[$itemId].name
+                itemName = [string]$canonicalItemMap[$itemId].nameJa
                 averagePlacement = [Math]::Round($itemAverage, 4)
                 placementDelta = [Math]::Round($itemAverage - [double]$composition.averagePlacement, 4)
                 sampleCount = [int]$aggregate.sampleCount
@@ -707,7 +714,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
                     foreach ($buildItemId in $aggregate.bestBuildItemIds) {
                         [pscustomobject][ordered]@{
                             itemId = [string]$buildItemId
-                            itemName = [string]$itemMap[$buildItemId].name
+                            itemName = [string]$canonicalItemMap[$buildItemId].nameJa
                         }
                     }
                 )
@@ -730,11 +737,12 @@ $compositions = foreach ($composition in $compositionCandidates) {
         $recommendedBuild = @(
             if ($overviewBuildRow.Count -gt 0) {
                 @($overviewBuildRow[0].buildName) |
-                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
+                    Where-Object { $_ } |
                     ForEach-Object {
+                        $canonicalItemId = Resolve-CanonicalPublicationItemId -RawId ([string]$_)
                         [pscustomobject][ordered]@{
-                            itemId = [string]$_
-                            itemName = [string]$itemMap[[string]$_].name
+                            itemId = $canonicalItemId
+                            itemName = [string]$canonicalItemMap[$canonicalItemId].nameJa
                         }
                     }
             }
@@ -786,28 +794,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
         )
         if ($rows.Count -gt 0) { $levelBoardRows[[string]$level] = @($rows) }
     }
-    foreach ($level in 4..9) {
-        if ($levelBoardRows.ContainsKey([string]$level)) { continue }
-        $nearbyLevels = @($levelBoardRows.Keys | ForEach-Object { [int]$_ } | Sort-Object @{ Expression = { [Math]::Abs($_ - $level) } }, @{ Expression = { $_ } })
-        if ($nearbyLevels.Count -eq 0) { throw "No adjacent public board available for $($composition.id)/Lv$level" }
-        $base = @($levelBoardRows[[string]$nearbyLevels[0]])[0]
-        $derivedUnitIds = @(
-            @($base.unitIds) +
-                @($nearbyLevels | ForEach-Object { @($levelBoardRows[[string]$_])[0].unitIds }) +
-                @($composition.boardUnitIds) |
-                Where-Object {
-                    $unitMap.ContainsKey([string]$_) -and @($unitMap[[string]$_].traits).Count -gt 0
-                } |
-                Select-Object -First $level
-        )
-        $levelBoardRows[[string]$level] = @([pscustomobject]@{
-            unitIds = @($derivedUnitIds)
-            source = 'Derived from adjacent MetaTFT public boards'
-            averagePlacement = [double]$base.averagePlacement
-            sampleCount = [int]$base.sampleCount
-        })
-    }
-
+    # Missing level boards remain missing; adjacent-level synthesis is forbidden.
     $levelBoards = foreach ($level in 4..9) {
         foreach ($row in @($levelBoardRows[[string]$level] | Sort-Object averagePlacement, @{ Expression = { -[int]$_.sampleCount } })) {
             New-BoardReference `
@@ -838,9 +825,14 @@ $compositions = foreach ($composition in $compositionCandidates) {
     }
 }
 
+$hasIncompleteCompositionMetadata = @(
+    @($compositions) | Where-Object { @($_.recommendedAugments).Count -eq 0 }
+).Count -gt 0
 $readiness = if (@($compositions).Count -eq 0) {
     'META_COLLECTING'
 } elseif (@($compositions).Count -lt $requiredPreferredCompositions) {
+    'META_COLLECTING'
+} elseif ($hasIncompleteCompositionMetadata) {
     'META_COLLECTING'
 } else {
     'META_STABLE'
@@ -889,8 +881,8 @@ $snapshot = [pscustomobject][ordered]@{
         compositionDetails = 'https://api-hc.metatft.com/tft-comps-api/comp_details'
         communityDragon = $CommunityDragonUrl
     }
-    augments = $augments
-    compositions = $compositions
+    augments = @($augments)
+    compositions = @($compositions)
 }
 
 $repositoryRoot = $RepositoryRoot
@@ -906,4 +898,4 @@ $json = $snapshot | ConvertTo-Json -Depth 20 -Compress
 [IO.File]::WriteAllText($resolvedOutput, ($json.Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 Write-Output "Wrote $resolvedOutput"
-Write-Output "Set=$($snapshot.setId) Cluster=$($snapshot.clusterId) Augments=$($augments.Count) Compositions=$($compositions.Count) ItemStats=$totalItemStats"
+Write-Output "Set=$($snapshot.setId) Cluster=$($snapshot.clusterId) Augments=$(@($augments).Count) Compositions=$(@($compositions).Count) ItemStats=$totalItemStats"

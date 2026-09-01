@@ -45,15 +45,24 @@ jobs:
       - name: Current-set catalog integration
         shell: pwsh
         run: ./tools/test-current-set-catalog-integration.ps1
+      - name: Production catalog StrictMode contract
+        shell: pwsh
+        run: ./tools/test-production-catalog-runtime.ps1
       - name: Strict Platinum+ rank scope
         shell: pwsh
         run: ./tools/test-rank-scope-policy.ps1
       - name: Strict production MetaTFT source policy
         shell: pwsh
         run: ./tools/test-strict-production-source-policy.ps1
+      - name: Production runtime preparation
+        shell: pwsh
+        run: ./tools/test-production-runtime-preparation.ps1
       - name: Candidate publication lifecycle
         shell: pwsh
         run: ./tools/test-candidate-publication-lifecycle.ps1
+      - name: Publication reconciliation schema compatibility
+        shell: pwsh
+        run: ./tools/test-publication-state.ps1
       - name: Production staged-publication workflow contract
         shell: pwsh
         run: ./tools/test-production-workflow-contract.ps1
@@ -75,6 +84,12 @@ jobs:
       - name: MetaTFT item semantics
         shell: pwsh
         run: ./tools/test-metatft-items.ps1
+      - name: Production canonical item integration
+        shell: pwsh
+        run: ./tools/test-production-item-integration.ps1
+      - name: Production optional feature policy
+        shell: pwsh
+        run: ./tools/test-production-optional-feature-policy.ps1
       - name: Existing cross-source ID policy
         shell: pwsh
         run: ./tools/test-id-compatibility-policy.ps1

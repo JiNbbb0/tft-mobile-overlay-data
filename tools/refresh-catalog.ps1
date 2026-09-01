@@ -545,7 +545,12 @@ foreach ($champion in $playableChampions) {
     if ($processed % 25 -eq 0) { Write-Output "Champion assets: $processed/$($playableChampions.Count)" }
 }
 
-$traitNames = @($playableChampions.traits | Sort-Object -Unique)
+$traitNames = @(
+    $playableChampions |
+        ForEach-Object { @($_.traits) } |
+        Where-Object { $_ } |
+        Sort-Object -Unique
+)
 $traits = [Collections.Generic.List[object]]::new()
 foreach ($traitName in $traitNames) {
     $trait = $setJa.traits | Where-Object { $_.name -eq $traitName } | Select-Object -First 1

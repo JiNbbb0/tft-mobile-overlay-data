@@ -120,10 +120,18 @@ try {
     $stage = "catalog"
     & (Join-Path $PSScriptRoot "refresh-catalog.ps1") -SetId $setId -SetNumber $setNumber -SetNameJa $setNameJa -SetNameEn $setNameEn -TftPatch $patch
     $stage = "statistics"
-    # A new patch/revision of an existing set must keep the normal statistics
-    # criteria. Only a never-before-published set is allowed to enter catalog-first readiness.
-    $isNewSet = -not $existingSetVersion
-    if ($isNewSet) {
+    # Keep partial mode active for a new set until its Platinum+ composition
+    # metadata becomes stable. Rank scope remains fixed; only optional coverage
+    # may be incomplete while the LKG remains available.
+    $existingSetVersionRecord = @($existingSetVersion) | Select-Object -First 1
+    $isNewSet = -not $existingSetVersionRecord
+    $existingSetReadiness = if ($existingSetVersionRecord -and $existingSetVersionRecord.PSObject.Properties['readiness']) {
+        [string]$existingSetVersionRecord.readiness
+    } else {
+        ''
+    }
+    $allowPartial = $isNewSet -or $existingSetReadiness -in @('CATALOG_READY', 'META_COLLECTING')
+    if ($allowPartial) {
         & (Join-Path $PSScriptRoot "refresh-static-meta.ps1") -AllowPartial
     } else {
         & (Join-Path $PSScriptRoot "refresh-static-meta.ps1")

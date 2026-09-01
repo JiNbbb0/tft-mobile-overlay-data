@@ -12,6 +12,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
 . (Join-Path $PSScriptRoot 'metatft-page-parity-policy.ps1')
+. (Join-Path $PSScriptRoot 'metatft-item-ranking-policy.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
@@ -643,6 +644,8 @@ for ($compositionIndex = 0; $compositionIndex -lt $compositionCandidates.Count; 
 }
 
 $totalItemStats = 0
+$totalItemRecommendations = 0
+$excludedUnresolvableItemRecommendations = 0
 $compositions = foreach ($composition in $compositionCandidates) {
     Start-Sleep -Milliseconds 350
     $compDetailsUrl = "https://api-hc.metatft.com/tft-comps-api/comp_details?comp=$($composition.id)&cluster_id=$($clusterInfo.cluster_id)"
@@ -686,6 +689,57 @@ $compositions = foreach ($composition in $compositionCandidates) {
     if ($recommendedAugments.Count -lt 3) {
         Write-Warning "MetaTFT currently exposes only $($recommendedAugments.Count) comp-specific augment(s) for composition $($composition.id); preserving the source result without generic padding."
     }
+
+    # MetaTFT's composition detail renders the item list in descending `pcnt`
+    # order (the UI labels this as item play rate). Keep this composition-wide
+    # ranking separate from per-unit three-item-build correlations: the former
+    # answers "which items are most commonly adopted in this comp", while the
+    # latter answers "which holder performs best with the selected item".
+    $itemRecommendations = @(
+        foreach ($itemRow in @($details.itemNames)) {
+            $rawItemId = [string]$itemRow.itemNames
+            $sampleCount = [int]$itemRow.count
+            $averagePlacement = [double]$itemRow.avg
+            $adoptionRate = [double]$itemRow.pcnt
+            if (-not $rawItemId -or $sampleCount -le 0) { continue }
+            if ($rawItemId -match '(?i)Augment$') {
+                # comp_details can expose augment-granted item aliases beside
+                # the equipable item. The app ranks equipable items only.
+                continue
+            }
+            if ($averagePlacement -lt 1.0 -or $averagePlacement -gt 8.0) {
+                throw "MetaTFT item recommendation placement is outside 1-8 for $($composition.id)/$rawItemId."
+            }
+            if ($adoptionRate -lt 0.0 -or $adoptionRate -gt 27.0) {
+                throw "MetaTFT item recommendation adoption rate is outside the equipable 0-27 range for $($composition.id)/$rawItemId."
+            }
+            $canonicalItemId = try {
+                Resolve-CanonicalPublicationItemId -RawId $rawItemId
+            } catch {
+                if ($_.Exception.Message -match '^(AMBIGUOUS|UNRESOLVED)_CANONICAL_ITEM_ID') {
+                    $excludedUnresolvableItemRecommendations++
+                    Write-Warning "MetaTFT item play-rate row excluded because its canonical ID is not uniquely resolvable: comp=$($composition.id) raw=$rawItemId"
+                    continue
+                }
+                throw
+            }
+            [pscustomobject][ordered]@{
+                itemId = $canonicalItemId
+                itemName = [string]$canonicalItemMap[$canonicalItemId].nameJa
+                adoptionRate = [Math]::Round($adoptionRate, 5)
+                averagePlacement = [Math]::Round($averagePlacement, 4)
+                sampleCount = $sampleCount
+            }
+        }
+    )
+    $itemRecommendations = @(
+        Sort-MetaTftCompositionItemRanking `
+            -Rows $itemRecommendations `
+            -CompositionId ([string]$composition.id) `
+            -AllowEmpty:$AllowPartial
+    )
+    $totalItemRecommendations += $itemRecommendations.Count
+
     $buildProperty = $compBuilds.results.PSObject.Properties[[string]$composition.id]
     $buildRows = if ($buildProperty) { @($buildProperty.Value.builds) } else { @() }
 
@@ -869,6 +923,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
         tier = [string]$composition.tier
         averagePlacement = [double]$composition.averagePlacement
         sampleCount = [int]$composition.sampleCount
+        itemRecommendations = @($itemRecommendations)
         units = @($units)
         rollPlan = $rollPlan
         recommendedAugments = @($recommendedAugments)
@@ -923,13 +978,17 @@ $snapshot = [pscustomobject][ordered]@{
             situationalCompositions = $true
         }
     }
-    disclaimer = 'Static pre-game reference only. Item ranks are correlations aggregated from complete three-item builds inside the selected composition.'
+    disclaimer = 'Static pre-game reference only. Composition item order follows MetaTFT item play rate; holder ranks remain correlations from complete three-item builds.'
     itemStatBasis = [ordered]@{
         source = 'MetaTFT comp_builds public endpoint'
         buildSize = 3
         aggregation = 'For each comp and unit, weighted average of complete three-item build rows containing the item.'
         minimumSamples = $MinimumItemSamples
         lowerAveragePlacementIsBetter = $true
+        compositionRankingSource = 'MetaTFT comp_details itemNames'
+        compositionRankingMetric = 'adoptionRate'
+        compositionRankingDirection = 'descending'
+        excludedUnresolvableRecommendationRows = $excludedUnresolvableItemRecommendations
     }
     sources = [ordered]@{
         metaTftRobots = $MetaTftRobotsUrl
@@ -961,4 +1020,4 @@ $json = $snapshot | ConvertTo-Json -Depth 20 -Compress
 [IO.File]::WriteAllText($resolvedOutput, ($json.Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
 Write-Output "Wrote $resolvedOutput"
-Write-Output "Set=$($snapshot.setId) Cluster=$($snapshot.clusterId) Augments=$($augments.Count) Compositions=$($compositions.Count) ItemStats=$totalItemStats"
+Write-Output "Set=$($snapshot.setId) Cluster=$($snapshot.clusterId) Augments=$($augments.Count) Compositions=$($compositions.Count) ItemRecommendations=$totalItemRecommendations ExcludedUnresolvableRecommendations=$excludedUnresolvableItemRecommendations ItemStats=$totalItemStats"

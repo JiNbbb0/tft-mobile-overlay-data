@@ -93,14 +93,6 @@ function Resolve-TftCanonicalId {
             @($Index.byLooseKey[$looseKey])
         }
     )
-    if ($looseCandidates.Count -eq 1) {
-        return [pscustomobject][ordered]@{
-            status = 'ALIAS'
-            canonicalId = [string]$looseCandidates[0]
-            candidates = @($looseCandidates)
-        }
-    }
-
     $nameKey = ConvertTo-TftNameKey -Name $SourceName
     $nameCandidates = @(
         if ($nameKey -and $Index.byName.ContainsKey($nameKey)) {
@@ -108,12 +100,22 @@ function Resolve-TftCanonicalId {
         }
     )
     if ($nameCandidates.Count -eq 1) {
-        if ($looseCandidates.Count -eq 0 -or $looseCandidates -contains [string]$nameCandidates[0]) {
-            return [pscustomobject][ordered]@{
-                status = 'NAME'
-                canonicalId = [string]$nameCandidates[0]
-                candidates = @($nameCandidates)
-            }
+        # Current-set provider names are stronger semantic evidence than a
+        # loose historical ID suffix. TFT can reuse or rename legacy item IDs
+        # (for example RedBuff/Sunfire), so a unique localized-name match must
+        # win when the two signals conflict.
+        return [pscustomobject][ordered]@{
+            status = 'NAME'
+            canonicalId = [string]$nameCandidates[0]
+            candidates = @($nameCandidates)
+        }
+    }
+
+    if ($looseCandidates.Count -eq 1) {
+        return [pscustomobject][ordered]@{
+            status = 'ALIAS'
+            canonicalId = [string]$looseCandidates[0]
+            candidates = @($looseCandidates)
         }
     }
 

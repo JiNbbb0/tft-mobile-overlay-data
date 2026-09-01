@@ -60,6 +60,16 @@ $normalized = [ordered]@{
                 displayNameJa = $title
                 tier = [string]$composition.tier
                 averagePlacement = Round-Semantic $composition.averagePlacement
+                itemRecommendations = @(
+                    @(Optional $composition 'itemRecommendations' @()) | ForEach-Object {
+                        [ordered]@{
+                            id = [string]$_.itemId
+                            adoptionRate = [Math]::Round([double]$_.adoptionRate, 5, [MidpointRounding]::AwayFromZero)
+                            averagePlacement = Round-Semantic $_.averagePlacement
+                            sampleCount = [int]$_.sampleCount
+                        }
+                    }
+                )
                 rollPlan = $composition.rollPlan
                 recommendedAugments = @(
                     @($composition.recommendedAugments) | ForEach-Object {

@@ -41,6 +41,15 @@ Assert-Equal $nameFallback.canonicalId 'TFT_Item_ArchangelsStaff' 'Localized-nam
 $unresolved = Resolve-TftCanonicalId -Index $index -SourceId 'UNKNOWN_PROVIDER_ID' -SourceName '存在しないアイテム'
 Assert-Equal $unresolved.status 'UNRESOLVED' 'Unknown items must fail closed rather than guessing'
 
+$reusedIdEntries = @(
+    [pscustomobject]@{ id = 'TFT_Item_RedBuff'; nameJa = 'サンファイア ケープ' },
+    [pscustomobject]@{ id = 'TFT_Item_RapidFireCannon'; nameJa = 'レッドバフ' }
+)
+$reusedIdIndex = New-TftCanonicalIdIndex -Entries $reusedIdEntries
+$reusedId = Resolve-TftCanonicalId -Index $reusedIdIndex -SourceId 'DA_RedBuff' -SourceName 'レッドバフ'
+Assert-Equal $reusedId.status 'NAME' 'Current-set name evidence must override a conflicting historical ID suffix'
+Assert-Equal $reusedId.canonicalId 'TFT_Item_RapidFireCannon' 'Reused legacy item ID resolved to the wrong current item'
+
 $ambiguousEntries = @(
     [pscustomobject]@{ id = 'TFT_Item_TestBlade'; nameJa = 'テストブレード A' },
     [pscustomobject]@{ id = 'DA_TestBlade'; nameJa = 'テストブレード B' }

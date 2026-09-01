@@ -74,6 +74,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-metatft-page-parity-policy.ps1
 
+      - name: Test MetaTFT composition item ranking policy
+        shell: pwsh
+        run: ./tools/test-metatft-item-ranking-policy.ps1
+
       - name: Test resilient official patch detection policy
         shell: pwsh
         run: ./tools/test-patch-detection-policy.ps1

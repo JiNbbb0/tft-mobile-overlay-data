@@ -39,6 +39,14 @@ if (-not $snapshot.sources.compositionDetails) { throw "Missing composition deta
 if (-not $snapshot.sources.compositionAugmentTiers) { throw "Missing composition augment source" }
 if ([int]$snapshot.schemaVersion -ge 5 -and -not $snapshot.sources.metaTftJapaneseLookup) { throw "Missing MetaTFT Japanese lookup source" }
 if ([int]$snapshot.itemStatBasis.buildSize -ne 3) { throw "Unexpected static meta build size" }
+if ([string]$snapshot.itemStatBasis.compositionRankingSource -ne 'MetaTFT comp_details itemNames' -or
+    [string]$snapshot.itemStatBasis.compositionRankingMetric -ne 'adoptionRate' -or
+    [string]$snapshot.itemStatBasis.compositionRankingDirection -ne 'descending') {
+    throw "Composition item ranking must use MetaTFT comp_details item play rate"
+}
+if ([int]$snapshot.itemStatBasis.excludedUnresolvableRecommendationRows -lt 0) {
+    throw "Invalid excluded item recommendation count"
+}
 if ($snapshot.PSObject.Properties['statisticsScope']) {
     $scope = $snapshot.statisticsScope
     if ([string]$scope.preferred -ne 'PLATINUM_PLUS') { throw "Unexpected preferred rank scope" }
@@ -114,6 +122,40 @@ foreach ($composition in $compositions) {
         }
     }
     if ([int]$composition.sampleCount -le 0) { throw "Composition sample count missing: $($composition.id)" }
+    $itemRecommendations = @($composition.itemRecommendations)
+    if ($itemRecommendations.Count -eq 0 -and -not $isPartial) {
+        throw "Composition has no MetaTFT item play-rate ranking: $($composition.id)"
+    }
+    $recommendationIds = @{}
+    $previousAdoptionRate = [double]::PositiveInfinity
+    foreach ($recommendation in $itemRecommendations) {
+        $recommendationId = [string]$recommendation.itemId
+        if (-not $recommendationId -or -not $catalogEntries.ContainsKey($recommendationId)) {
+            throw "Composition item recommendation missing from catalog: $($composition.id)/$recommendationId"
+        }
+        if ($recommendationIds.ContainsKey($recommendationId)) {
+            throw "Duplicate composition item recommendation: $($composition.id)/$recommendationId"
+        }
+        $recommendationIds[$recommendationId] = $true
+        $adoptionRate = [double]$recommendation.adoptionRate
+        if ($adoptionRate -lt 0 -or $adoptionRate -gt 27) {
+            throw "Composition item adoption rate outside the equipable 0-27 range: $($composition.id)/$recommendationId/$adoptionRate"
+        }
+        if ($adoptionRate -gt $previousAdoptionRate) {
+            throw "Composition item recommendations are not adoption-rate descending: $($composition.id)/$recommendationId"
+        }
+        if ([double]$recommendation.averagePlacement -lt 1 -or [double]$recommendation.averagePlacement -gt 8) {
+            throw "Composition item recommendation placement outside 1-8: $($composition.id)/$recommendationId"
+        }
+        if ([int]$recommendation.sampleCount -le 0) {
+            throw "Composition item recommendation sample count missing: $($composition.id)/$recommendationId"
+        }
+        $recommendationCatalogEntry = $catalogEntries[$recommendationId]
+        if (-not $recommendationCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $recommendationCatalogEntry.image))) {
+            throw "Composition item recommendation image missing: $($composition.id)/$recommendationId"
+        }
+        $previousAdoptionRate = $adoptionRate
+    }
     if (-not $composition.rollPlan.label -or [int]$composition.rollPlan.targetLevel -lt 5 -or [int]$composition.rollPlan.targetLevel -gt 9) {
         throw "Composition roll plan missing or invalid: $($composition.id)"
     }

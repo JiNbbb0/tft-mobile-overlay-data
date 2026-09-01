@@ -96,3 +96,31 @@ function Resolve-CompositionCoveragePolicy {
         reason = "Platinum+ reached only $($preferred.qualified) compositions at $($preferred.minimumSamples) samples; all-rank fallback is disabled by contract."
     }
 }
+
+function Resolve-RankScopeQualityContract {
+    param(
+        [Parameter(Mandatory = $true)][string]$EffectiveScope
+    )
+
+    switch ($EffectiveScope) {
+        'PLATINUM_PLUS' {
+            return [pscustomobject][ordered]@{
+                sourceScope = 'PLATINUM_PLUS'
+                rankFilter = 'PLATINUM_PLUS'
+                coverage = 'SUFFICIENT'
+                isLimited = $false
+            }
+        }
+        'PLATINUM_PLUS_LIMITED' {
+            return [pscustomobject][ordered]@{
+                sourceScope = 'PLATINUM_PLUS_LIMITED'
+                rankFilter = 'PLATINUM_PLUS'
+                coverage = 'LIMITED'
+                isLimited = $true
+            }
+        }
+        default {
+            throw "DATA_QUALITY_FILTER_MISMATCH expected=PLATINUM_PLUS_OR_LIMITED actual=$EffectiveScope"
+        }
+    }
+}

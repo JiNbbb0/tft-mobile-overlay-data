@@ -94,10 +94,7 @@ if (-not (Test-Path -LiteralPath $localQualityPath -PathType Leaf)) { throw 'Tra
 $localQualityBytes = [IO.File]::ReadAllBytes($localQualityPath)
 $localQualitySha = Get-Sha256 $localQualityBytes
 $localQuality = [Text.Encoding]::UTF8.GetString($localQualityBytes) | ConvertFrom-Json
-if ([int]$localQuality.schemaVersion -ne 1) { throw 'Tracked data-quality.json has an unsupported schema.' }
-if ([string]$localQuality.versionId -ne [string]$localVersion.id) {
-    throw 'Tracked data-quality.json does not describe the tracked latest version.'
-}
+Assert-DataQualityReleaseBinding -Quality $localQuality -ExpectedVersionId ([string]$localVersion.id) -Context 'Tracked'
 
 $remoteReachable = $false
 $remoteVersionId = ''
@@ -137,10 +134,7 @@ if ($remoteReachable) {
         $remoteQualityBytes = Get-RemoteBytes -Uri $qualityUri -MaximumBytes 1MB
         $remoteQualitySha = Get-Sha256 $remoteQualityBytes
         $remoteQuality = [Text.Encoding]::UTF8.GetString($remoteQualityBytes) | ConvertFrom-Json
-        if ([int]$remoteQuality.schemaVersion -ne 1) { throw 'Public data-quality.json has an unsupported schema.' }
-        if ([string]$remoteQuality.versionId -ne $remoteVersionId) {
-            throw 'Public data-quality.json does not describe the public latest version.'
-        }
+        Assert-DataQualityReleaseBinding -Quality $remoteQuality -ExpectedVersionId $remoteVersionId -Context 'Public'
         $remoteQualityReachable = $true
     } catch {
         $remoteQualityFailure = $_.Exception.Message -replace '[\r\n]+', ' '

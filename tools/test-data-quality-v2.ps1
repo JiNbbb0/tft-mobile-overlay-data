@@ -74,6 +74,8 @@ try {
     Assert-Equal $quality.overall 'READY' 'Fully populated fixture must be READY'
     Assert-Equal $quality.features.emblems.status 'READY' 'Measured emblem fixture should be READY'
     Assert-Equal $quality.features.compositions.filter 'PLATINUM_PLUS' 'Composition filter contract changed'
+    Assert-Equal $quality.features.compositions.sourceScope 'PLATINUM_PLUS' 'Normal source scope was not preserved'
+    Assert-Equal $quality.features.compositions.coverage 'SUFFICIENT' 'Normal Platinum+ coverage was misclassified'
     Assert-Equal $quality.features.compositions.queue 'RANKED' 'Composition queue contract changed'
     Assert-Equal $quality.features.compositions.patch 'CURRENT' 'Composition patch contract changed'
     Assert-Equal $quality.features.compositions.days 3 'Composition window contract changed'
@@ -84,8 +86,32 @@ try {
     $indexAfterQuality = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
     Assert-Equal $indexAfterQuality.latestVersionId $oldReleaseId 'Writing candidate quality must never promote latestVersionId'
 
+    $limitedSnapshot = $snapshot | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+    $limitedSnapshot.statisticsScope.effective = 'PLATINUM_PLUS_LIMITED'
+    [IO.File]::WriteAllText($snapshotPath, ($limitedSnapshot | ConvertTo-Json -Depth 20), [Text.UTF8Encoding]::new($false))
+    & (Join-Path $PSScriptRoot 'write-data-quality-status.ps1') -SiteDirectory $siteRoot -SnapshotPath $snapshotPath -CatalogPath $catalogPath -EmblemQualityPath $emblemPath -ReleaseId $candidateReleaseId
+    $limitedQuality = Get-Content -Raw -Encoding UTF8 -LiteralPath $qualityPath | ConvertFrom-Json
+    Assert-Equal $limitedQuality.qualityState 'DEGRADED_OPTIONAL' 'Limited Platinum+ coverage must degrade optional quality'
+    Assert-Equal $limitedQuality.features.compositions.status 'PARTIAL' 'Limited Platinum+ compositions must be PARTIAL'
+    Assert-Equal $limitedQuality.features.compositions.filter 'PLATINUM_PLUS' 'Limited coverage must keep the Platinum+ filter'
+    Assert-Equal $limitedQuality.features.compositions.sourceScope 'PLATINUM_PLUS_LIMITED' 'Limited source scope was lost'
+    Assert-Equal $limitedQuality.features.compositions.coverage 'LIMITED' 'Limited source coverage was not surfaced'
+    Assert-True (@($limitedQuality.warnings) -contains 'PLATINUM_PLUS_COVERAGE_LIMITED') 'Limited Platinum+ warning is missing'
+    $indexAfterLimitedQuality = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
+    Assert-Equal $indexAfterLimitedQuality.latestVersionId $oldReleaseId 'Limited candidate quality must never promote latestVersionId'
+
+    $missingAugmentSnapshot = $snapshot | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+    $missingAugmentSnapshot.compositions[0].recommendedAugments = @()
+    [IO.File]::WriteAllText($snapshotPath, ($missingAugmentSnapshot | ConvertTo-Json -Depth 20), [Text.UTF8Encoding]::new($false))
+    & (Join-Path $PSScriptRoot 'write-data-quality-status.ps1') -SiteDirectory $siteRoot -SnapshotPath $snapshotPath -CatalogPath $catalogPath -EmblemQualityPath $emblemPath -ReleaseId $candidateReleaseId
+    $missingAugmentQuality = Get-Content -Raw -Encoding UTF8 -LiteralPath $qualityPath | ConvertFrom-Json
+    Assert-Equal $missingAugmentQuality.qualityState 'DEGRADED_OPTIONAL' 'Missing composition augments must degrade optional quality only'
+    Assert-Equal $missingAugmentQuality.features.compositions.status 'READY' 'Missing optional augments must not downgrade composition availability'
+    Assert-Equal $missingAugmentQuality.features.compositionAugments.status 'COLLECTING' 'Missing composition augments must be reported separately'
+    Assert-True (@($missingAugmentQuality.warnings) -contains 'COMPOSITION_AUGMENTS_COLLECTING') 'Missing composition augment warning is missing'
+
     $badSnapshot = $snapshot | ConvertTo-Json -Depth 20 | ConvertFrom-Json
-    $badSnapshot.statisticsScope.effective = 'ALL_RANKS'
+    $badSnapshot.statisticsScope.effective = 'ALL_RANKS_FALLBACK'
     [IO.File]::WriteAllText($snapshotPath, ($badSnapshot | ConvertTo-Json -Depth 20), [Text.UTF8Encoding]::new($false))
     $threw = $false
     try {

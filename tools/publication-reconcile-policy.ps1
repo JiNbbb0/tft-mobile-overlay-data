@@ -1,5 +1,29 @@
 Set-StrictMode -Version Latest
 
+function Assert-DataQualityReleaseBinding {
+    param(
+        [Parameter(Mandatory = $true)]$Quality,
+        [Parameter(Mandatory = $true)][string]$ExpectedVersionId,
+        [Parameter(Mandatory = $true)][string]$Context
+    )
+
+    $schemaVersion = [int]$Quality.schemaVersion
+    if ($schemaVersion -notin @(1, 2)) {
+        throw "$Context data-quality.json has an unsupported schema: $schemaVersion"
+    }
+    if ([string]$Quality.versionId -ne $ExpectedVersionId) {
+        throw "$Context data-quality.json does not describe the expected latest version."
+    }
+    if ($schemaVersion -eq 2) {
+        if ([string]$Quality.releaseId -ne $ExpectedVersionId) {
+            throw "$Context Canonical v2 data-quality releaseId does not match the expected latest version."
+        }
+        if ([string]$Quality.overall -ne [string]$Quality.qualityState) {
+            throw "$Context Canonical v2 overall/qualityState mismatch."
+        }
+    }
+}
+
 function Resolve-PublicationRequirement {
     param(
         [Parameter(Mandatory = $true)][string]$LocalVersionId,

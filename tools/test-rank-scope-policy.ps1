@@ -62,6 +62,16 @@ Assert-Equal 'PLATINUM_PLUS_LIMITED' $ignoredFallback.effectiveScope 'An all-ran
 Assert-Equal $false $ignoredFallback.useFallback 'All-rank fallback must remain disabled.'
 Assert-Equal 0 $ignoredFallback.qualified 'Fallback data must not affect qualified composition count.'
 
+$sufficientQuality = Resolve-RankScopeQualityContract -EffectiveScope 'PLATINUM_PLUS'
+Assert-Equal 'PLATINUM_PLUS' $sufficientQuality.rankFilter 'Normal source must preserve the Platinum+ rank filter.'
+Assert-Equal 'SUFFICIENT' $sufficientQuality.coverage 'Normal source coverage was misclassified.'
+$limitedQuality = Resolve-RankScopeQualityContract -EffectiveScope 'PLATINUM_PLUS_LIMITED'
+Assert-Equal 'PLATINUM_PLUS' $limitedQuality.rankFilter 'Limited coverage must not widen the rank filter.'
+Assert-Equal 'LIMITED' $limitedQuality.coverage 'Limited Platinum+ coverage was not surfaced.'
+$blockedFallback = $false
+try { Resolve-RankScopeQualityContract -EffectiveScope 'ALL_RANKS_FALLBACK' | Out-Null } catch { $blockedFallback = $_.Exception.Message -match 'DATA_QUALITY_FILTER_MISMATCH' }
+if (-not $blockedFallback) { throw 'ALL_RANKS_FALLBACK must fail closed in the data-quality contract.' }
+
 if ($Live) {
     $url = 'https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=false'
     $stats = Invoke-RestMethod -Uri $url -Headers @{ 'User-Agent' = 'TFT-Mobile-Overlay-Data/1.0' }

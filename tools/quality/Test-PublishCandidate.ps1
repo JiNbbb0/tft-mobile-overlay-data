@@ -82,6 +82,17 @@ if ([string]$quality.overall -ne [string]$quality.qualityState) { throw 'CANDIDA
 if ([string]$quality.features.compositions.filter -ne 'PLATINUM_PLUS' -or [string]$quality.features.compositions.queue -ne 'RANKED' -or [string]$quality.features.compositions.patch -ne 'CURRENT' -or [int]$quality.features.compositions.days -ne 3 -or [bool]$quality.features.compositions.permitFilterAdjustment) {
     throw 'CANDIDATE_COMPOSITION_FILTER_CONTRACT_MISMATCH'
 }
+$compositionSourceScope = [string]$quality.features.compositions.sourceScope
+$compositionCoverage = [string]$quality.features.compositions.coverage
+if ($compositionSourceScope -notin @('PLATINUM_PLUS','PLATINUM_PLUS_LIMITED') -or $compositionCoverage -notin @('SUFFICIENT','LIMITED')) {
+    throw 'CANDIDATE_COMPOSITION_COVERAGE_CONTRACT_INVALID'
+}
+if (($compositionSourceScope -eq 'PLATINUM_PLUS_LIMITED') -ne ($compositionCoverage -eq 'LIMITED')) {
+    throw 'CANDIDATE_COMPOSITION_COVERAGE_CONTRACT_MISMATCH'
+}
+if ($compositionCoverage -eq 'LIMITED' -and ([string]$quality.features.compositions.status -ne 'PARTIAL' -or [string]$quality.qualityState -ne 'DEGRADED_OPTIONAL' -or @($quality.warnings) -notcontains 'PLATINUM_PLUS_COVERAGE_LIMITED')) {
+    throw 'CANDIDATE_LIMITED_COVERAGE_NOT_SURFACED'
+}
 if ([int]$quality.features.boards.syntheticBoardCount -ne 0 -or [int]$quality.features.boards.unknownUnitCount -ne 0) { throw 'CANDIDATE_BOARD_CONTRACT_FAILED' }
 if ([int]$quality.features.champions.unresolvedTokens -ne 0 -or [int]$quality.features.traits.unresolvedTokens -ne 0 -or [int]$quality.features.recommendedItems.unresolvedItemIds -ne 0 -or [int]$quality.counts.unresolvedTokens -ne 0) {
     throw 'CANDIDATE_UNRESOLVED_CONTENT_PRESENT'

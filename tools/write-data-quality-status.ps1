@@ -8,6 +8,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 function Resolve-RepoPath([string]$Path) {
@@ -87,9 +88,8 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
         $effectiveScope = [string]$snapshot.statisticsScope.effective
     }
 }
-if ($effectiveScope -ne 'PLATINUM_PLUS') {
-    throw "DATA_QUALITY_FILTER_MISMATCH expected=PLATINUM_PLUS actual=$effectiveScope"
-}
+$scopeContract = Resolve-RankScopeQualityContract -EffectiveScope $effectiveScope
+$limitedPlatinumCoverage = [bool]$scopeContract.isLimited
 
 $missingAugmentCompositions = @($compositions | Where-Object { @($_.recommendedAugments).Count -eq 0 }).Count
 $levelBoards = @(
@@ -127,13 +127,14 @@ if ($unresolvedTokens -gt 0) { throw "DATA_QUALITY_UNRESOLVED_TOKENS count=$unre
 
 $qualityState = if ($compositions.Count -eq 0) {
     'CATALOG_ONLY'
-} elseif ($compositions.Count -lt $targetCompositionCount -or $missingAugmentCompositions -gt 0 -or $levelBoards.Count -eq 0 -or $recommendedItemRecords -eq 0 -or $emblemStatus -ne 'READY') {
+} elseif ($limitedPlatinumCoverage -or $compositions.Count -lt $targetCompositionCount -or $missingAugmentCompositions -gt 0 -or $levelBoards.Count -eq 0 -or $recommendedItemRecords -eq 0 -or $emblemStatus -ne 'READY') {
     'DEGRADED_OPTIONAL'
 } else {
     'READY'
 }
 
 $warningCodes = [Collections.Generic.List[string]]::new()
+if ($limitedPlatinumCoverage) { $warningCodes.Add('PLATINUM_PLUS_COVERAGE_LIMITED') }
 if ($compositions.Count -eq 0) {
     $warningCodes.Add('COMPOSITIONS_COLLECTING')
     if ($qualifiedSourceCompositions -ge $targetCompositionCount) {
@@ -191,8 +192,10 @@ $status = [pscustomobject][ordered]@{
             missingImages = $emblemMissingImages
         }
         compositions = [ordered]@{
-            status = $(if ($compositions.Count -eq 0) { 'COLLECTING' } elseif ($compositions.Count -lt $targetCompositionCount) { 'PARTIAL' } else { 'READY' })
-            filter = 'PLATINUM_PLUS'
+            status = $(if ($compositions.Count -eq 0) { 'COLLECTING' } elseif ($limitedPlatinumCoverage -or $compositions.Count -lt $targetCompositionCount) { 'PARTIAL' } else { 'READY' })
+            filter = [string]$scopeContract.rankFilter
+            sourceScope = [string]$scopeContract.sourceScope
+            coverage = [string]$scopeContract.coverage
             queue = 'RANKED'
             patch = 'CURRENT'
             days = 3

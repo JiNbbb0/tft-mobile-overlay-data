@@ -7,6 +7,21 @@ function Assert-Equal($Expected, $Actual, [string]$Message) {
     if ($Expected -ne $Actual) { throw "$Message Expected=$Expected Actual=$Actual" }
 }
 
+$legacyQuality = [pscustomobject]@{ schemaVersion=1; versionId='legacy-v1' }
+Assert-DataQualityReleaseBinding -Quality $legacyQuality -ExpectedVersionId 'legacy-v1' -Context 'Fixture'
+$canonicalQuality = [pscustomobject]@{ schemaVersion=2; versionId='canonical-v2'; releaseId='canonical-v2'; overall='DEGRADED_OPTIONAL'; qualityState='DEGRADED_OPTIONAL' }
+Assert-DataQualityReleaseBinding -Quality $canonicalQuality -ExpectedVersionId 'canonical-v2' -Context 'Fixture'
+$badCanonicalBinding = $false
+try {
+    Assert-DataQualityReleaseBinding -Quality ([pscustomobject]@{ schemaVersion=2; versionId='canonical-v2'; releaseId='other'; overall='READY'; qualityState='READY' }) -ExpectedVersionId 'canonical-v2' -Context 'Fixture'
+} catch { $badCanonicalBinding = $_.Exception.Message -match 'releaseId' }
+if (-not $badCanonicalBinding) { throw 'Canonical v2 mismatched releaseId must fail closed.' }
+$unsupportedQuality = $false
+try {
+    Assert-DataQualityReleaseBinding -Quality ([pscustomobject]@{ schemaVersion=3; versionId='future' }) -ExpectedVersionId 'future' -Context 'Fixture'
+} catch { $unsupportedQuality = $_.Exception.Message -match 'unsupported schema' }
+if (-not $unsupportedQuality) { throw 'Unknown data-quality schema must fail closed.' }
+
 $id = 'tftset17-17.9-r409-m1234567890'
 $sha = 'a' * 64
 $otherSha = 'b' * 64

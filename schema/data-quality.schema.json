@@ -69,10 +69,12 @@
         "compositions": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["status", "filter", "queue", "patch", "days", "permitFilterAdjustment"],
+          "required": ["status", "filter", "sourceScope", "coverage", "queue", "patch", "days", "permitFilterAdjustment"],
           "properties": {
             "status": { "$ref": "#/$defs/status" },
             "filter": { "enum": ["PLATINUM_PLUS"] },
+            "sourceScope": { "enum": ["PLATINUM_PLUS", "PLATINUM_PLUS_LIMITED"] },
+            "coverage": { "enum": ["SUFFICIENT", "LIMITED"] },
             "queue": { "enum": ["RANKED"] },
             "patch": { "enum": ["CURRENT"] },
             "days": { "const": 3 },

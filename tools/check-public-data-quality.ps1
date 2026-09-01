@@ -86,6 +86,15 @@ try {
     if ([int](Require-Property $emblems 'missingImages') -ne 0) { throw 'Mapped emblems are missing images.' }
 
     if ([string](Require-Property $compositions 'filter') -ne 'PLATINUM_PLUS') { throw 'Composition filter is not PLATINUM_PLUS.' }
+    $compositionSourceScope = [string](Require-Property $compositions 'sourceScope')
+    $compositionCoverage = [string](Require-Property $compositions 'coverage')
+    if ($compositionSourceScope -notin @('PLATINUM_PLUS','PLATINUM_PLUS_LIMITED')) { throw "Unknown composition source scope: $compositionSourceScope" }
+    if ($compositionCoverage -notin @('SUFFICIENT','LIMITED')) { throw "Unknown composition coverage: $compositionCoverage" }
+    if (($compositionSourceScope -eq 'PLATINUM_PLUS_LIMITED') -ne ($compositionCoverage -eq 'LIMITED')) { throw 'Composition source scope/coverage mismatch.' }
+    if ($compositionCoverage -eq 'LIMITED') {
+        if ([string]$compositions.status -ne 'PARTIAL' -or $qualityState -ne 'DEGRADED_OPTIONAL') { throw 'Limited Platinum+ coverage was not surfaced as PARTIAL/DEGRADED_OPTIONAL.' }
+        if (@(Require-Property $quality 'warnings') -notcontains 'PLATINUM_PLUS_COVERAGE_LIMITED') { throw 'Limited Platinum+ coverage warning is missing.' }
+    }
     if ([string](Require-Property $compositions 'queue') -ne 'RANKED') { throw 'Composition queue is not RANKED.' }
     if ([string](Require-Property $compositions 'patch') -ne 'CURRENT') { throw 'Composition patch scope is not CURRENT.' }
     if ([int](Require-Property $compositions 'days') -ne 3) { throw 'Composition statistics window is not 3 days.' }

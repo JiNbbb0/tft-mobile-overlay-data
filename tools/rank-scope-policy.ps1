@@ -33,17 +33,10 @@ function Resolve-RankScopeDecision {
             reason = 'Preferred Platinum+ sample coverage is sufficient.'
         }
     }
-    if ($FallbackAttempted -and $FallbackQualified -gt $PreferredQualified) {
-        return [pscustomobject][ordered]@{
-            effectiveScope = 'ALL_RANKS_FALLBACK'
-            useFallback = $true
-            reason = "Platinum+ produced $PreferredQualified qualified compositions; all ranks produced $FallbackQualified."
-        }
-    }
     return [pscustomobject][ordered]@{
         effectiveScope = 'PLATINUM_PLUS_LIMITED'
         useFallback = $false
-        reason = "Neither scope improved coverage beyond $PreferredQualified qualified compositions."
+        reason = "Platinum+ coverage is limited to $PreferredQualified compositions; a different rank scope is not substituted."
     }
 }
 
@@ -88,20 +81,11 @@ function Resolve-CompositionCoveragePolicy {
     $fallback = if ($null -ne $FallbackStats) {
         Resolve-SampleCoverage -Stats $FallbackStats -RequiredCompositions $RequiredCompositions -Thresholds $Thresholds
     } else { $null }
-    if ($fallback -and $fallback.qualified -gt $preferred.qualified) {
-        return [pscustomobject][ordered]@{
-            effectiveScope = 'ALL_RANKS_FALLBACK'
-            useFallback = $true
-            minimumSamples = $fallback.minimumSamples
-            qualified = $fallback.qualified
-            reason = "Platinum+ reached only $($preferred.qualified); all ranks reached $($fallback.qualified) at $($fallback.minimumSamples) samples."
-        }
-    }
     return [pscustomobject][ordered]@{
         effectiveScope = 'PLATINUM_PLUS_LIMITED'
         useFallback = $false
         minimumSamples = $preferred.minimumSamples
         qualified = $preferred.qualified
-        reason = "All-rank fallback did not improve Platinum+ coverage of $($preferred.qualified)."
+        reason = "Platinum+ coverage is limited to $($preferred.qualified); a different rank scope is not substituted."
     }
 }

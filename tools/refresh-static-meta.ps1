@@ -10,8 +10,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
-. (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
 . (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
+. (Join-Path $PSScriptRoot 'metatft-page-parity-policy.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
@@ -87,11 +87,15 @@ function ConvertTo-ReadableName {
 function ConvertTo-MetaTftTitlePart {
     param(
         [Parameter(Mandatory = $true)][string]$ApiName,
+        [Parameter(Mandatory = $true)][hashtable]$MetaTftNameMap,
         [Parameter(Mandatory = $true)][hashtable]$UnitMap,
         [Parameter(Mandatory = $true)][hashtable]$TraitMap,
         [Parameter(Mandatory = $true)][hashtable]$ItemMap
     )
 
+    if ($MetaTftNameMap.ContainsKey($ApiName)) {
+        return [string]$MetaTftNameMap[$ApiName]
+    }
     if ($UnitMap.ContainsKey($ApiName)) {
         return [string]$UnitMap[$ApiName].name
     }
@@ -384,7 +388,7 @@ if (-not $compsData.results.data.cluster_details -or
 
 Start-Sleep -Milliseconds 350
 $preferredRankFilter = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
-$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=false"
+$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=true&cluster_id=$($clusterInfo.cluster_id)"
 $compsStatsUrl = $preferredCompsStatsUrl
 $compsStats = Get-Json -Url $preferredCompsStatsUrl
 Assert-MetaTftStatsContract -Stats $compsStats `
@@ -393,46 +397,26 @@ Assert-MetaTftStatsContract -Stats $compsStats `
     -ExpectedRankFilter $preferredRankFilter `
     -Context 'MetaTFT Platinum+ comps_stats'
 $requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
-$candidatePoolTarget = [Math]::Max($requiredPreferredCompositions, $CompositionLimit * 2)
-$preferredCompsStats = $compsStats
-$sampleThresholds = @(
-    @($MinimumCompSamples, 3000, 2000, 1000, 500, 250) |
-        Where-Object { $_ -le $MinimumCompSamples } |
-        Sort-Object -Descending -Unique
-)
-$preferredCoverage = Resolve-SampleCoverage `
-    -Stats $compsStats `
-    -RequiredCompositions $candidatePoolTarget `
-    -Thresholds $sampleThresholds
-$fallbackCompsStats = $null
-$fallbackAttempted = $preferredCoverage.qualified -lt $candidatePoolTarget
-if ($fallbackAttempted) {
-    $fallbackAttempted = $true
-    Start-Sleep -Milliseconds 350
-    # Omitting rank is MetaTFT's public all-rank query. `rank=ALL` is not
-    # equivalent on this endpoint, so the absence itself is part of the
-    # contract and implicit adjustment remains disabled.
-    $fallbackCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&permit_filter_adjustment=false"
-    $fallbackCompsStats = Get-Json -Url $fallbackCompsStatsUrl
-    Assert-MetaTftStatsContract -Stats $fallbackCompsStats `
-        -ExpectedSetId ([string]$clusterInfo.tft_set) `
-        -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
-        -ExpectedRankFilter '' `
-        -Context 'MetaTFT all-rank fallback comps_stats'
+$gameRow = @($compsStats.results | Where-Object { [string]$_.cluster -eq '' } | Select-Object -First 1)
+if ($gameRow.Count -eq 0 -or @($gameRow[0].places).Count -lt 1 -or [double]$gameRow[0].places[0] -le 0) {
+    throw 'MetaTFT comps_stats is missing the aggregate game-count row used by the comps page.'
 }
-$rankScopeDecision = Resolve-CompositionCoveragePolicy `
-    -PreferredStats $preferredCompsStats `
-    -FallbackStats $fallbackCompsStats `
-    -RequiredCompositions $candidatePoolTarget `
-    -Thresholds $sampleThresholds
-if ($rankScopeDecision.useFallback) {
-    $compsStats = $fallbackCompsStats
-    $compsStatsUrl = $fallbackCompsStatsUrl
+$gameCount = [double]$gameRow[0].places[0]
+$minimumPagePickRate = 0.01
+$playerSlotsPerGame = 8
+$effectiveMinimumCompSamples = Get-MetaTftPageMinimumSamples `
+    -GameCount $gameCount `
+    -MinimumPickRate $minimumPagePickRate `
+    -PlayerSlotsPerGame $playerSlotsPerGame
+$candidatePoolTarget = $CompositionLimit
+$fallbackAttempted = $false
+$rankScopeDecision = [pscustomobject][ordered]@{
+    effectiveScope = 'PLATINUM_PLUS'
+    useFallback = $false
+    minimumSamples = $effectiveMinimumCompSamples
+    qualified = 0
+    reason = 'Mirrors the public MetaTFT comps page rank scope and visibility rules; rank fallback is disabled.'
 }
-$effectiveMinimumCompSamples = [int]$rankScopeDecision.minimumSamples
-$preferredQualifiedCompositions = Get-QualifiedCompositionCount -Stats $preferredCompsStats -MinimumSamples $effectiveMinimumCompSamples
-$effectiveQualifiedCompositions = [int]$rankScopeDecision.qualified
-Write-Output "Composition rank scope: $($rankScopeDecision.effectiveScope) Threshold=$effectiveMinimumCompSamples Effective=$effectiveQualifiedCompositions Display=$requiredPreferredCompositions PoolTarget=$candidatePoolTarget"
 
 Start-Sleep -Milliseconds 350
 $compOptionsUrl = "https://api-hc.metatft.com/tft-comps-api/comp_options?cluster_id=$($clusterInfo.cluster_id)"
@@ -451,6 +435,14 @@ $augmentResponse = Get-Json -Url $AugmentTiersUrl
 
 Start-Sleep -Milliseconds 350
 $communityDragon = Get-Json -Url $CommunityDragonUrl
+
+Start-Sleep -Milliseconds 350
+$metaTftLookupUrl = "https://data.metatft.com/lookups/$($clusterInfo.tft_set)_latest_$Locale.json"
+$metaTftLookup = Get-Json -Url $metaTftLookupUrl
+if (-not $metaTftLookup.PSObject.Properties['_metadata'] -or
+    [string]$metaTftLookup._metadata.set -ne [string]$clusterInfo.tft_set) {
+    throw "MetaTFT Japanese lookup does not match current set $($clusterInfo.tft_set)."
+}
 
 $setData = $communityDragon.setData |
     Where-Object { $_.mutator -eq $clusterInfo.tft_set } |
@@ -478,6 +470,23 @@ foreach ($item in $communityDragon.items) {
     if ($item.apiName -and $item.name) {
         $itemMap[[string]$item.apiName] = $item
     }
+}
+
+$metaTftTitleNameMap = @{}
+foreach ($entry in @($metaTftLookup.traits) + @($metaTftLookup.items)) {
+    if ($entry.apiName -and $entry.name) {
+        $metaTftTitleNameMap[[string]$entry.apiName] = [string]$entry.name
+    }
+}
+foreach ($unit in @($metaTftLookup.units)) {
+    if (-not $unit.name) { continue }
+    if ($unit.apiName) { $metaTftTitleNameMap[[string]$unit.apiName] = [string]$unit.name }
+    foreach ($assetName in @($unit.assetNames)) {
+        if ($assetName) { $metaTftTitleNameMap[[string]$assetName] = [string]$unit.name }
+    }
+}
+if ($metaTftTitleNameMap.Count -eq 0) {
+    throw 'MetaTFT Japanese lookup produced no title mappings.'
 }
 
 $canonicalCatalogPath = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
@@ -557,9 +566,17 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
     $averagePlacement = $placementSum / $sampleCount
 
     $cluster = $clusters[$clusterId]
+    $centroidMaximum = @($cluster.centroid | Measure-Object -Maximum).Maximum
+    if ($null -eq $centroidMaximum -or -not (Test-MetaTftPageCompositionVisible `
+        -SampleCount $sampleCount `
+        -CentroidMaximum ([double]$centroidMaximum) `
+        -MinimumSamples $effectiveMinimumCompSamples `
+        -CentroidVisibilityMinimum 1.0)) {
+        continue
+    }
     $nameParts = foreach ($part in @($cluster.name)) {
         $id = [string]$part.name
-        ConvertTo-MetaTftTitlePart -ApiName $id -UnitMap $unitMap -TraitMap $traitMap -ItemMap $itemMap
+        ConvertTo-MetaTftTitlePart -ApiName $id -MetaTftNameMap $metaTftTitleNameMap -UnitMap $unitMap -TraitMap $traitMap -ItemMap $itemMap
     }
     # comps_data is the source used by MetaTFT's live composition list. Preserve
     # its current title-part order; latest_cluster_info can lag behind these
@@ -576,7 +593,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
     [pscustomobject][ordered]@{
         id = $clusterId
         displayNameJa = $name
-        titleSource = 'MetaTFT comps_data title localized with CommunityDragon'
+        titleSource = 'MetaTFT comps_data title localized with MetaTFT Japanese lookup'
         titleKey = (@($cluster.name) | ForEach-Object { [string]$_.name } | Where-Object { $_ }) -join '|'
         averagePlacement = [Math]::Round($averagePlacement, 4)
         sampleCount = $sampleCount
@@ -594,6 +611,10 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
         overviewBuilds = @($cluster.builds)
     }
 }
+$effectiveQualifiedCompositions = @($compositionCandidates).Count
+$preferredQualifiedCompositions = $effectiveQualifiedCompositions
+$rankScopeDecision.qualified = $effectiveQualifiedCompositions
+Write-Output "Composition page parity: Scope=$($rankScopeDecision.effectiveScope) Games=$([int]$gameCount) MinimumSamples=$effectiveMinimumCompSamples Visible=$effectiveQualifiedCompositions Display=$requiredPreferredCompositions"
 $compositionCandidates = @(
     $compositionCandidates |
         Sort-Object averagePlacement, @{ Expression = { -$_.sampleCount } } |
@@ -877,7 +898,7 @@ $snapshot = [pscustomobject][ordered]@{
     statsUpdatedEpochMs = [int64]$compsStats.updated
     readiness = $readiness
     locale = $Locale
-    sourceSummary = 'MetaTFT public statistics + CommunityDragon Japanese names'
+    sourceSummary = 'MetaTFT public comps page statistics and Japanese names + CommunityDragon canonical catalog'
     statisticsScope = [ordered]@{
         preferred = 'PLATINUM_PLUS'
         effective = [string]$rankScopeDecision.effectiveScope
@@ -888,9 +909,19 @@ $snapshot = [pscustomobject][ordered]@{
         qualifiedEffectiveCompositions = $effectiveQualifiedCompositions
         fallbackAttempted = $fallbackAttempted
         fallbackReason = [string]$rankScopeDecision.reason
-        implicitFilterAdjustmentAllowed = $false
+        implicitFilterAdjustmentAllowed = $true
         preferredRankFilter = $preferredRankFilter
-        fallbackRankFilter = $(if ($rankScopeDecision.useFallback) { 'ALL_RANKS_EXPLICIT' } else { '' })
+        fallbackRankFilter = ''
+        pageParity = [ordered]@{
+            queue = '1100'
+            patch = 'current'
+            days = 3
+            sort = 'Avg Placement'
+            minimumPickRate = $minimumPagePickRate
+            playerSlotsPerGame = $playerSlotsPerGame
+            centroidVisibilityMinimum = 1.0
+            situationalCompositions = $true
+        }
     }
     disclaimer = 'Static pre-game reference only. Item ranks are correlations aggregated from complete three-item builds inside the selected composition.'
     itemStatBasis = [ordered]@{
@@ -910,6 +941,7 @@ $snapshot = [pscustomobject][ordered]@{
         compositionItemBuilds = $compBuildsUrl
         compositionAugmentTiers = $compAugmentTiersUrl
         compositionDetails = 'https://api-hc.metatft.com/tft-comps-api/comp_details'
+        metaTftJapaneseLookup = $metaTftLookupUrl
         communityDragon = $CommunityDragonUrl
     }
     augments = @($augments)

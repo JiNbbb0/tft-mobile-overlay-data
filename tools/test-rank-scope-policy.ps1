@@ -25,8 +25,8 @@ Assert-Equal 'PLATINUM_PLUS' $preferred.effectiveScope 'Preferred scope should r
 Assert-Equal $false $preferred.useFallback 'Sufficient preferred data must not fall back.'
 
 $newSet = Resolve-RankScopeDecision -PreferredQualified 0 -FallbackQualified 18 -RequiredCompositions 12 -FallbackAttempted $true
-Assert-Equal 'ALL_RANKS_FALLBACK' $newSet.effectiveScope 'New-set coverage should fall back once.'
-Assert-Equal $true $newSet.useFallback 'All-rank fallback should be selected.'
+Assert-Equal 'PLATINUM_PLUS_LIMITED' $newSet.effectiveScope 'New-set coverage must remain on the page rank scope.'
+Assert-Equal $false $newSet.useFallback 'All-rank fallback must not be selected.'
 
 $stillSparse = Resolve-RankScopeDecision -PreferredQualified 3 -FallbackQualified 2 -RequiredCompositions 12 -FallbackAttempted $true
 Assert-Equal 'PLATINUM_PLUS_LIMITED' $stillSparse.effectiveScope 'A worse fallback must not replace preferred data.'
@@ -55,8 +55,9 @@ $fallbackAdaptive = Resolve-CompositionCoveragePolicy `
     -FallbackStats $adaptiveFixture `
     -RequiredCompositions 36 `
     -Thresholds @(5000, 3000, 2000, 1000, 500, 250)
-Assert-Equal 'ALL_RANKS_FALLBACK' $fallbackAdaptive.effectiveScope 'A new set without high-rank data must use the bounded fallback.'
-Assert-Equal 1000 $fallbackAdaptive.minimumSamples 'Fallback should use the highest sufficient candidate-pool threshold.'
+Assert-Equal 'PLATINUM_PLUS_LIMITED' $fallbackAdaptive.effectiveScope 'A new set without high-rank data must remain limited instead of changing rank scope.'
+Assert-Equal 5000 $fallbackAdaptive.minimumSamples 'Limited coverage should retain the preferred-scope threshold evidence.'
+Assert-Equal $false $fallbackAdaptive.useFallback 'Limited coverage must not use fallback data.'
 
 if ($Live) {
     $url = 'https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true'

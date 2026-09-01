@@ -66,9 +66,13 @@ jobs:
         shell: pwsh
         run: ./tools/test-id-compatibility-policy.ps1
 
-      - name: Test bounded new-set rank fallback policy
+      - name: Test strict MetaTFT page rank scope policy
         shell: pwsh
         run: ./tools/test-rank-scope-policy.ps1
+
+      - name: Test MetaTFT comps page parity policy
+        shell: pwsh
+        run: ./tools/test-metatft-page-parity-policy.ps1
 
       - name: Test resilient official patch detection policy
         shell: pwsh

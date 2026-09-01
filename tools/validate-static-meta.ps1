@@ -37,10 +37,12 @@ if (-not $snapshot.setId) { throw "Missing setId" }
 if (-not $snapshot.sources.compositionItemBuilds) { throw "Missing composition item source" }
 if (-not $snapshot.sources.compositionDetails) { throw "Missing composition details source" }
 if (-not $snapshot.sources.compositionAugmentTiers) { throw "Missing composition augment source" }
+if ([int]$snapshot.schemaVersion -ge 5 -and -not $snapshot.sources.metaTftJapaneseLookup) { throw "Missing MetaTFT Japanese lookup source" }
 if ([int]$snapshot.itemStatBasis.buildSize -ne 3) { throw "Unexpected static meta build size" }
 if ($snapshot.PSObject.Properties['statisticsScope']) {
     $scope = $snapshot.statisticsScope
     if ([string]$scope.preferred -ne 'PLATINUM_PLUS') { throw "Unexpected preferred rank scope" }
+    if ([string]$scope.effective -eq 'ALL_RANKS_FALLBACK') { throw "MetaTFT comps page parity forbids the legacy all-rank fallback" }
     if ([string]$scope.effective -notin @('PLATINUM_PLUS', 'ALL_RANKS_FALLBACK', 'PLATINUM_PLUS_LIMITED')) {
         throw "Unexpected effective rank scope"
     }
@@ -48,6 +50,19 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
         throw "Invalid rank fallback thresholds"
     }
     if ([bool]$scope.fallbackAttempted -and -not $scope.fallbackReason) { throw "Rank fallback reason missing" }
+    if (-not $scope.PSObject.Properties['pageParity']) { throw "MetaTFT comps page parity contract missing" }
+    if ([string]$scope.pageParity.queue -ne '1100' -or [int]$scope.pageParity.days -ne 3 -or [string]$scope.pageParity.sort -ne 'Avg Placement') {
+        throw "MetaTFT comps page parity filters do not match the public page"
+    }
+    if ([double]$scope.pageParity.minimumPickRate -ne 0.01 -or [double]$scope.pageParity.centroidVisibilityMinimum -ne 1.0) {
+        throw "MetaTFT comps page visibility thresholds do not match the public page"
+    }
+    $statsUrl = [string]$snapshot.sources.compositionStats
+    if ($statsUrl -notmatch 'rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM' -or
+        $statsUrl -notmatch 'permit_filter_adjustment=true' -or
+        $statsUrl -notmatch 'cluster_id=') {
+        throw "MetaTFT composition statistics URL does not match the public comps page"
+    }
 }
 
 # ConvertFrom-Json can surface a JSON null composition value as a pipeline
@@ -76,7 +91,7 @@ foreach ($composition in $compositions) {
         throw "Composition placement outside 1-8: $($composition.id)"
     }
     if ([int]$snapshot.schemaVersion -ge 5 -and -not $isPartial) {
-        if ([string]$composition.titleSource -ne 'MetaTFT comps_data title localized with CommunityDragon') {
+        if ([string]$composition.titleSource -ne 'MetaTFT comps_data title localized with MetaTFT Japanese lookup') {
             throw "Composition title is not sourced from MetaTFT comps_data: $($composition.id)"
         }
         if ($title -match '\s/\s') {

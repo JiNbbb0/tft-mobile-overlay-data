@@ -11,6 +11,9 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.Net.Http
 . (Join-Path $PSScriptRoot 'catalog-image-policy.ps1')
+. (Join-Path $PSScriptRoot 'normalize/Get-CurrentSetUniverse.ps1')
+. (Join-Path $PSScriptRoot 'normalize/Get-EmblemMappings.ps1')
+. (Join-Path $PSScriptRoot 'normalize/Resolve-SourceBackedArtifactDescription.ps1')
 
 $RepositoryRoot = if ($RepositoryRootOverride) {
     [IO.Path]::GetFullPath($RepositoryRootOverride)
@@ -340,7 +343,7 @@ function Resolve-AbilityDescription {
 
 function Convert-AssetUrl {
     param([AllowNull()][string]$AssetPath)
-    if (-not $AssetPath) { return "" }
+    if (-not $AssetPath -or $AssetPath.Trim() -in @('None', 'null')) { return "" }
     $normalized = $AssetPath.Replace('\', '/').TrimStart('/').ToLowerInvariant()
     $normalized = $normalized -replace '\.(tex|dds)$', '.png'
     if ($normalized.StartsWith('lol-game-data/assets/')) {
@@ -413,6 +416,7 @@ function Save-Asset {
     )
     $url = Convert-AssetUrl -AssetPath $AssetPath
     if (-not $url) {
+        if ($Category -eq "ability") { return "" }
         $DownloadFailures.Add([pscustomobject]@{ category = $Category; id = $OwnerId; reason = "画像パスなし" })
         return ""
     }
@@ -486,15 +490,19 @@ foreach ($entry in $en.items) { if ($entry.apiName) { $enItemMap[[string]$entry.
 $playableChampions = @(
     $setJa.champions |
         Where-Object {
-            $_.apiName -match "^TFT${SetNumber}_" -and
-            $_.cost -ge 1 -and $_.cost -le 5 -and
-            $_.name -and @($_.traits).Count -gt 0
+            $apiName = [string](Get-PropertyValue -Object $_ -Name 'apiName')
+            $cost = Get-PropertyValue -Object $_ -Name 'cost'
+            $name = Get-PropertyValue -Object $_ -Name 'name'
+            $championTraits = Get-PropertyValue -Object $_ -Name 'traits'
+            $apiName -and
+            $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and
+            $name -and @($championTraits | Where-Object { $_ }).Count -gt 0
         } |
         Sort-Object cost, name
 )
 $championIdsByTraitName = @{}
 foreach ($champion in $playableChampions) {
-    foreach ($traitName in @($champion.traits)) {
+    foreach ($traitName in @(Get-PropertyValue -Object $champion -Name 'traits')) {
         if (-not $championIdsByTraitName.ContainsKey([string]$traitName)) {
             $championIdsByTraitName[[string]$traitName] = [Collections.Generic.List[string]]::new()
         }
@@ -545,7 +553,12 @@ foreach ($champion in $playableChampions) {
     if ($processed % 25 -eq 0) { Write-Output "Champion assets: $processed/$($playableChampions.Count)" }
 }
 
-$traitNames = @($playableChampions.traits | Sort-Object -Unique)
+$traitNames = @(
+    $playableChampions |
+        ForEach-Object { @(Get-PropertyValue -Object $_ -Name 'traits') } |
+        Where-Object { $_ } |
+        Sort-Object -Unique
+)
 $traits = [Collections.Generic.List[object]]::new()
 foreach ($traitName in $traitNames) {
     $trait = $setJa.traits | Where-Object { $_.name -eq $traitName } | Select-Object -First 1
@@ -574,19 +587,51 @@ foreach ($traitName in $traitNames) {
     })
 }
 
+$declaredSetItemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($id in @($setJa.items)) {
+    if ($id) { [void]$declaredSetItemIds.Add([string]$id) }
+}
+$emblemMappingResult = Get-TftEmblemMappings `
+    -Traits @($setJa.traits) `
+    -Items @($ja.items) `
+    -SetNumber $SetNumber `
+    -AllowedItemIds @($setJa.items)
+$emblemTraitNameByItemId = @{}
+$mappedEmblemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+foreach ($mapping in @($emblemMappingResult.mappings)) {
+    $emblemId = [string]$mapping.emblemId
+    if (-not $emblemId) { continue }
+    [void]$mappedEmblemIds.Add($emblemId)
+    $emblemTraitNameByItemId[$emblemId] = [string]$mapping.traitName
+}
+$currentSetUniverse = Get-TftCurrentSetUniverse `
+    -SetNumber $SetNumber `
+    -SetData $setJa `
+    -AllItems @($ja.items) `
+    -AdditionalItemIds @($emblemMappingResult.mappings | ForEach-Object { [string]$_.emblemId }) `
+    -ExcludedItemIds @($setJa.augments)
 $setItemIds = @{}
-foreach ($id in @($setJa.items)) { $setItemIds[[string]$id] = $true }
+foreach ($id in @($currentSetUniverse.itemIds)) { $setItemIds[[string]$id] = $true }
 $augmentIds = @{}
 foreach ($id in @($setJa.augments)) { $augmentIds[[string]$id] = $true }
 $candidateItems = @(
-    $ja.items |
+    $currentSetUniverse.items |
         Where-Object {
-            $setItemIds.ContainsKey([string]$_.apiName) -and
-            -not $augmentIds.ContainsKey([string]$_.apiName) -and
-            $_.name -and $_.desc -and $_.icon
+            $id = [string]$_.apiName
+            -not $augmentIds.ContainsKey($id) -and
+            $_.name -and $_.icon -and (
+                $_.desc -or
+                $mappedEmblemIds.Contains($id) -or
+                $id -match '(?i)^DA_Artifact_'
+            )
         } |
         Sort-Object name, apiName
 )
+$supplementalItemCount = @(
+    $currentSetUniverse.itemIds |
+        Where-Object { -not $declaredSetItemIds.Contains([string]$_) }
+).Count
+Write-Output "Current-set item universe: Declared=$($declaredSetItemIds.Count) Included=$(@($currentSetUniverse.itemIds).Count) Supplemental=$supplementalItemCount MappedEmblems=$($mappedEmblemIds.Count) EmblemAmbiguities=$(@($emblemMappingResult.ambiguous).Count) Exclusions=$(@($currentSetUniverse.explicitExclusions).Count) MissingSeeds=$(@($currentSetUniverse.missingSeedIds).Count)"
 
 $items = [Collections.Generic.List[object]]::new()
 $processed = 0
@@ -595,12 +640,21 @@ foreach ($item in $candidateItems) {
     $english = if ($enItemMap.ContainsKey($id)) { $enItemMap[$id] } else { $null }
     $englishName = if ($english) { [string]$english.name } else { "" }
     $image = Save-Asset -AssetPath ([string]$item.icon) -OwnerId $id -Category "item"
+    $itemDescriptionJa = Normalize-Text -Value $item.desc -Effects $item.effects
+    if (-not $itemDescriptionJa -and $emblemTraitNameByItemId.ContainsKey($id)) {
+        $itemDescriptionJa = "装備者に「$([string]$emblemTraitNameByItemId[$id])」特性を付与する。"
+    }
+    if (-not $itemDescriptionJa -and $id -match '(?i)^DA_Artifact_') {
+        $descriptionSource = Get-TftSourceBackedArtifactDescriptionCandidate -TargetItem $item -AllItems @($ja.items)
+        $itemDescriptionJa = Normalize-Text -Value $descriptionSource.desc -Effects $descriptionSource.effects
+    }
+    if (-not $itemDescriptionJa) { throw "ITEM_DESCRIPTION_UNRESOLVED id=$id" }
     $items.Add([pscustomobject][ordered]@{
         id = $id
         nameJa = Normalize-Text -Value $item.name -Effects $item.effects
         nameEn = if ($english) { Normalize-Text -Value $english.name -Effects $english.effects } else { "" }
         image = $image
-        descriptionJa = Normalize-Text -Value $item.desc -Effects $item.effects
+        descriptionJa = $itemDescriptionJa
         stats = $item.effects
         recipe = @($item.from | Where-Object { $_ })
         restrictions = [ordered]@{
@@ -693,8 +747,11 @@ $missingImage = @(
     }
 )
 $referencedImagePaths = @(
-    @($champions.image) + @($champions | ForEach-Object { $_.ability.icon }) +
-    @($traits.image) + @($items.image) + @($augments.image)
+    @($champions | ForEach-Object { $_.image }) +
+    @($champions | ForEach-Object { $_.ability.icon }) +
+    @($traits | ForEach-Object { $_.image }) +
+    @($items | ForEach-Object { $_.image }) +
+    @($augments | ForEach-Object { $_.image })
 ) | Where-Object { $_ } | Sort-Object -Unique
 
 # Reuse unchanged assets during generation, then remove only files that the
@@ -702,6 +759,9 @@ $referencedImagePaths = @(
 # a complete source backup, so a later validation failure still restores the
 # previous known-good set atomically.
 if ($missingImage.Count -gt 0 -or $DownloadFailures.Count -gt 0) {
+    foreach ($failure in $DownloadFailures) {
+        Write-Warning ("Catalog asset failure: category={0} id={1} reason={2} url={3}" -f $failure.category, $failure.id, $failure.reason, $failure.url)
+    }
     throw "Catalog images are incomplete; refusing to prune the previous asset set. Missing=$($missingImage.Count) Downloads=$($DownloadFailures.Count)"
 }
 $prunedImageNames = @(Remove-UnreferencedCatalogImages -ImageRoot $ImageRoot -ReferencedImagePaths $referencedImagePaths)
@@ -755,7 +815,11 @@ $invalidRecipeReferences = @(
         }
     }
 )
-$outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })
+$expectedChampionIds = @{}
+foreach ($expectedChampion in $playableChampions) {
+    $expectedChampionIds[[string]$expectedChampion.apiName] = $true
+}
+$outOfSetChampions = @($champions | Where-Object { -not $expectedChampionIds.ContainsKey([string]$_.id) })
 $missingReferencedImagePaths = @(
     $referencedImagePaths | Where-Object {
         -not (Test-Path -LiteralPath (Join-Path $AssetRoot ([string]$_ -replace '^tft/', '')))

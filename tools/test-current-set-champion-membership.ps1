@@ -13,10 +13,10 @@ $gated = [IO.File]::ReadAllText($gatedPath).Replace("`r`n", "`n")
 if ($catalog -match '\$playableChampions\s*=\s*@\([\s\S]{0,900}?apiName\s+-match\s+"\^TFT\$\{SetNumber\}_"') {
     throw 'Playable champion selection must not depend on a TFT{SetNumber}_ API-name prefix.'
 }
-if (-not $catalog.Contains("Get-PropertyValue -Object $_ -Name 'traits'")) {
+if (-not $catalog.Contains('Get-PropertyValue -Object $_ -Name ''traits''')) {
     throw 'Playable champion selection must access traits through the safe property accessor.'
 }
-if (-not $catalog.Contains("Get-PropertyValue -Object $champion -Name 'traits'")) {
+if (-not $catalog.Contains('Get-PropertyValue -Object $champion -Name ''traits''')) {
     throw 'Trait-name flattening must tolerate champion records without a direct traits property.'
 }
 if (-not $catalog.Contains('$expectedChampionIds = @{}')) {
@@ -51,7 +51,7 @@ $selected = @(
         $cost = Get-SafeProperty $_ 'cost'
         $name = Get-SafeProperty $_ 'name'
         $traits = Get-SafeProperty $_ 'traits'
-        $id -and $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and $name -and @($traits).Count -gt 0
+        $id -and $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and $name -and @($traits | Where-Object { $_ }).Count -gt 0
     }
 )
 if ($selected.Count -ne 2) { throw "Current-set membership fixture selected $($selected.Count), expected 2." }

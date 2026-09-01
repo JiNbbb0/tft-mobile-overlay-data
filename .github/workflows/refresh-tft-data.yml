@@ -46,6 +46,22 @@ jobs:
         shell: pwsh
         run: ./tools/verify-runtime-hardening.ps1
 
+      - name: Test current-set champion membership policy
+        shell: pwsh
+        run: ./tools/test-current-set-champion-membership.ps1
+
+      - name: Test current-set item universe policy
+        shell: pwsh
+        run: ./tools/test-current-set-universe.ps1
+
+      - name: Test exact emblem mapping policy
+        shell: pwsh
+        run: ./tools/test-emblem-mapping.ps1
+
+      - name: Test source-backed artifact description policy
+        shell: pwsh
+        run: ./tools/test-source-backed-artifact-description.ps1
+
       - name: Test cross-source ID compatibility policy
         shell: pwsh
         run: ./tools/test-id-compatibility-policy.ps1

@@ -109,7 +109,7 @@ foreach ($composition in $compositions) {
         throw "Composition reroll count or level timing missing: $($composition.id)"
     }
     $recommendedAugments = @($composition.recommendedAugments)
-    if ($recommendedAugments.Count -eq 0) { throw "No recommended augments: $($composition.id)" }
+    if ($recommendedAugments.Count -eq 0 -and -not $isPartial) { throw "No recommended augments: $($composition.id)" }
     foreach ($augment in $recommendedAugments) {
         if ($augment.tier -notin @('S', 'A', 'B')) { throw "Unexpected recommended augment tier: $($composition.id)/$($augment.id)/$($augment.tier)" }
         if (-not $catalogEntries.ContainsKey($augment.id)) { throw "Recommended augment missing from catalog: $($composition.id)/$($augment.id)" }
@@ -239,4 +239,5 @@ Write-Output "Static meta snapshot valid"
 Write-Output "Set=$($snapshot.setId) Compositions=$($compositions.Count) ItemStats=$($allItemStats.Count) MinimumSamples=$($snapshot.itemStatBasis.minimumSamples)"
 Write-Output "TrustedStats=$trustedStatCount TrustedOptions=$trustedOptionCount Threshold=250"
 Write-Output "Composition unit and recommended-item images are present"
-Write-Output "Roll plans, comp-specific augments, and star targets are present"
+$missingAugmentCompositions = @($compositions | Where-Object { @($_.recommendedAugments).Count -eq 0 }).Count
+Write-Output "Roll plans and star targets are present; composition augments available=$($compositions.Count - $missingAugmentCompositions)/$($compositions.Count)"

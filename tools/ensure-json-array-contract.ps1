@@ -68,6 +68,14 @@ if ($metaText.Contains($newAugmentGate)) {
     $metaText = $metaText.Replace($oldAugmentGate, $newAugmentGate)
     Write-Utf8NoBom -Path $metaPath -Text $metaText
     Write-Output "Patched partial composition policy so missing augment tiers do not hide valid comps."
+} elseif (
+    $metaText.Contains('$compAugmentProperty = $compAugmentTiers.results.PSObject.Properties[[string]$composition.id]') -and
+    $metaText.Contains('preserving the source result without generic padding')
+) {
+    # The hardened generator no longer gates composition candidates on optional
+    # augment metadata. It resolves the property only while building each
+    # composition and publishes an empty source-backed list when unavailable.
+    Write-Output "Partial composition candidate policy is implemented by optional per-composition augment lookup."
 } else {
     throw "Could not patch partial composition candidate policy in refresh-static-meta.ps1"
 }
@@ -137,7 +145,12 @@ foreach ($sourceItemIdValue in @($itemMap.Keys)) {
     }
 }
 '@
-if ($metaText.Contains($newItemMapBlock)) {
+if (
+    $metaText.Contains('$canonicalItemIndex = New-TftCanonicalIdIndex -Entries @($canonicalCatalog.items)') -and
+    $metaText.Contains('function Resolve-CanonicalPublicationItemId')
+) {
+    Write-Output "MetaTFT item IDs use the fail-closed canonical publication resolver."
+} elseif ($metaText.Contains($newItemMapBlock)) {
     Write-Output "MetaTFT item ID canonicalization already patched."
 } elseif ($metaText.Contains($oldItemMapBlock)) {
     $metaText = $metaText.Replace($oldItemMapBlock, $newItemMapBlock)
@@ -169,6 +182,12 @@ if ($metaText.Contains($newFullBuildIds)) {
     $metaText = $metaText.Replace($oldFullBuildIds, $newFullBuildIds)
     Write-Utf8NoBom -Path $metaPath -Text $metaText
     Write-Output "Patched composition item-stat IDs to canonical catalog IDs."
+} elseif (
+    $metaText.Contains('ForEach-Object { Resolve-CanonicalPublicationItemId -RawId ([string]$_) }') -and
+    $metaText.Contains('AMBIGUOUS_CANONICAL_ITEM_ID') -and
+    $metaText.Contains('UNRESOLVED_CANONICAL_ITEM_ID')
+) {
+    Write-Output "Composition item-stat IDs use the fail-closed canonical publication resolver."
 } else {
     throw "Could not patch composition item-stat ID normalization in refresh-static-meta.ps1"
 }
@@ -210,6 +229,11 @@ if ($metaText.Contains($newRecommendedBuild)) {
     $metaText = $metaText.Replace($oldRecommendedBuild, $newRecommendedBuild)
     Write-Utf8NoBom -Path $metaPath -Text $metaText
     Write-Output "Patched recommended overview item IDs to canonical catalog IDs."
+} elseif (
+    $metaText.Contains('$canonicalItemId = Resolve-CanonicalPublicationItemId -RawId ([string]$_)') -and
+    $metaText.Contains('itemName = [string]$canonicalItemMap[$canonicalItemId].nameJa')
+) {
+    Write-Output "Recommended overview item IDs use the fail-closed canonical publication resolver."
 } else {
     throw "Could not patch recommended overview item ID normalization in refresh-static-meta.ps1"
 }

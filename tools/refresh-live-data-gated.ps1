@@ -75,7 +75,7 @@ $playableChampions = @(
     $setJa.champions |
         Where-Object {
             $_.cost -ge 1 -and $_.cost -le 5 -and
-            $_.name -and @($_.traits).Count -gt 0
+            $_.name -and @($_.traits | Where-Object { $_ }).Count -gt 0
         } |
         Sort-Object cost, name
 )
@@ -124,9 +124,14 @@ if ($playableChampions.Count -lt 40) {
     $catalogText = $catalogText.Replace($oldAbilityNameEn, $newAbilityNameEn)
 
     $oldTraitNames = '$traitNames = @($playableChampions.traits | Sort-Object -Unique)'
-    $newTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @($_.traits) } | Where-Object { $_ } | Sort-Object -Unique)'
-    if (-not $catalogText.Contains($oldTraitNames)) { throw 'Could not patch champion trait flattening.' }
-    $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
+    $newTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''traits'') } | Where-Object { $_ } | Sort-Object -Unique)'
+    if ($catalogText.Contains($newTraitNames)) {
+        # Source is already namespace-safe; no replacement required.
+    } elseif ($catalogText.Contains($oldTraitNames)) {
+        $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
+    } else {
+        throw 'Could not patch or verify champion trait flattening.'
+    }
 
     $oldOutOfSet = '$outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })'
     $newOutOfSet = @'
@@ -239,7 +244,7 @@ $derivedPlayable = @(
         $cost = Get-ObjectPropertyValue -Object $_ -Name 'cost'
         $name = Get-ObjectPropertyValue -Object $_ -Name 'name'
         $traits = Get-ObjectPropertyValue -Object $_ -Name 'traits'
-        $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and $name -and @($traits).Count -gt 0
+        $null -ne $cost -and [int]$cost -ge 1 -and [int]$cost -le 5 -and $name -and @($traits | Where-Object { $_ }).Count -gt 0
     }
 )
 $jaTraitCount = Get-CollectionCount -Object $setJa -Name 'traits'

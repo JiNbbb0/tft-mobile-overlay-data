@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$OutputPath = "source/current/tft_static_snapshot.json",
     [string]$Locale = "ja_jp",
     [int]$MinimumCompSamples = 5000,
@@ -11,6 +11,7 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'rank-scope-policy.ps1')
+. (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
@@ -479,6 +480,29 @@ foreach ($item in $communityDragon.items) {
     }
 }
 
+$canonicalCatalogPath = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
+if (-not (Test-Path -LiteralPath $canonicalCatalogPath -PathType Leaf)) {
+    throw "Canonical item catalog missing before static-meta refresh: $canonicalCatalogPath"
+}
+$canonicalCatalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $canonicalCatalogPath | ConvertFrom-Json
+$canonicalItemIndex = New-TftCanonicalIdIndex -Entries @($canonicalCatalog.items)
+$canonicalItemMap = @{}
+foreach ($canonicalItem in @($canonicalCatalog.items)) {
+    if ($canonicalItem.id) { $canonicalItemMap[[string]$canonicalItem.id] = $canonicalItem }
+}
+if ($canonicalItemMap.Count -eq 0) { throw 'Canonical item catalog is empty.' }
+
+function Resolve-CanonicalPublicationItemId([string]$RawId) {
+    if (-not $RawId) { throw 'Empty MetaTFT item ID cannot be published.' }
+    $sourceName = if ($itemMap.ContainsKey($RawId)) { [string]$itemMap[$RawId].name } else { '' }
+    $resolution = Resolve-TftCanonicalId -Index $canonicalItemIndex -SourceId $RawId -SourceName $sourceName
+    if ($resolution.status -in @('EXACT','ALIAS','NAME')) { return [string]$resolution.canonicalId }
+    if ($resolution.status -eq 'AMBIGUOUS') {
+        throw "AMBIGUOUS_CANONICAL_ITEM_ID raw=$RawId candidates=$($resolution.candidates -join ',')"
+    }
+    throw "UNRESOLVED_CANONICAL_ITEM_ID raw=$RawId"
+}
+
 $activeAugments = @{}
 foreach ($augmentId in $setData.augments) {
     $activeAugments[[string]$augmentId] = $true
@@ -518,10 +542,6 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
     if (-not $clusters.ContainsKey($clusterId)) {
         continue
     }
-    if (-not $compAugmentTiers.results.PSObject.Properties[$clusterId]) {
-        continue
-    }
-
     $places = @($stats.places)
     if ($places.Count -lt 9) {
         continue
@@ -642,9 +662,6 @@ $compositions = foreach ($composition in $compositionCandidates) {
                 }
         }
     )
-    if ($recommendedAugments.Count -eq 0 -and -not $AllowPartial) {
-        throw "No comp-specific augments for composition $($composition.id)."
-    }
     if ($recommendedAugments.Count -lt 3) {
         Write-Warning "MetaTFT currently exposes only $($recommendedAugments.Count) comp-specific augment(s) for composition $($composition.id); preserving the source result without generic padding."
     }
@@ -667,8 +684,8 @@ $compositions = foreach ($composition in $compositionCandidates) {
             $averagePlacement = [double]$build.avg
             $fullBuildItemIds = @(
                 @($build.buildName) |
-                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
-                    ForEach-Object { [string]$_ }
+                    Where-Object { $_ } |
+                    ForEach-Object { Resolve-CanonicalPublicationItemId -RawId ([string]$_) }
             )
             $buildItemIds = @($fullBuildItemIds | Select-Object -Unique)
             foreach ($itemId in $buildItemIds) {
@@ -698,7 +715,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
             $itemAverage = $aggregate.weightedPlacement / $aggregate.sampleCount
             [pscustomobject][ordered]@{
                 itemId = [string]$itemId
-                itemName = [string]$itemMap[$itemId].name
+                itemName = [string]$canonicalItemMap[$itemId].nameJa
                 averagePlacement = [Math]::Round($itemAverage, 4)
                 placementDelta = [Math]::Round($itemAverage - [double]$composition.averagePlacement, 4)
                 sampleCount = [int]$aggregate.sampleCount
@@ -707,7 +724,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
                     foreach ($buildItemId in $aggregate.bestBuildItemIds) {
                         [pscustomobject][ordered]@{
                             itemId = [string]$buildItemId
-                            itemName = [string]$itemMap[$buildItemId].name
+                            itemName = [string]$canonicalItemMap[$buildItemId].nameJa
                         }
                     }
                 )
@@ -730,11 +747,12 @@ $compositions = foreach ($composition in $compositionCandidates) {
         $recommendedBuild = @(
             if ($overviewBuildRow.Count -gt 0) {
                 @($overviewBuildRow[0].buildName) |
-                    Where-Object { $_ -and $itemMap.ContainsKey([string]$_) } |
+                    Where-Object { $_ } |
                     ForEach-Object {
+                        $canonicalItemId = Resolve-CanonicalPublicationItemId -RawId ([string]$_)
                         [pscustomobject][ordered]@{
-                            itemId = [string]$_
-                            itemName = [string]$itemMap[[string]$_].name
+                            itemId = $canonicalItemId
+                            itemName = [string]$canonicalItemMap[$canonicalItemId].nameJa
                         }
                     }
             }
@@ -838,9 +856,14 @@ $compositions = foreach ($composition in $compositionCandidates) {
     }
 }
 
+$hasIncompleteCompositionMetadata = @(
+    @($compositions) | Where-Object { @($_.recommendedAugments).Count -eq 0 }
+).Count -gt 0
 $readiness = if (@($compositions).Count -eq 0) {
     'META_COLLECTING'
 } elseif (@($compositions).Count -lt $requiredPreferredCompositions) {
+    'META_COLLECTING'
+} elseif ($hasIncompleteCompositionMetadata) {
     'META_COLLECTING'
 } else {
     'META_STABLE'
@@ -889,8 +912,8 @@ $snapshot = [pscustomobject][ordered]@{
         compositionDetails = 'https://api-hc.metatft.com/tft-comps-api/comp_details'
         communityDragon = $CommunityDragonUrl
     }
-    augments = $augments
-    compositions = $compositions
+    augments = @($augments)
+    compositions = @($compositions)
 }
 
 $repositoryRoot = $RepositoryRoot

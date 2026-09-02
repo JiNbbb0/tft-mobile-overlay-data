@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-09-02T17:57:35Z
-- From: tftset18-18.1-r422-ma34810ae07
+- Generated: 2026-09-02T19:36:04Z
+- From: tftset18-18.1-r422-m68b8ec4135
 - To: TFTSet18 / patch 18.1 / revision 422
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -14,5 +14,5 @@
 | Images | 627 | 627 | - | - | 0 delta |
 
 - Tier changes: 0
-- Average-placement changes: 17
+- Average-placement changes: 18
 - Missing names/descriptions/images: 0 / 0 / 0

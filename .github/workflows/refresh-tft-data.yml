@@ -110,6 +110,11 @@ jobs:
         shell: pwsh
         run: ./tools/validate-data-compatibility.ps1
 
+      - name: Report current MetaTFT composition ordering
+        if: success()
+        shell: pwsh
+        run: ./.github/scripts/report-current-compositions.ps1
+
       - name: Write user-visible data quality status
         if: success()
         shell: pwsh

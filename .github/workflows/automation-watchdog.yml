@@ -3,7 +3,7 @@ name: Watch unattended data automation
 on:
   workflow_dispatch:
   schedule:
-    - cron: "11 * * * *"
+    - cron: "13,33,53 * * * *"
   workflow_run:
     workflows: ["Refresh and publish TFT data"]
     types: [completed]
@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  actions: read
+  actions: write
   contents: read
   issues: write
   pages: write
@@ -31,6 +31,9 @@ jobs:
       quality_requires_attention: ${{ steps.quality.outputs.requires_attention }}
       quality_reason: ${{ steps.quality.outputs.reason }}
       quality_state: ${{ steps.quality.outputs.quality_state }}
+      freshness_needs_refresh: ${{ steps.freshness.outputs.needs_refresh }}
+      freshness_reason: ${{ steps.freshness.outputs.reason }}
+      freshness_age_minutes: ${{ steps.freshness.outputs.age_minutes }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -53,6 +56,23 @@ jobs:
         run: |
           $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-quality"
           ./tools/check-public-data-quality.ps1 -DataIndexUrl $checkUrl
+
+      - name: Check public source freshness
+        id: freshness
+        shell: pwsh
+        run: |
+          $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-freshness"
+          ./.github/scripts/check-refresh-freshness.ps1 -DataIndexUrl $checkUrl -MaxSourceAgeMinutes 45
+
+      - name: Queue self-healing refresh when source data is stale
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.freshness.outputs.needs_refresh == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run refresh-tft-data.yml --ref main --repo "${{ github.repository }}"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to dispatch stale-data refresh." }
+          Write-Output "Queued refresh because freshness check reported: ${{ steps.freshness.outputs.reason }} (age=${{ steps.freshness.outputs.age_minutes }} min)"
 
       - name: Validate tracked last-known-good site before repair
         if: steps.reconcile.outputs.publish_required == 'true'

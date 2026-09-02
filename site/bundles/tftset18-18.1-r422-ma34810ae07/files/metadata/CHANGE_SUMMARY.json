@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-02T05:43:26Z",
-  "fromVersionId": "tftset18-18.1-r422-m40eea0aadb",
+  "generatedAt": "2026-09-02T16:53:34Z",
+  "fromVersionId": "tftset18-18.1-r422-m0e725aba2a",
   "toSetId": "TFTSet18",
   "toPatch": "18.1",
   "toRevision": "422",
@@ -26,12 +26,8 @@
     "changed": []
   },
   "compositions": {
-    "added": [
-      "422012"
-    ],
-    "removed": [
-      "422019"
-    ],
+    "added": [],
+    "removed": [],
     "changed": [
       "422000",
       "422001",
@@ -43,6 +39,7 @@
       "422008",
       "422009",
       "422010",
+      "422012",
       "422013",
       "422015",
       "422021",
@@ -52,82 +49,108 @@
       "422033"
     ]
   },
-  "tierChanges": [],
+  "tierChanges": [
+    {
+      "id": "422021",
+      "before": "A",
+      "after": "S"
+    },
+    {
+      "id": "422033",
+      "before": "B",
+      "after": "A"
+    }
+  ],
   "averagePlacementChanges": [
     {
       "id": "422024",
-      "before": 4.0845,
-      "after": 4.0849
+      "before": 4.0839,
+      "after": 4.0874
     },
     {
       "id": "422015",
-      "before": 4.1182,
-      "after": 4.1221
+      "before": 4.1164,
+      "after": 4.1192
     },
     {
       "id": "422009",
-      "before": 4.2478,
-      "after": 4.2462
+      "before": 4.2433,
+      "after": 4.242
     },
     {
       "id": "422021",
-      "before": 4.2757,
-      "after": 4.2634
-    },
-    {
-      "id": "422005",
-      "before": 4.2793,
-      "after": 4.2902
+      "before": 4.2505,
+      "after": 4.2487
     },
     {
       "id": "422002",
-      "before": 4.2919,
-      "after": 4.2994
+      "before": 4.3005,
+      "after": 4.301
+    },
+    {
+      "id": "422005",
+      "before": 4.2916,
+      "after": 4.3013
     },
     {
       "id": "422003",
-      "before": 4.3372,
-      "after": 4.329
+      "before": 4.3286,
+      "after": 4.328
+    },
+    {
+      "id": "422022",
+      "before": 4.3416,
+      "after": 4.3385
     },
     {
       "id": "422000",
-      "before": 4.3359,
-      "after": 4.3342
+      "before": 4.3382,
+      "after": 4.3448
     },
     {
       "id": "422010",
-      "before": 4.3754,
-      "after": 4.3747
+      "before": 4.3947,
+      "after": 4.3943
     },
     {
       "id": "422008",
-      "before": 4.3926,
-      "after": 4.3997
-    },
-    {
-      "id": "422001",
-      "before": 4.4097,
-      "after": 4.4157
+      "before": 4.4112,
+      "after": 4.411
     },
     {
       "id": "422006",
-      "before": 4.4269,
-      "after": 4.4171
+      "before": 4.4183,
+      "after": 4.4133
     },
     {
-      "id": "422026",
-      "before": 4.5096,
-      "after": 4.5141
+      "id": "422001",
+      "before": 4.4206,
+      "after": 4.4264
+    },
+    {
+      "id": "422033",
+      "before": 4.5027,
+      "after": 4.4989
     },
     {
       "id": "422007",
-      "before": 4.5477,
-      "after": 4.5455
+      "before": 4.5324,
+      "after": 4.5231
+    },
+    {
+      "id": "422012",
+      "before": 4.5303,
+      "after": 4.5249
+    },
+    {
+      "id": "422026",
+      "before": 4.524,
+      "after": 4.5289
     },
     {
       "id": "422013",
-      "before": 4.5669,
-      "after": 4.5587
+      "before": 4.5574,
+      "after": 4.5558
     }
   ],
   "imageChanges": {

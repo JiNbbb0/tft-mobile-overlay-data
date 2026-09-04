@@ -8,7 +8,20 @@
   "properties": {
     "schemaVersion": { "const": 1 },
     "latestVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "latestStableVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "latestAvailableVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
     "generatedAtUtc": { "type": "string", "format": "date-time" },
+    "sourceCheckedAtUtc": { "type": "string", "format": "date-time" },
+    "latestObservedSourceTimestampUtc": { "type": "string", "format": "date-time" },
+    "freshnessPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["warningAfterSeconds", "criticalAfterSeconds"],
+      "properties": {
+        "warningAfterSeconds": { "const": 21600 },
+        "criticalAfterSeconds": { "const": 86400 }
+      }
+    },
     "versions": {
       "type": "array",
       "minItems": 1,
@@ -30,10 +43,32 @@
           "manifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "sourceQueryHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
           "readiness": { "enum": ["CATALOG_READY", "META_COLLECTING", "META_STABLE"] },
+          "releaseState": { "enum": ["STABLE", "PARTIAL"] },
+          "validationStatus": { "enum": ["PASS", "PARTIAL_PASS"] },
+          "sourceAlignment": { "enum": ["VERIFIED", "PARTIAL"] },
+          "validatedAtUtc": { "type": "string", "format": "date-time" },
+          "featureReadiness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["catalog", "champions", "traits", "items", "augments", "compositions", "boards", "recommendedItems", "compositionAugments"],
+            "properties": {
+              "catalog": { "$ref": "#/$defs/featureState" }, "champions": { "$ref": "#/$defs/featureState" },
+              "traits": { "$ref": "#/$defs/featureState" }, "items": { "$ref": "#/$defs/featureState" },
+              "augments": { "$ref": "#/$defs/featureState" }, "compositions": { "$ref": "#/$defs/featureState" },
+              "boards": { "$ref": "#/$defs/featureState" }, "recommendedItems": { "$ref": "#/$defs/featureState" },
+              "compositionAugments": { "$ref": "#/$defs/featureState" }
+            }
+          },
+          "levelBoardReadiness": {
+            "type": "object", "additionalProperties": false,
+            "required": ["lv4", "lv5", "lv6", "lv7", "lv8", "lv9"],
+            "properties": { "lv4": { "$ref": "#/$defs/featureState" }, "lv5": { "$ref": "#/$defs/featureState" }, "lv6": { "$ref": "#/$defs/featureState" }, "lv7": { "$ref": "#/$defs/featureState" }, "lv8": { "$ref": "#/$defs/featureState" }, "lv9": { "$ref": "#/$defs/featureState" } }
+          },
           "manifestUrl": { "type": "string", "pattern": "^bundles/[a-z0-9._-]+/manifest\\.json$" },
           "hidden": { "type": "boolean" }
         }
       }
     }
-  }
+  },
+  "$defs": { "featureState": { "enum": ["READY", "PARTIAL", "COLLECTING", "NOT_PROVIDED", "UNAVAILABLE"] } }
 }

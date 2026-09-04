@@ -1,79 +1,33 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://jinbbb0.github.io/tft-mobile-overlay-data/schema/data-quality.schema.json",
-  "title": "TFT Mobile Overlay Data Quality Status",
+  "title": "TFT Overlay data quality status v2",
   "type": "object",
   "additionalProperties": false,
-  "required": [
-    "schemaVersion",
-    "generatedAtUtc",
-    "sourceUpdatedAtUtc",
-    "versionId",
-    "setId",
-    "setNumber",
-    "setName",
-    "patch",
-    "revision",
-    "readiness",
-    "qualityState",
-    "userMessageJa",
-    "userMessageEn",
-    "features",
-    "counts",
-    "warnings"
-  ],
+  "required": ["schemaVersion", "generatedAtUtc", "sourceUpdatedAtUtc", "sourceCheckedAtUtc", "freshnessStatus", "freshnessPolicy", "versionId", "latestStableVersionId", "latestAvailableVersionId", "setId", "setNumber", "setName", "patch", "revision", "readiness", "releaseState", "validationStatus", "sourceAlignment", "qualityState", "userMessageJa", "userMessageEn", "features", "levelBoardReadiness", "counts", "warnings"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "generatedAtUtc": { "type": "string" },
-    "sourceUpdatedAtUtc": { "type": "string" },
-    "versionId": { "type": "string", "minLength": 1 },
-    "setId": { "type": "string", "minLength": 1 },
-    "setNumber": { "type": "integer", "minimum": 1 },
-    "setName": { "type": "string", "minLength": 1 },
-    "patch": { "type": "string", "minLength": 1 },
-    "revision": { "type": "string", "minLength": 1 },
+    "schemaVersion": { "const": 2 },
+    "generatedAtUtc": { "type": "string", "format": "date-time" },
+    "sourceUpdatedAtUtc": { "type": "string", "format": "date-time" },
+    "sourceCheckedAtUtc": { "type": "string", "format": "date-time" },
+    "freshnessStatus": { "enum": ["FRESH", "WARNING", "CRITICAL"] },
+    "freshnessPolicy": { "type": "object", "additionalProperties": false, "required": ["warningAfterSeconds", "criticalAfterSeconds"], "properties": { "warningAfterSeconds": { "const": 21600 }, "criticalAfterSeconds": { "const": 86400 } } },
+    "versionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "latestStableVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "latestAvailableVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "setId": { "type": "string", "minLength": 1 }, "setNumber": { "type": "integer", "minimum": 1 }, "setName": { "type": "string", "minLength": 1 },
+    "patch": { "type": "string", "minLength": 1 }, "revision": { "type": "string", "minLength": 1 },
     "readiness": { "enum": ["CATALOG_READY", "META_COLLECTING", "META_STABLE"] },
-    "qualityState": { "enum": ["READY", "DEGRADED_OPTIONAL", "CATALOG_ONLY"] },
-    "userMessageJa": { "type": "string" },
-    "userMessageEn": { "type": "string" },
-    "features": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["catalog", "compositions", "compositionAugments"],
-      "properties": {
-        "catalog": { "enum": ["READY", "COLLECTING", "UNAVAILABLE"] },
-        "compositions": { "enum": ["READY", "PARTIAL", "COLLECTING", "UNAVAILABLE"] },
-        "compositionAugments": { "enum": ["READY", "COLLECTING", "UNAVAILABLE"] }
-      }
-    },
-    "counts": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "champions",
-        "traits",
-        "items",
-        "augments",
-        "compositions",
-        "targetCompositions",
-        "qualifiedSourceCompositions",
-        "missingAugmentCompositions"
-      ],
-      "properties": {
-        "champions": { "type": "integer", "minimum": 0 },
-        "traits": { "type": "integer", "minimum": 0 },
-        "items": { "type": "integer", "minimum": 0 },
-        "augments": { "type": "integer", "minimum": 0 },
-        "compositions": { "type": "integer", "minimum": 0 },
-        "targetCompositions": { "type": "integer", "minimum": 1 },
-        "qualifiedSourceCompositions": { "type": "integer", "minimum": 0 },
-        "missingAugmentCompositions": { "type": "integer", "minimum": 0 }
-      }
-    },
-    "warnings": {
-      "type": "array",
-      "items": { "type": "string", "minLength": 1 },
-      "uniqueItems": true
-    }
+    "releaseState": { "enum": ["STABLE", "PARTIAL"] }, "validationStatus": { "enum": ["PASS", "PARTIAL_PASS"] }, "sourceAlignment": { "enum": ["VERIFIED", "PARTIAL"] },
+    "qualityState": { "enum": ["READY", "DEGRADED_OPTIONAL", "DEGRADED_CORE", "CATALOG_ONLY"] },
+    "userMessageJa": { "type": "string" }, "userMessageEn": { "type": "string" },
+    "features": { "$ref": "#/$defs/features" },
+    "levelBoardReadiness": { "type": "object", "additionalProperties": false, "required": ["lv4", "lv5", "lv6", "lv7", "lv8", "lv9"], "properties": { "lv4": { "$ref": "#/$defs/featureState" }, "lv5": { "$ref": "#/$defs/featureState" }, "lv6": { "$ref": "#/$defs/featureState" }, "lv7": { "$ref": "#/$defs/featureState" }, "lv8": { "$ref": "#/$defs/featureState" }, "lv9": { "$ref": "#/$defs/featureState" } } },
+    "counts": { "type": "object", "additionalProperties": false, "required": ["champions", "traits", "items", "augments", "compositions", "targetCompositions", "qualifiedSourceCompositions", "missingAugmentCompositions"], "properties": { "champions": { "type": "integer", "minimum": 0 }, "traits": { "type": "integer", "minimum": 0 }, "items": { "type": "integer", "minimum": 0 }, "augments": { "type": "integer", "minimum": 0 }, "compositions": { "type": "integer", "minimum": 0 }, "targetCompositions": { "type": "integer", "minimum": 1 }, "qualifiedSourceCompositions": { "type": "integer", "minimum": 0 }, "missingAugmentCompositions": { "type": "integer", "minimum": 0 } } },
+    "warnings": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+  },
+  "$defs": {
+    "featureState": { "enum": ["READY", "PARTIAL", "COLLECTING", "NOT_PROVIDED", "UNAVAILABLE"] },
+    "features": { "type": "object", "additionalProperties": false, "required": ["catalog", "champions", "traits", "items", "augments", "compositions", "boards", "recommendedItems", "compositionAugments"], "properties": { "catalog": { "$ref": "#/$defs/featureState" }, "champions": { "$ref": "#/$defs/featureState" }, "traits": { "$ref": "#/$defs/featureState" }, "items": { "$ref": "#/$defs/featureState" }, "augments": { "$ref": "#/$defs/featureState" }, "compositions": { "$ref": "#/$defs/featureState" }, "boards": { "$ref": "#/$defs/featureState" }, "recommendedItems": { "$ref": "#/$defs/featureState" }, "compositionAugments": { "$ref": "#/$defs/featureState" } } }
   }
 }

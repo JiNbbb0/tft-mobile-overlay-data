@@ -81,6 +81,7 @@ $normalized = [ordered]@{
                 tier = [string]$composition.tier
                 averagePlacement = Exact-Numeric $composition.averagePlacement
                 sampleCount = [int64](Optional $composition 'sampleCount' 0)
+                overviewUnitIds = @((Optional $composition 'overviewUnitIds' @()) | ForEach-Object { [string]$_ })
                 itemRecommendations = @(
                     @(Optional $composition 'itemRecommendations' @()) | ForEach-Object {
                         [ordered]@{

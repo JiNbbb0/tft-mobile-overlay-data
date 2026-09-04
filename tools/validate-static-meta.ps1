@@ -185,6 +185,24 @@ foreach ($composition in $compositions) {
     if ($finalBoardUnits.Count -ne [int]$composition.finalBoard.level) {
         throw "Completed board unit count must match its level: $($composition.id)/Lv$($composition.finalBoard.level) [$($finalBoardUnits.Count)]"
     }
+    if ([int]$snapshot.schemaVersion -ge 5) {
+        $overviewUnitIds = @($composition.overviewUnitIds | ForEach-Object { [string]$_ })
+        if ($overviewUnitIds.Count -ne $finalBoardUnits.Count) {
+            throw "MetaTFT overview order count mismatch: $($composition.id)"
+        }
+        $overviewCounts = @{}
+        $boardCounts = @{}
+        foreach ($id in $overviewUnitIds) { $overviewCounts[$id] = 1 + [int]($overviewCounts[$id]) }
+        foreach ($unit in $finalBoardUnits) {
+            $id = [string]$unit.id
+            $boardCounts[$id] = 1 + [int]($boardCounts[$id])
+        }
+        foreach ($id in @($overviewCounts.Keys) + @($boardCounts.Keys) | Select-Object -Unique) {
+            if ([int]$overviewCounts[$id] -ne [int]$boardCounts[$id]) {
+                throw "MetaTFT overview order unit mismatch: $($composition.id)/$id"
+            }
+        }
+    }
 
     $boards = @($composition.finalBoard) + @($composition.levelBoards)
     $levels = @($composition.levelBoards | ForEach-Object { [int]$_.level } | Sort-Object -Unique)

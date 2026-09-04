@@ -512,6 +512,7 @@ foreach ($item in $communityDragon.items) {
 }
 
 $metaTftTitleNameMap = @{}
+$metaTftOverviewCostMap = @{}
 foreach ($entry in @($metaTftLookup.traits) + @($metaTftLookup.items)) {
     if ($entry.apiName -and $entry.name) {
         $metaTftTitleNameMap[[string]$entry.apiName] = [string]$entry.name
@@ -519,9 +520,15 @@ foreach ($entry in @($metaTftLookup.traits) + @($metaTftLookup.items)) {
 }
 foreach ($unit in @($metaTftLookup.units)) {
     if (-not $unit.name) { continue }
-    if ($unit.apiName) { $metaTftTitleNameMap[[string]$unit.apiName] = [string]$unit.name }
+    if ($unit.apiName) {
+        $metaTftTitleNameMap[[string]$unit.apiName] = [string]$unit.name
+        $metaTftOverviewCostMap[[string]$unit.apiName] = [int]$unit.cost
+    }
     foreach ($assetName in @($unit.assetNames)) {
-        if ($assetName) { $metaTftTitleNameMap[[string]$assetName] = [string]$unit.name }
+        if ($assetName) {
+            $metaTftTitleNameMap[[string]$assetName] = [string]$unit.name
+            $metaTftOverviewCostMap[[string]$assetName] = [int]$unit.cost
+        }
     }
 }
 if ($metaTftTitleNameMap.Count -eq 0) {
@@ -628,6 +635,36 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
             Where-Object { $unitMap.ContainsKey($_) -and @($unitMap[$_].traits).Count -gt 0 } |
             Select-Object -First 9
     )
+    $overviewCostRows = @(
+        for ($unitIndex = 0; $unitIndex -lt $boardUnitIds.Count; $unitIndex++) {
+            $unitId = [string]$boardUnitIds[$unitIndex]
+            if (-not $metaTftOverviewCostMap.ContainsKey($unitId)) {
+                throw "MetaTFT overview order has no cost for unit: $unitId"
+            }
+            [pscustomobject]@{
+                id = $unitId
+                cost = [int]$metaTftOverviewCostMap[$unitId]
+                sourceIndex = $unitIndex
+            }
+        }
+    )
+    # MetaTFT desktop first orders the row by unit cost (high to low), then
+    # performs a stable carry sort using the exact comp_data.builds order.
+    $costOrderedUnitIds = @(
+        $overviewCostRows |
+            Sort-Object @{ Expression = { -[int]$_.cost } }, sourceIndex |
+            ForEach-Object { [string]$_.id }
+    )
+    $buildUnitIds = @(
+        @($cluster.builds) |
+            ForEach-Object { [string]$_.unit } |
+            Where-Object { $_ -and $_ -in $costOrderedUnitIds } |
+            Select-Object -Unique
+    )
+    $overviewUnitIds = @(
+        @($buildUnitIds)
+        @($costOrderedUnitIds | Where-Object { $_ -notin $buildUnitIds })
+    )
 
     [pscustomobject][ordered]@{
         id = $clusterId
@@ -637,6 +674,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
         averagePlacement = [double]$averagePlacement
         sampleCount = $sampleCount
         boardUnitIds = @($boardUnitIds)
+        overviewUnitIds = @($overviewUnitIds)
         unitIds = @($boardUnitIds | Select-Object -Unique)
         primaryUnitIds = @(
             @($cluster.name) |
@@ -941,6 +979,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
         averagePlacement = [double]$composition.averagePlacement
         sampleCount = [int]$composition.sampleCount
         itemRecommendations = @($itemRecommendations)
+        overviewUnitIds = @($composition.overviewUnitIds)
         units = @($units)
         rollPlan = $rollPlan
         recommendedAugments = @($recommendedAugments)

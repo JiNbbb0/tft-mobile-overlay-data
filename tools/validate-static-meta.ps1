@@ -30,7 +30,7 @@ $snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedSnapshot | Con
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedCatalog | ConvertFrom-Json
 $assetRoot = Split-Path -Parent (Split-Path -Parent $resolvedCatalog)
 $catalogEntries = @{}
-foreach ($entry in @($catalog.champions) + @($catalog.items) + @($catalog.augments)) {
+foreach ($entry in @($catalog.champions) + @($catalog.traits) + @($catalog.items) + @($catalog.augments)) {
     $catalogEntries[$entry.id] = $entry
 }
 if ([int]$snapshot.schemaVersion -notin @(4,5)) { throw "Unsupported static meta schema" }
@@ -72,6 +72,44 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
         $statsUrl -notmatch 'permit_filter_adjustment=false' -or
         $statsUrl -notmatch 'cluster_id=') {
         throw "MetaTFT composition statistics URL does not match the public comps page"
+    }
+}
+
+if (-not $snapshot.PSObject.Properties['catalogStatistics']) { throw 'MetaTFT catalog statistics are missing.' }
+$catalogStats = $snapshot.catalogStatistics
+if ([string]$catalogStats.scope.queue -ne '1100' -or [string]$catalogStats.scope.patch -ne 'current' -or [int]$catalogStats.scope.days -ne 3) {
+    throw 'Catalog statistics scope does not match the MetaTFT page contract.'
+}
+if (-not (Test-TftStatisticsRankFilter ([string]$catalogStats.scope.rank)) -or [string]$catalogStats.scope.displayRank -ne 'Diamond+') {
+    throw 'Catalog statistics rank scope is not Diamond+.'
+}
+foreach ($sourceName in @('unitStatistics','itemStatistics','traitStatistics','unitItemPopularity')) {
+    $sourceUrl = [string]$snapshot.sources.$sourceName
+    if (-not $sourceUrl -or $sourceUrl -notmatch 'patch=current' -or $sourceUrl -notmatch 'days=3' -or $sourceUrl -notmatch ([Regex]::Escape("rank=$($catalogStats.scope.rank)"))) {
+        throw "Catalog statistics source does not preserve the selected scope: $sourceName"
+    }
+}
+$catalogStatIds = @{}
+foreach ($kind in @('units','items','traits')) {
+    $rows = @($catalogStats.$kind)
+    if ($rows.Count -eq 0) { throw "Catalog statistics category is empty: $kind" }
+    $seen = @{}
+    foreach ($row in $rows) {
+        $id = [string]$row.id
+        if (-not $id -or -not $catalogEntries.ContainsKey($id)) { throw "Catalog statistics reference is unresolved: $kind/$id" }
+        if ($seen.ContainsKey($id)) { throw "Duplicate catalog statistics ID: $kind/$id" }
+        $seen[$id] = $true
+        if ([string]$row.tier -notin @('S','A','B','C','D')) { throw "Invalid catalog statistics tier: $kind/$id" }
+        if ([double]$row.averagePlacement -lt 1 -or [double]$row.averagePlacement -gt 8) { throw "Catalog statistics placement outside 1-8: $kind/$id" }
+        if ([double]$row.winRate -lt 0 -or [double]$row.winRate -gt 1 -or [double]$row.frequency -lt 0) { throw "Catalog statistics rate is invalid: $kind/$id" }
+        if ([int64]$row.sampleCount -le 0) { throw "Catalog statistics sample count is invalid: $kind/$id" }
+        $catalogStatIds["$kind/$id"] = $true
+    }
+}
+foreach ($augment in @($snapshot.augments)) {
+    if ([string]$augment.rarity -notin @('Silver','Gold','Prismatic','')) { throw "Invalid augment rarity: $($augment.id)" }
+    foreach ($stage in @($augment.stages) | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }) {
+        if ([string]$stage -notin @('2-1','3-2','4-2')) { throw "Invalid augment stage: $($augment.id)/$stage" }
     }
 }
 

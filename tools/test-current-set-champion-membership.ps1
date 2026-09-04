@@ -3,6 +3,7 @@ Set-StrictMode -Version Latest
 
 $catalogPath = Join-Path $PSScriptRoot 'refresh-catalog.ps1'
 $gatedPath = Join-Path $PSScriptRoot 'refresh-live-data-gated.ps1'
+$obsoleteHotfixPath = Join-Path (Split-Path -Parent $PSScriptRoot) '.github/workflows/one-shot-current-set-champion-hotfix.yml'
 foreach ($path in @($catalogPath, $gatedPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing source under test: $path" }
 }
@@ -23,11 +24,17 @@ if (-not $catalog.Contains('$expectedChampionIds = @{}')) {
     throw 'Out-of-set validation must use the actual selected current-set champion IDs.'
 }
 
-# The raw-client fallback patch must accept the already-hardened trait flattener;
-# otherwise the next genuinely partial CommunityDragon set would fail while
-# attempting to enable fallback.
-if (-not $gated.Contains('if ($catalogText.Contains($newTraitNames))')) {
-    throw 'Raw champion fallback must accept an already-hardened trait-name block.'
+# New-set fallback is permanent generator behavior. The gate may inspect source
+# readiness, but it must never rewrite production scripts at runtime.
+if (-not $catalog.Contains(". (Join-Path `$PSScriptRoot 'raw-champion-fallback.ps1')") -or
+    -not $catalog.Contains('Get-RawSetChampions -SetNumber $SetNumber')) {
+    throw 'Current-set catalog does not contain its permanent raw LIVE champion fallback.'
+}
+if ($gated.Contains('$catalogText') -or $gated.Contains('Write-Utf8NoBom') -or $gated -match 'setNumber\s+-eq\s+18') {
+    throw 'Source-readiness gate must not self-modify generators or contain a Set 18 patch.'
+}
+if (Test-Path -LiteralPath $obsoleteHotfixPath -PathType Leaf) {
+    throw 'Obsolete one-shot workflow can rewrite production generators and must not be present.'
 }
 
 # Synthetic behavior fixture: current-set membership is data membership, not a

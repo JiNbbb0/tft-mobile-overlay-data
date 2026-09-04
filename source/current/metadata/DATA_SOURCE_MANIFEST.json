@@ -1,140 +1,353 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-09-04T10:00:19Z",
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-04T17:41:26Z",
   "setId": "TFTSet18",
   "patch": "18.1",
   "revisionId": "422",
+  "coherenceStatus": "VERIFIED",
+  "sourceEvidence": {
+    "set": {
+      "value": "TFTSet18",
+      "status": "CROSS_SOURCE_VERIFIED"
+    },
+    "patch": {
+      "value": "18.1",
+      "status": "AUTHORITY_VERIFIED"
+    },
+    "revision": {
+      "value": "422",
+      "status": "AUTHORITY_VERIFIED"
+    },
+    "catalogStatistics": {
+      "value": "Diamond+",
+      "status": "SOURCE_AND_SCOPE_VERIFIED"
+    }
+  },
   "sources": [
     {
       "sourceName": "Riot TFT patch notes",
+      "role": "PATCH_AUTHORITY",
       "sourceUrl": "https://teamfighttactics.leagueoflegends.com/en-us/news/tags/patch-notes/",
-      "fetchedAt": "09/04/2026 10:00:17",
+      "finalUrl": "https://teamfighttactics.leagueoflegends.com/en-us/news/tags/patch-notes/",
+      "fetchedAt": "09/04/2026 17:39:42",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Riot website terms and Riot Legal Notices",
-      "responseHash": "72dfef2bd442a3ae27103e52ebc258fbad0e49b123acbb2d35ef113a284ed460",
-      "hashBasis": "generated-output-fallback",
+      "responseHash": "a9aea612097b0ece9715dfdde7500b058593af3d40d5028c60a85fc444bcba84",
+      "hashBasis": "source-response",
+      "evidenceKind": "RIOT_PATCH_AUTHORITY",
+      "nativeClaims": {
+        "patch": "18.1"
+      },
+      "queryClaims": {},
+      "verdict": "VERIFIED",
       "recordCount": 1
     },
     {
       "sourceName": "CommunityDragon TFT Japanese data",
+      "role": "CURRENT_SET_CATALOG",
       "sourceUrl": "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json",
-      "fetchedAt": "09/04/2026 09:59:50",
+      "finalUrl": "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json",
+      "fetchedAt": "09/04/2026 17:40:37",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot",
       "responseHash": "70c75a2fcc843aa0c58fe49848a7caefcda5d44c3261b73fd1fe2322e93d20b7",
       "hashBasis": "source-response",
-      "recordCount": 1274
+      "evidenceKind": "RESPONSE_CURRENT_SET_MEMBERSHIP",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {},
+      "verdict": "VERIFIED",
+      "recordCount": 1361
     },
     {
       "sourceName": "CommunityDragon TFT English data",
+      "role": "CURRENT_SET_CATALOG",
       "sourceUrl": "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json",
-      "fetchedAt": "09/04/2026 09:59:12",
+      "finalUrl": "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json",
+      "fetchedAt": "09/04/2026 17:40:00",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot",
       "responseHash": "d91ba4ad7db5a6d896132ba3df8da0a2092ed13855f1a9660dbe7e12bdcd77f5",
       "hashBasis": "source-response",
-      "recordCount": 1274
+      "evidenceKind": "RESPONSE_CURRENT_SET_MEMBERSHIP",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {},
+      "verdict": "VERIFIED",
+      "recordCount": 1361
     },
     {
       "sourceName": "CommunityDragon image assets",
+      "role": "CURRENT_SET_ASSETS",
       "sourceUrl": "https://raw.communitydragon.org/latest/game/",
-      "fetchedAt": "09/04/2026 09:59:33",
+      "finalUrl": "https://raw.communitydragon.org/latest/game/",
+      "fetchedAt": "09/04/2026 17:41:23",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot",
-      "responseHash": "31688ee4b1b46f5736eaa91241c3c63fed9707f493681134a3b6ad7481e12cfd",
-      "hashBasis": "source-response",
-      "recordCount": 627
+      "responseHash": "f15520aecfe21c5204ed651c5f64ac6b3f21d0b3b009c7b3acf03e0f5ee4bd32",
+      "hashBasis": "generated-output-fallback",
+      "evidenceKind": "NONE",
+      "nativeClaims": {},
+      "queryClaims": {},
+      "verdict": "UNVERIFIED",
+      "recordCount": 622
     },
     {
       "sourceName": "MetaTFT cluster information",
+      "role": "SET_REVISION_AUTHORITY",
       "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/latest_cluster_info",
-      "fetchedAt": "09/04/2026 09:59:41",
+      "finalUrl": "https://api-hc.metatft.com/tft-comps-api/latest_cluster_info",
+      "fetchedAt": "09/04/2026 17:40:13",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
-      "responseHash": "00620c1ebd14d89296e465ebb3102868a8a8ac987e08b4ecddecb369d75f2168",
+      "responseHash": "c808ec4c064d66fe4c1d1b6ce07b81d7dccaf353a6852012def0a05ff9770946",
       "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "revisionId": "422",
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {},
+      "verdict": "VERIFIED",
       "recordCount": 1
     },
     {
       "sourceName": "MetaTFT augment tiers",
+      "role": "AUGMENT_STATISTICS",
       "sourceUrl": "https://api-hc.metatft.com/tft-stat-api/augments_tiers",
-      "fetchedAt": "09/04/2026 09:59:48",
+      "finalUrl": "https://api-hc.metatft.com/tft-stat-api/augments_tiers",
+      "fetchedAt": "09/04/2026 17:40:34",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
-      "responseHash": "659d9ea3446bcd94d6da97e2aac17e74c71cf44b3ee50c484c93b9e9765a78be",
+      "responseHash": "26c958da14212287925f07c06dfa7d4426340b073d889edaf5557703c65c309e",
       "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {},
+      "verdict": "VERIFIED",
       "recordCount": 253
     },
     {
       "sourceName": "MetaTFT composition statistics",
-      "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true&cluster_id=422",
-      "fetchedAt": "09/04/2026 09:59:43",
+      "role": "COMPOSITION_STATISTICS",
+      "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER&permit_filter_adjustment=false&cluster_id=422",
+      "finalUrl": "https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER&permit_filter_adjustment=false&cluster_id=422",
+      "fetchedAt": "09/04/2026 17:40:16",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
-      "responseHash": "88fc5d12dbe14ebb16b99a45da212b7017d374925989ff4e95ebc6b3d513341a",
+      "responseHash": "835642772a7cb429fda8f96e87b1c4a4b9419d30de0703accbcdee6817df31ce",
       "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18",
+        "revisionId": "422"
+      },
+      "queryClaims": {
+        "revisionId": "422",
+        "patchMode": "current",
+        "rank": "CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+        "permitFilterAdjustment": "false"
+      },
+      "verdict": "VERIFIED",
       "recordCount": 18
     },
     {
+      "sourceName": "MetaTFT unit statistics",
+      "role": "CATALOG_STATISTICS",
+      "sourceUrl": "https://api-hc.metatft.com/tft-stat-api/units?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "finalUrl": "https://api-hc.metatft.com/tft-stat-api/units?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "fetchedAt": "09/04/2026 17:40:17",
+      "setId": "TFTSet18",
+      "patch": "18.1",
+      "revisionId": "422",
+      "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
+      "responseHash": "08dcd25dd291dc910284ae0aad6cfb69550e37767b38f9ddc7063453e0af3464",
+      "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {
+        "patchMode": "current",
+        "rank": "CHALLENGER,DIAMOND,GRANDMASTER,MASTER"
+      },
+      "verdict": "VERIFIED",
+      "recordCount": 65
+    },
+    {
+      "sourceName": "MetaTFT item statistics",
+      "role": "CATALOG_STATISTICS",
+      "sourceUrl": "https://api-hc.metatft.com/tft-stat-api/items_matches?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "finalUrl": "https://api-hc.metatft.com/tft-stat-api/items_matches?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "fetchedAt": "09/04/2026 17:40:19",
+      "setId": "TFTSet18",
+      "patch": "18.1",
+      "revisionId": "422",
+      "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
+      "responseHash": "c78f07df79bf812d1e08c36ec2324be078f7f80bac46d4d2bbdb6880a65de116",
+      "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {
+        "patchMode": "current",
+        "rank": "CHALLENGER,DIAMOND,GRANDMASTER,MASTER"
+      },
+      "verdict": "VERIFIED",
+      "recordCount": 141
+    },
+    {
+      "sourceName": "MetaTFT trait statistics",
+      "role": "CATALOG_STATISTICS",
+      "sourceUrl": "https://api-hc.metatft.com/tft-stat-api/traits?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "finalUrl": "https://api-hc.metatft.com/tft-stat-api/traits?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "fetchedAt": "09/04/2026 17:40:20",
+      "setId": "TFTSet18",
+      "patch": "18.1",
+      "revisionId": "422",
+      "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
+      "responseHash": "d4ec3012096a520b2512d1e049ae72dcb3bdd62ba16ce601066623519cc4bfc0",
+      "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {
+        "patchMode": "current",
+        "rank": "CHALLENGER,DIAMOND,GRANDMASTER,MASTER"
+      },
+      "verdict": "VERIFIED",
+      "recordCount": 35
+    },
+    {
+      "sourceName": "MetaTFT unit and item popularity",
+      "role": "CATALOG_POPULARITY",
+      "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/unit_items_processed?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "finalUrl": "https://api-hc.metatft.com/tft-comps-api/unit_items_processed?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,GRANDMASTER,MASTER",
+      "fetchedAt": "09/04/2026 17:40:21",
+      "setId": "TFTSet18",
+      "patch": "18.1",
+      "revisionId": "422",
+      "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
+      "responseHash": "fbe5416ebf0747c8fdd38daf45c978a7f67ab81410372615ef679763e5be9c99",
+      "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {
+        "patchMode": "current",
+        "rank": "CHALLENGER,DIAMOND,GRANDMASTER,MASTER"
+      },
+      "verdict": "VERIFIED",
+      "recordCount": 206
+    },
+    {
       "sourceName": "MetaTFT Japanese lookup",
+      "role": "LOCALIZATION",
       "sourceUrl": "https://data.metatft.com/lookups/TFTSet18_latest_ja_jp.json",
-      "fetchedAt": "09/04/2026 09:59:52",
+      "finalUrl": "https://data.metatft.com/lookups/TFTSet18_latest_ja_jp.json",
+      "fetchedAt": "09/04/2026 17:40:39",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
       "responseHash": "38a8ea6958a07a3579cca7bd76e08ef36850b1503be3b9a8dfb7401b1e856ca8",
       "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_CURRENT_SET_MEMBERSHIP",
+      "nativeClaims": {
+        "setId": "TFTSet18"
+      },
+      "queryClaims": {},
+      "verdict": "VERIFIED",
       "recordCount": 18
     },
     {
       "sourceName": "MetaTFT composition item builds",
+      "role": "RECOMMENDED_ITEMS",
       "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/comp_builds?cluster_id=422",
-      "fetchedAt": "09/04/2026 09:59:46",
+      "finalUrl": "https://api-hc.metatft.com/tft-comps-api/comp_builds?cluster_id=422",
+      "fetchedAt": "09/04/2026 17:40:31",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
-      "responseHash": "243d46e0493d2f0e175707407292635eab456d0a4256dabfcb0d0be022af1cb5",
+      "responseHash": "3dcc477cca775c85f480b8e0bf68b79dc4a10cb852b1760d297828d521110d70",
       "hashBasis": "source-response",
-      "recordCount": 1057
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18",
+        "revisionId": "422"
+      },
+      "queryClaims": {
+        "revisionId": "422"
+      },
+      "verdict": "VERIFIED",
+      "recordCount": 1049
     },
     {
       "sourceName": "MetaTFT composition augment tiers",
+      "role": "OPTIONAL_COMPOSITION_AUGMENTS",
       "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/comp_augment_tiers?cluster_id=422",
-      "fetchedAt": "09/04/2026 09:59:48",
+      "finalUrl": "https://api-hc.metatft.com/tft-comps-api/comp_augment_tiers?cluster_id=422",
+      "fetchedAt": "09/04/2026 17:40:32",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
-      "responseHash": "2e157bd8e05a0fba21b25b6149006020207cdee8eaaf9c052a65d4c96eba8b83",
+      "responseHash": "fd86b59a529b1c0e00f960c5f3409752921d8acfe0c0dbe92b045071fed874c7",
       "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18",
+        "revisionId": "422"
+      },
+      "queryClaims": {
+        "revisionId": "422"
+      },
+      "verdict": "VERIFIED",
       "recordCount": 18
     },
     {
       "sourceName": "MetaTFT composition details",
+      "role": "BOARDS_AND_DETAILS",
       "sourceUrl": "https://api-hc.metatft.com/tft-comps-api/comp_details",
-      "fetchedAt": "09/04/2026 10:00:17",
+      "finalUrl": "https://api-hc.metatft.com/tft-comps-api/comp_details?comp=422008&cluster_id=422",
+      "fetchedAt": "09/04/2026 17:41:23",
       "setId": "TFTSet18",
       "patch": "18.1",
       "revisionId": "422",
       "termsOrLicenseNote": "Public endpoint; availability and terms must be monitored",
-      "responseHash": "00bc75813aa3c6047ac0129a91f10c6c4e4ee67c2ba703745501707857199875",
+      "responseHash": "718668b5b6e7c5b0607860490809b3640fde63d42335a3d5ced6c631b118c240",
       "hashBasis": "source-response",
+      "evidenceKind": "RESPONSE_NATIVE_IDENTITY",
+      "nativeClaims": {
+        "setId": "TFTSet18",
+        "revisionId": "422"
+      },
+      "queryClaims": {
+        "revisionId": "422"
+      },
+      "verdict": "VERIFIED",
       "recordCount": 18
     }
   ]

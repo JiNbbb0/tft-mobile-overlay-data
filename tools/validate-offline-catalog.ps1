@@ -26,6 +26,33 @@ foreach ($record in $records) {
     }
 }
 
+function Assert-JsonArrayProperty {
+    param(
+        [Parameter(Mandatory = $true)][object]$Record,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    $property = $Record.PSObject.Properties[$Name]
+    if (-not $property -or $null -eq $property.Value -or $property.Value -isnot [Array]) {
+        throw "Catalog array contract violated: $($Record.id).$Name"
+    }
+}
+foreach ($champion in @($catalog.champions)) { Assert-JsonArrayProperty -Record $champion -Name 'traits' }
+foreach ($trait in @($catalog.traits)) {
+    Assert-JsonArrayProperty -Record $trait -Name 'activationLevels'
+    Assert-JsonArrayProperty -Record $trait -Name 'championIds'
+}
+foreach ($item in @($catalog.items)) {
+    Assert-JsonArrayProperty -Record $item -Name 'recipe'
+    if (-not $item.restrictions) { throw "Catalog restrictions missing: $($item.id)" }
+    Assert-JsonArrayProperty -Record $item.restrictions -Name 'composition'
+    Assert-JsonArrayProperty -Record $item.restrictions -Name 'incompatibleTraits'
+}
+foreach ($augment in @($catalog.augments)) {
+    Assert-JsonArrayProperty -Record $augment -Name 'associatedTraits'
+    Assert-JsonArrayProperty -Record $augment -Name 'associatedChampionIds'
+    Assert-JsonArrayProperty -Record $augment -Name 'associatedItemIds'
+}
+
 $unresolvedAbilities = @(
     $catalog.champions | Where-Object {
         -not $_.ability.descriptionJa -or
@@ -47,7 +74,7 @@ foreach ($record in $records) {
         [string]$record.descriptionJa
     } else { '' }
     $name = [string]$record.nameJa
-    if ("$name`n$description" -match '@[^@]+@|%i:|\{\{|\d+\.\d{5,}|NaN|Infinity') {
+    if ("$name`n$description" -match '@[^@]+@|%i:|\{\{|未取得|\d+\.\d{5,}|NaN|Infinity') {
         $unresolvedText += [string]$record.id
     }
 }

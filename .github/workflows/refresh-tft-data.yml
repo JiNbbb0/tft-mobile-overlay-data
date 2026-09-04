@@ -70,6 +70,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-current-set-champion-membership.ps1
 
+      - name: Test current-set naming policy
+        shell: pwsh
+        run: ./tools/test-current-set-name-policy.ps1
+
       - name: Test current-set item universe policy
         shell: pwsh
         run: ./tools/test-current-set-universe.ps1
@@ -98,6 +102,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-metatft-item-ranking-policy.ps1
 
+      - name: Test MetaTFT catalog statistics contract
+        shell: pwsh
+        run: ./tools/test-catalog-statistics-contract.ps1
+
       - name: Test resilient official patch detection policy
         shell: pwsh
         run: ./tools/test-patch-detection-policy.ps1
@@ -109,6 +117,10 @@ jobs:
       - name: Test unattended publication reconciliation policy
         shell: pwsh
         run: ./tools/test-publication-state.ps1
+
+      - name: Test workflow concurrency isolation policy
+        shell: pwsh
+        run: ./tools/test-workflow-concurrency-policy.ps1
 
       - name: Test new-set catalog-first readiness and rollback
         shell: pwsh

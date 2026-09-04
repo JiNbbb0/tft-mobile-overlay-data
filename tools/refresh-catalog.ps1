@@ -14,6 +14,7 @@ Add-Type -AssemblyName System.Net.Http
 . (Join-Path $PSScriptRoot 'normalize/Get-CurrentSetUniverse.ps1')
 . (Join-Path $PSScriptRoot 'normalize/Get-EmblemMappings.ps1')
 . (Join-Path $PSScriptRoot 'normalize/Resolve-SourceBackedArtifactDescription.ps1')
+. (Join-Path $PSScriptRoot 'raw-champion-fallback.ps1')
 
 $RepositoryRoot = if ($RepositoryRootOverride) {
     [IO.Path]::GetFullPath($RepositoryRootOverride)
@@ -38,6 +39,7 @@ $Sources = [ordered]@{
     communityDragonDocs = "https://communitydragon.org/documentation/assets"
     communityDragonJa = "https://raw.communitydragon.org/latest/cdragon/tft/ja_jp.json"
     communityDragonEn = "https://raw.communitydragon.org/latest/cdragon/tft/en_us.json"
+    metaTftJapaneseLookup = "https://data.metatft.com/lookups/$($SetId)_latest_ja_jp.json"
     communityDragonChampionBinTemplate = "https://raw.communitydragon.org/latest/game/characters/{0}.cdtb.bin.json"
 }
 
@@ -177,6 +179,101 @@ function Normalize-Text {
     $text = $text -replace '(?i)%i:[^%]+%', ''
     $text = [Net.WebUtility]::HtmlDecode($text)
     return (($text -replace '[ \t]+', ' ') -replace "(`r?`n){3,}", "`n`n").Trim()
+}
+
+function Get-MetaTftSeries {
+    param(
+        [AllowNull()][object]$Container,
+        [Parameter(Mandatory = $true)][string]$Name
+    )
+    if ($null -eq $Container) { return @() }
+    $property = $Container.PSObject.Properties[$Name]
+    if (-not $property) { return @() }
+    $series = @($property.Value)
+    if ($series.Count -eq 0) { return @() }
+    $values = [Collections.Generic.List[double]]::new()
+    foreach ($entry in $series) {
+        $entryValues = @($entry)
+        $candidate = if ($entryValues.Count -ge 2) { $entryValues[-1] } else { $entry }
+        if ($candidate -is [ValueType]) { $values.Add([double]$candidate) }
+    }
+    return @($values)
+}
+
+function Format-MetaTftSeries {
+    param(
+        [Parameter(Mandatory = $true)][double[]]$Values,
+        [AllowEmptyString()][string]$Format = ''
+    )
+    $formatted = [Collections.Generic.List[string]]::new()
+    foreach ($value in $Values) {
+        $displayValue = switch ($Format) {
+            'percent' { $value * 100; break }
+            'p' { $value * 100; break }
+            'percentMinusOne' { ($value - 1) * 100; break }
+            'invertedPercent' { (1 - $value) * 100; break }
+            default { $value }
+        }
+        $suffix = if ($Format -in @('percent', 'p', 'percentMinusOne', 'invertedPercent')) { '%' } else { '' }
+        $rendered = "$(Format-AbilityNumber -Value ([double]$displayValue))$suffix"
+        if ($formatted.Count -eq 0 -or $formatted[-1] -ne $rendered) { $formatted.Add($rendered) }
+    }
+    return @($formatted) -join '/'
+}
+
+function Resolve-MetaTftDisplayText {
+    param([Parameter(Mandatory = $true)][object]$Entity)
+    $text = [string]$Entity.desc
+    if (-not $text) { return '' }
+    $text = [regex]::Replace($text, '<TFTCurveTable\s+([^>]+)/>', {
+        param($match)
+        $attributes = [string]$match.Groups[1].Value
+        $rowMatch = [regex]::Match($attributes, '(?i)\brow="([^"]+)"')
+        $formatMatch = [regex]::Match($attributes, '(?i)\bformat="([^"]+)"')
+        if (-not $rowMatch.Success) { throw "METATFT_CURVE_ROW_MISSING entity=$($Entity.apiName)" }
+        $rowName = [string]$rowMatch.Groups[1].Value
+        $format = if ($formatMatch.Success) { [string]$formatMatch.Groups[1].Value } else { '' }
+        $values = @(Get-MetaTftSeries -Container (Get-PropertyValue -Object $Entity -Name 'curveValues') -Name $rowName)
+        if ($values.Count -eq 0) { $values = @(Get-MetaTftSeries -Container (Get-PropertyValue -Object $Entity -Name 'curveTable') -Name $rowName) }
+        if ($values.Count -eq 0) { throw "METATFT_CURVE_VALUE_UNRESOLVED entity=$($Entity.apiName) row=$rowName" }
+        return Format-MetaTftSeries -Values $values -Format $format
+    })
+    $text = [regex]::Replace($text, '<TFTAttribute\s+([^>]*)/?>', {
+        param($match)
+        $attributes = [string]$match.Groups[1].Value
+        $attributeMatch = [regex]::Match($attributes, '(?i)\battributeId="([^"]+)"')
+        $fallbackMatch = [regex]::Match($attributes, '(?i)\bfallbackRow="([^"]+)"')
+        $formatMatch = [regex]::Match($attributes, '(?i)\bformat="([^"]+)"')
+        $iconMatch = [regex]::Match($attributes, '(?i)\bicon="([^"]+)"')
+        $format = if ($formatMatch.Success) { [string]$formatMatch.Groups[1].Value } else { '' }
+        $values = @()
+        if ($attributeMatch.Success) {
+            $attributeId = [string]$attributeMatch.Groups[1].Value
+            $values = @(Get-MetaTftSeries -Container (Get-PropertyValue -Object $Entity -Name 'attributeValues') -Name $attributeId)
+            if ($values.Count -eq 0 -and $attributeId -match '(?i)Stack|Current|TFTUnitProperty|TFTTraitAttributes') {
+                return '戦闘中の状態に応じて変化'
+            }
+        }
+        if ($values.Count -eq 0 -and $fallbackMatch.Success) {
+            $values = @(Get-MetaTftSeries -Container (Get-PropertyValue -Object $Entity -Name 'curveTable') -Name ([string]$fallbackMatch.Groups[1].Value))
+        }
+        if ($values.Count -gt 0) { return Format-MetaTftSeries -Values $values -Format $format }
+        if ($iconMatch.Success) {
+            $icon = [string]$iconMatch.Groups[1].Value
+            if ($icon -match '(?i)health') { return '[体力]' }
+            if ($icon -match '(?i)armor') { return '[物理防御]' }
+            if ($icon -match '(?i)mana') { return '[マナ]' }
+            if ($icon -match '(?i)mr') { return '[魔法防御]' }
+            if ($icon -match '(?i)as') { return '[攻撃速度]' }
+            if ($icon -match '(?i)ad') { return '[攻撃力]' }
+            if ($icon -match '(?i)ap') { return '[魔力]' }
+        }
+        return ''
+    })
+    $text = $text -replace '(?i)<img\s+id="[^"]+"\s*/>', ''
+    $text = $text -replace '\{[^{}]+\.CombatSpacer\}', "`n"
+    $text = [regex]::Replace($text, '\{[^{}]+\}', '戦闘中の状態に応じて変化')
+    return Normalize-Text -Value $text -Effects $null
 }
 
 function Get-PropertyValue {
@@ -469,9 +566,20 @@ function Save-Asset {
 }
 
 function Get-ItemCategory {
-    param([Parameter(Mandatory = $true)][object]$Item)
+    param(
+        [Parameter(Mandatory = $true)][object]$Item,
+        [AllowNull()][object]$MetaTftItem
+    )
     $id = [string]$Item.apiName
     $name = [string]$Item.name
+    $tags = if ($MetaTftItem) { @($MetaTftItem.tags) -join ',' } else { '' }
+    if ($tags -match 'Item\.Equippable\.Consumable|Item\.Equippable\.Item\.Temporary') { return "消耗品" }
+    if ($tags -match 'Item\.Equippable\.Item\.Emblem') { return "紋章" }
+    if ($tags -match 'Item\.Equippable\.Item\.Radiant') { return "レディアント" }
+    if ($tags -match 'Item\.Equippable\.Item\.Artifact|(^|,)Artifact(,|$)') { return "アーティファクト" }
+    if ($tags -match 'Item\.Equippable\.Item\.Support') { return "サポート" }
+    if ($tags -match 'Item\.Equippable\.Item\.Component') { return "素材アイテム" }
+    if ($tags -match 'Item\.Equippable\.Item\.Craftable') { return "通常完成アイテム" }
     if ($id -match 'Consumable|Remover|Reroller|Duplicator|Reforger|Armory|Anvil') { return "消耗品" }
     if ($name -match '紋章' -or $id -match 'Emblem') { return "紋章" }
     if ($id -match 'Radiant|TFT5_Radiant') { return "レディアント" }
@@ -492,17 +600,28 @@ function Get-AugmentRarity {
     return "分類未取得"
 }
 
+function Convert-MetaTftAugmentRarity {
+    param([AllowNull()][string]$Value)
+    switch ([string]$Value) {
+        'Silver' { return 'シルバー' }
+        'Gold' { return 'ゴールド' }
+        'Prismatic' { return 'プリズム' }
+        default { return '' }
+    }
+}
+
 function To-SearchKeywords {
     param([string[]]$Values)
     return (@($Values | Where-Object { $_ } | ForEach-Object { $_.ToLowerInvariant() } | Select-Object -Unique) -join ' ')
 }
 
-New-Item -ItemType Directory -Force -Path $AssetRoot, $ImageRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $AssetRoot, $ImageRoot, $ReportRoot | Out-Null
 
 $versions = Get-Json -Url $Sources.riotVersions
 $dataDragonVersion = [string]@($versions)[0]
 $ja = Get-Json -Url $Sources.communityDragonJa
 $en = Get-Json -Url $Sources.communityDragonEn
+$metaTftLookup = Get-Json -Url $Sources.metaTftJapaneseLookup
 $setJa = $ja.setData | Where-Object { $_.mutator -eq $SetId } | Select-Object -First 1
 $setEn = $en.setData | Where-Object { $_.mutator -eq $SetId } | Select-Object -First 1
 if (-not $setJa -or -not $setEn) { throw "Set $SetId was not found in CommunityDragon." }
@@ -515,6 +634,17 @@ $jaItemMap = @{}
 foreach ($entry in $ja.items) { if ($entry.apiName) { $jaItemMap[[string]$entry.apiName] = $entry } }
 $enItemMap = @{}
 foreach ($entry in $en.items) { if ($entry.apiName) { $enItemMap[[string]$entry.apiName] = $entry } }
+$metaTftItemMap = @{}
+foreach ($entry in @($metaTftLookup.items)) { if ($entry.apiName) { $metaTftItemMap[[string]$entry.apiName] = $entry } }
+$metaTftTraitMap = @{}
+foreach ($entry in @($metaTftLookup.traits)) { if ($entry.apiName) { $metaTftTraitMap[[string]$entry.apiName] = $entry } }
+$metaTftAugmentMap = @{}
+foreach ($entry in @($metaTftLookup.augments)) { if ($entry.apiName) { $metaTftAugmentMap[[string]$entry.apiName] = $entry } }
+$metaTftShopUnits = @(
+    $metaTftLookup.units |
+        Where-Object { $_.shopUnit -eq $true -and [int]$_.cost -ge 1 -and [int]$_.cost -le 5 } |
+        Sort-Object cost, name
+)
 
 $playableChampions = @(
     $setJa.champions |
@@ -529,6 +659,68 @@ $playableChampions = @(
         } |
         Sort-Object cost, name
 )
+$rawChampionFallbackUsed = $false
+if ($playableChampions.Count -lt 40) {
+    $playableChampions = @(Get-RawSetChampions -SetNumber $SetNumber -SetJa $setJa -SetEn $setEn)
+    $rawChampionFallbackUsed = $true
+    $Sources['communityDragonRawMap22'] = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
+    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/en_us/tft.stringtable.json'
+    $Sources['communityDragonEnStringTable'] = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
+}
+$metaTftChampionCatalogUsed = $false
+if ($metaTftShopUnits.Count -ge 40) {
+    $sourceChampionById = @{}
+    foreach ($sourceChampion in $playableChampions) {
+        if ($sourceChampion.apiName) { $sourceChampionById[[string]$sourceChampion.apiName] = $sourceChampion }
+    }
+    $canonicalChampions = [Collections.Generic.List[object]]::new()
+    foreach ($metaUnit in $metaTftShopUnits) {
+        $sourceChampion = if ($sourceChampionById.ContainsKey([string]$metaUnit.apiName)) {
+            $sourceChampionById[[string]$metaUnit.apiName]
+        } else {
+            $matched = $null
+            foreach ($assetName in @($metaUnit.assetNames)) {
+                if ($sourceChampionById.ContainsKey([string]$assetName)) {
+                    $matched = $sourceChampionById[[string]$assetName]
+                    break
+                }
+            }
+            $matched
+        }
+        if (-not $sourceChampion) {
+            throw "METATFT_CHAMPION_ASSET_MAPPING_MISSING unit=$($metaUnit.apiName) assets=$(@($metaUnit.assetNames) -join ',')"
+        }
+        $canonicalChampions.Add([pscustomobject]@{
+            # Publication IDs must remain compatible with MetaTFT composition and
+            # statistics payloads, which use the exact asset identity rather than
+            # the display lookup's TFT18_* character identity.
+            apiName = [string]$sourceChampion.apiName
+            name = [string]$metaUnit.name
+            nameEn = [string]$metaUnit.en_name
+            cost = [int]$metaUnit.cost
+            squareIcon = [string]$sourceChampion.squareIcon
+            traits = @($metaUnit.traits)
+            ability = [pscustomobject]@{
+                name = [string]$metaUnit.ability.name
+                nameEn = ''
+                desc = [string]$metaUnit.ability.desc
+                icon = [string]$sourceChampion.ability.icon
+                variables = @()
+                metaTftEntity = [pscustomobject]@{
+                    apiName = [string]$metaUnit.apiName
+                    desc = [string]$metaUnit.ability.desc
+                    curveValues = Get-PropertyValue -Object $metaUnit -Name 'curveValues'
+                    curveTable = Get-PropertyValue -Object $metaUnit -Name 'curveTable'
+                    attributeValues = Get-PropertyValue -Object $metaUnit.ability -Name 'attributeValues'
+                }
+            }
+            stats = $sourceChampion.stats
+            metaTftUnit = $metaUnit
+        })
+    }
+    $playableChampions = @($canonicalChampions)
+    $metaTftChampionCatalogUsed = $true
+}
 $championIdsByTraitName = @{}
 foreach ($champion in $playableChampions) {
     foreach ($traitName in @(Get-PropertyValue -Object $champion -Name 'traits')) {
@@ -546,25 +738,29 @@ foreach ($champion in $playableChampions) {
     $english = if ($enChampionMap.ContainsKey($id)) { $enChampionMap[$id] } else { $null }
     $image = Save-Asset -AssetPath ([string]$champion.squareIcon) -OwnerId $id -Category "champion"
     $abilityIcon = Save-Asset -AssetPath ([string]$champion.ability.icon) -OwnerId "$id-ability" -Category "ability"
-    $englishName = if ($english) { [string]$english.name } else { "" }
+    $englishName = if ($english) { [string]$english.name } elseif ($champion.PSObject.Properties['nameEn']) { [string]$champion.nameEn } else { "" }
     $championBinUrl = [string]::Format(
         [string]$Sources.communityDragonChampionBinTemplate,
         $id.ToLowerInvariant()
     )
-    $abilityDescription = Resolve-AbilityDescription -Champion $champion -BinUrl $championBinUrl
+    $abilityDescription = if ($champion.ability.PSObject.Properties['metaTftEntity']) {
+        Resolve-MetaTftDisplayText -Entity $champion.ability.metaTftEntity
+    } else {
+        Resolve-AbilityDescription -Champion $champion -BinUrl $championBinUrl
+    }
     $searchValues = @([string]$champion.name, $englishName, $id) + @($champion.traits)
     $champions.Add([pscustomobject][ordered]@{
         id = $id
         nameJa = [string]$champion.name
-        nameEn = if ($english) { [string]$english.name } else { "" }
+        nameEn = $englishName
         cost = [int]$champion.cost
         image = $image
         traits = @($champion.traits | Where-Object { $_ })
         ability = [ordered]@{
             nameJa = [string]$champion.ability.name
-            nameEn = if ($english) { [string]$english.ability.name } else { "" }
+            nameEn = if ($english) { [string]$english.ability.name } elseif ($champion.ability.PSObject.Properties['nameEn']) { [string]$champion.ability.nameEn } else { "" }
             descriptionJa = $abilityDescription
-            valuesSource = 'CommunityDragon latest TFT JSON + champion game bin calculations'
+            valuesSource = if ($champion.ability.PSObject.Properties['metaTftEntity']) { 'MetaTFT current-set Japanese lookup' } else { 'CommunityDragon latest TFT JSON + champion game bin calculations' }
             icon = $abilityIcon
         }
         mana = [ordered]@{ initial = [int]$champion.stats.initialMana; maximum = [int]$champion.stats.mana }
@@ -604,12 +800,21 @@ foreach ($traitName in $traitNames) {
             variables = $effect.variables
         }
     }
+    $traitDescription = if ($metaTftTraitMap.ContainsKey($id)) {
+        Resolve-MetaTftDisplayText -Entity $metaTftTraitMap[$id]
+    } else {
+        Normalize-Text -Value $trait.desc -Effects $null
+    }
+    if (-not $traitDescription) {
+        $activationSummary = @($steps | ForEach-Object { [int]$_.minimumUnits } | Where-Object { $_ -gt 0 -and $_ -lt 25000 } | Sort-Object -Unique) -join ' / '
+        $traitDescription = "MetaTFTでは詳細説明が提供されていません。発動人数: $activationSummary。"
+    }
     $traits.Add([pscustomobject][ordered]@{
         id = $id
         nameJa = [string]$trait.name
         nameEn = if ($english) { [string]$english.name } else { "" }
         image = $image
-        descriptionJa = Normalize-Text -Value $trait.desc -Effects $null
+        descriptionJa = $traitDescription
         activationLevels = @($steps)
         championIds = @($championIdsByTraitName[[string]$traitName])
         searchKeywords = To-SearchKeywords -Values @([string]$trait.name, $englishName, $id)
@@ -650,6 +855,7 @@ $candidateItems = @(
             -not $augmentIds.ContainsKey($id) -and
             $_.name -and $_.icon -and (
                 $_.desc -or
+                ($metaTftItemMap.ContainsKey($id) -and [string]$metaTftItemMap[$id].desc) -or
                 $mappedEmblemIds.Contains($id) -or
                 $id -match '(?i)^DA_Artifact_'
             )
@@ -667,9 +873,10 @@ $processed = 0
 foreach ($item in $candidateItems) {
     $id = [string]$item.apiName
     $english = if ($enItemMap.ContainsKey($id)) { $enItemMap[$id] } else { $null }
+    $metaTftItem = if ($metaTftItemMap.ContainsKey($id)) { $metaTftItemMap[$id] } else { $null }
     $englishName = if ($english) { [string]$english.name } else { "" }
     $image = Save-Asset -AssetPath ([string]$item.icon) -OwnerId $id -Category "item"
-    $itemDescriptionJa = Normalize-Text -Value $item.desc -Effects $item.effects
+    $itemDescriptionJa = if ($metaTftItem) { Resolve-MetaTftDisplayText -Entity $metaTftItem } else { Normalize-Text -Value $item.desc -Effects $item.effects }
     if (-not $itemDescriptionJa -and $emblemTraitNameByItemId.ContainsKey($id)) {
         $itemDescriptionJa = "装備者に「$([string]$emblemTraitNameByItemId[$id])」特性を付与する。"
     }
@@ -680,8 +887,8 @@ foreach ($item in $candidateItems) {
     if (-not $itemDescriptionJa) { throw "ITEM_DESCRIPTION_UNRESOLVED id=$id" }
     $items.Add([pscustomobject][ordered]@{
         id = $id
-        nameJa = Normalize-Text -Value $item.name -Effects $item.effects
-        nameEn = if ($english) { Normalize-Text -Value $english.name -Effects $english.effects } else { "" }
+        nameJa = Normalize-Text -Value $(if ($metaTftItem -and $metaTftItem.name) { $metaTftItem.name } else { $item.name }) -Effects $item.effects
+        nameEn = if ($metaTftItem -and $metaTftItem.en_name) { [string]$metaTftItem.en_name } elseif ($english) { Normalize-Text -Value $english.name -Effects $english.effects } else { "" }
         image = $image
         descriptionJa = $itemDescriptionJa
         stats = $item.effects
@@ -691,7 +898,7 @@ foreach ($item in $candidateItems) {
             composition = @($item.composition | Where-Object { $_ })
             incompatibleTraits = @($item.incompatibleTraits | Where-Object { $_ })
         }
-        category = Get-ItemCategory -Item $item
+        category = Get-ItemCategory -Item $item -MetaTftItem $metaTftItem
         searchKeywords = To-SearchKeywords -Values @([string]$item.name, $englishName, $id)
     })
     $processed++
@@ -701,13 +908,15 @@ foreach ($item in $candidateItems) {
 $augments = [Collections.Generic.List[object]]::new()
 $skippedAugments = [Collections.Generic.List[object]]::new()
 $processed = 0
-foreach ($augmentId in @($setJa.augments | Sort-Object -Unique)) {
+$activeAugmentIds = @($setJa.augments | Sort-Object -Unique)
+foreach ($augmentId in $activeAugmentIds) {
     $id = [string]$augmentId
     if (-not $jaItemMap.ContainsKey($id)) {
         $skippedAugments.Add([pscustomobject]@{ id = $id; reason = "日本語データに定義なし" })
         continue
     }
     $augment = $jaItemMap[$id]
+    $metaTftAugment = if ($metaTftAugmentMap.ContainsKey($id)) { $metaTftAugmentMap[$id] } else { $null }
     if (-not $augment.name -or -not $augment.desc -or -not $augment.icon) {
         $skippedAugments.Add([pscustomobject]@{ id = $id; reason = "名前・説明・画像のいずれかが欠損" })
         continue
@@ -716,20 +925,24 @@ foreach ($augmentId in @($setJa.augments | Sort-Object -Unique)) {
     $englishName = if ($english) { [string]$english.name } else { "" }
     $searchValues = @([string]$augment.name, $englishName, $id) + @($augment.associatedTraits)
     $image = Save-Asset -AssetPath ([string]$augment.icon) -OwnerId $id -Category "augment"
+    $augmentAssociatedTraits = @(
+        if ($metaTftAugment) { @($metaTftAugment.associatedTraits | Where-Object { $_ }) }
+        else { @($augment.associatedTraits | Where-Object { $_ }) }
+    )
     $augments.Add([pscustomobject][ordered]@{
         id = $id
-        nameJa = Normalize-Text -Value $augment.name -Effects $augment.effects
-        nameEn = if ($english) { Normalize-Text -Value $english.name -Effects $english.effects } else { "" }
+        nameJa = if ($metaTftAugment) { Normalize-Text -Value $metaTftAugment.name -Effects $null } else { Normalize-Text -Value $augment.name -Effects $augment.effects }
+        nameEn = if ($metaTftAugment -and $metaTftAugment.en_name) { [string]$metaTftAugment.en_name } elseif ($english) { Normalize-Text -Value $english.name -Effects $english.effects } else { "" }
         image = $image
-        rarity = Get-AugmentRarity -Augment $augment
-        descriptionJa = Normalize-Text -Value $augment.desc -Effects $augment.effects
-        associatedTraits = @($augment.associatedTraits | Where-Object { $_ })
+        rarity = if ($metaTftAugment) { Convert-MetaTftAugmentRarity -Value ([string]$metaTftAugment.rarity) } else { Get-AugmentRarity -Augment $augment }
+        descriptionJa = if ($metaTftAugment) { Resolve-MetaTftDisplayText -Entity $metaTftAugment } else { Normalize-Text -Value $augment.desc -Effects $augment.effects }
+        associatedTraits = @($augmentAssociatedTraits)
         associatedChampionIds = @()
         associatedItemIds = @($augment.composition | Where-Object { $_ })
         searchKeywords = To-SearchKeywords -Values $searchValues
     })
     $processed++
-    if ($processed % 75 -eq 0) { Write-Output "Augment assets: $processed/$(@($setJa.augments).Count)" }
+    if ($processed % 75 -eq 0) { Write-Output "Augment assets: $processed/$($activeAugmentIds.Count)" }
 }
 
 Complete-PendingDownloads
@@ -743,7 +956,7 @@ $expectedTraitIds = @(
     ) | Sort-Object -Unique
 $expectedItemIds = @($candidateItems | ForEach-Object { [string]$_.apiName } | Where-Object { $_ } | Sort-Object -Unique)
 $expectedAugmentIds = @(
-    foreach ($augmentId in @($setJa.augments | Sort-Object -Unique)) {
+    foreach ($augmentId in $activeAugmentIds) {
         if ($jaItemMap.ContainsKey([string]$augmentId)) { [string]$augmentId }
     }
 )
@@ -893,7 +1106,7 @@ Data Dragon配布版: $dataDragonVersion
 | チャンピオン | $($playableChampions.Count) | $($champions.Count) | $($playableChampions.Count - $champions.Count) | $(@($champions | Where-Object {-not $_.image}).Count) | $(@($champions | Where-Object {-not $_.ability.descriptionJa}).Count) |
 | 特性 | $($traitNames.Count) | $($traits.Count) | $($traitNames.Count - $traits.Count) | $(@($traits | Where-Object {-not $_.image}).Count) | $(@($traits | Where-Object {-not $_.descriptionJa}).Count) |
 | アイテム | $($candidateItems.Count) | $($items.Count) | $($candidateItems.Count - $items.Count) | $(@($items | Where-Object {-not $_.image}).Count) | $(@($items | Where-Object {-not $_.descriptionJa}).Count) |
-| オーグメント | $(@($setJa.augments).Count) | $($augments.Count) | $(@($setJa.augments).Count - $augments.Count) | $(@($augments | Where-Object {-not $_.image}).Count) | $(@($augments | Where-Object {-not $_.descriptionJa}).Count) |
+| オーグメント | $($activeAugmentIds.Count) | $($augments.Count) | $($activeAugmentIds.Count - $augments.Count) | $(@($augments | Where-Object {-not $_.image}).Count) | $(@($augments | Where-Object {-not $_.descriptionJa}).Count) |
 
 統計値はこの静的カタログへ混在させず、``source/current/tft_static_snapshot.json``で扱う。
 
@@ -901,7 +1114,7 @@ Data Dragon配布版: $dataDragonVersion
 
 $categoryCoverage
 "@
-[IO.File]::WriteAllText((Join-Path $RepositoryRoot "DATA_COVERAGE_REPORT.md"), $coverage, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $ReportRoot "DATA_COVERAGE_REPORT.md"), $coverage, [Text.UTF8Encoding]::new($false))
 
 $sourceManifest = [pscustomobject][ordered]@{
     generatedAtUtc = $FetchedAtUtc
@@ -916,6 +1129,12 @@ $sourceManifest = [pscustomobject][ordered]@{
         [ordered]@{ name = "CommunityDragon TFT ja_jp"; url = $Sources.communityDragonJa; type = "Riotクライアント抽出コミュニティ配布"; use = "日本語静的データと画像パス"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" },
         [ordered]@{ name = "CommunityDragon TFT en_us"; url = $Sources.communityDragonEn; type = "Riotクライアント抽出コミュニティ配布"; use = "英語名"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
         [ordered]@{ name = "CommunityDragon champion calculation bins"; url = $Sources.communityDragonChampionBinTemplate; type = "Riotクライアント抽出コミュニティ配布"; use = "チャンピオンスキル数式の現在値解決"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
+        [ordered]@{ name = "MetaTFT Japanese lookup"; url = $Sources.metaTftJapaneseLookup; type = "公開配信データ"; use = "現在セットの名称・ID・表示文言の照合"; terms = "Public endpoint; availability and terms must be monitored" }
+        if ($rawChampionFallbackUsed) {
+            [ordered]@{ name = "CommunityDragon raw Map22"; url = $Sources.communityDragonRawMap22; type = "Riotクライアント抽出コミュニティ配布"; use = "derivedデータ欠損時の現在セットshop roster復元"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
+            [ordered]@{ name = "CommunityDragon Japanese string table"; url = $Sources.communityDragonJaStringTable; type = "Riotクライアント抽出コミュニティ配布"; use = "raw rosterの日本語表示復元"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
+            [ordered]@{ name = "CommunityDragon English string table"; url = $Sources.communityDragonEnStringTable; type = "Riotクライアント抽出コミュニティ配布"; use = "raw rosterの英語表示復元"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
+        }
     )
 }
 [IO.File]::WriteAllText($ManifestPath, (($sourceManifest | ConvertTo-Json -Depth 10).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
@@ -947,7 +1166,7 @@ $(@($skippedAugments | ForEach-Object { "- $($_.id): $($_.reason)" }) -join [Env
 
 欠損はUIで「未取得」と表示し、架空値で補完しない。
 "@
-[IO.File]::WriteAllText((Join-Path $RepositoryRoot "MISSING_DATA_REPORT.md"), $missing, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $ReportRoot "MISSING_DATA_REPORT.md"), $missing, [Text.UTF8Encoding]::new($false))
 
 $assetReport = @"
 # ASSET VALIDATION REPORT
@@ -968,7 +1187,7 @@ $assetReport = @"
 
 画像URL単位でファイルを共有し、同一URLの重複保存を防止した。内容ハッシュ重複はレポート対象とする。
 "@
-[IO.File]::WriteAllText((Join-Path $RepositoryRoot "ASSET_VALIDATION_REPORT.md"), $assetReport, [Text.UTF8Encoding]::new($false))
+[IO.File]::WriteAllText((Join-Path $ReportRoot "ASSET_VALIDATION_REPORT.md"), $assetReport, [Text.UTF8Encoding]::new($false))
 
 Write-Output "Catalog: $CatalogPath"
 Write-Output "Set=$SetId Patch=$TftPatch DataDragon=$dataDragonVersion"

@@ -6,7 +6,6 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $userAgent = "TFT-Mobile-Overlay-Data/1.0 source-readiness-gate"
 
 function Set-ActionOutput([string]$Name, [string]$Value) {
@@ -53,174 +52,6 @@ function Stop-AsSourceNotReady {
     exit 0
 }
 
-function Write-Utf8NoBom {
-    param(
-        [Parameter(Mandatory = $true)][string]$Path,
-        [Parameter(Mandatory = $true)][string]$Text
-    )
-    [IO.File]::WriteAllText($Path, $Text, [Text.UTF8Encoding]::new($false))
-}
-
-function Enable-RawChampionFallback {
-    $catalogPath = Join-Path $PSScriptRoot 'refresh-catalog.ps1'
-    $catalogText = [IO.File]::ReadAllText($catalogPath).Replace("`r`n", "`n")
-    $startMarker = '$playableChampions = @('
-    $endMarker = '$championIdsByTraitName = @{}'
-    $start = $catalogText.IndexOf($startMarker, [StringComparison]::Ordinal)
-    $end = $catalogText.IndexOf($endMarker, $start, [StringComparison]::Ordinal)
-    if ($start -lt 0 -or $end -lt 0) { throw 'Could not locate champion selection block for raw fallback patch.' }
-
-    $replacement = @'
-$playableChampions = @(
-    $setJa.champions |
-        Where-Object {
-            $_.cost -ge 1 -and $_.cost -le 5 -and
-            $_.name -and @($_.traits | Where-Object { $_ }).Count -gt 0
-        } |
-        Sort-Object cost, name
-)
-if ($playableChampions.Count -lt 40) {
-    . (Join-Path $PSScriptRoot 'raw-champion-fallback.ps1')
-    $playableChampions = @(Get-RawSetChampions -SetNumber $SetNumber -SetJa $setJa -SetEn $setEn)
-    $Sources['communityDragonRawMap22'] = 'https://raw.communitydragon.org/latest/game/data/maps/shipping/map22/map22.bin.json'
-    $Sources['communityDragonJaStringTable'] = 'https://raw.communitydragon.org/latest/game/ja_jp/data/menu/ja_jp/tft.stringtable.json'
-    $Sources['communityDragonEnStringTable'] = 'https://raw.communitydragon.org/latest/game/en_us/data/menu/en_us/tft.stringtable.json'
-}
-
-'@
-    $catalogText = $catalogText.Substring(0, $start) + $replacement + $catalogText.Substring($end)
-
-    $oldNoUrl = @'
-    if (-not $url) {
-        $DownloadFailures.Add([pscustomobject]@{ category = $Category; id = $OwnerId; reason = "画像パスなし" })
-        return ""
-    }
-'@
-    $newNoUrl = @'
-    if (-not $url) {
-        if ($Category -eq "ability") { return "" }
-        $DownloadFailures.Add([pscustomobject]@{ category = $Category; id = $OwnerId; reason = "画像パスなし" })
-        return ""
-    }
-'@
-    if (-not $catalogText.Contains($oldNoUrl)) { throw 'Could not patch optional ability image handling.' }
-    $catalogText = $catalogText.Replace($oldNoUrl, $newNoUrl)
-
-    $oldEnglish = '$englishName = if ($english) { [string]$english.name } else { "" }'
-    $newEnglish = '$englishName = if ($english) { [string]$english.name } elseif ($champion.PSObject.Properties[''nameEn'']) { [string]$champion.nameEn } else { "" }'
-    $englishIndex = $catalogText.IndexOf($oldEnglish, [StringComparison]::Ordinal)
-    if ($englishIndex -lt 0) { throw 'Could not patch raw champion English name fallback.' }
-    $catalogText = $catalogText.Remove($englishIndex, $oldEnglish.Length).Insert($englishIndex, $newEnglish)
-
-    $oldChampionNameEn = '        nameEn = if ($english) { [string]$english.name } else { "" }'
-    $newChampionNameEn = '        nameEn = $englishName'
-    $championNameIndex = $catalogText.IndexOf($oldChampionNameEn, $englishIndex, [StringComparison]::Ordinal)
-    if ($championNameIndex -lt 0) { throw 'Could not patch champion nameEn output.' }
-    $catalogText = $catalogText.Remove($championNameIndex, $oldChampionNameEn.Length).Insert($championNameIndex, $newChampionNameEn)
-
-    $oldAbilityNameEn = '            nameEn = if ($english) { [string]$english.ability.name } else { "" }'
-    $newAbilityNameEn = '            nameEn = if ($english) { [string]$english.ability.name } elseif ($champion.ability.PSObject.Properties[''nameEn'']) { [string]$champion.ability.nameEn } else { "" }'
-    if (-not $catalogText.Contains($oldAbilityNameEn)) { throw 'Could not patch raw champion ability English name.' }
-    $catalogText = $catalogText.Replace($oldAbilityNameEn, $newAbilityNameEn)
-
-    $oldTraitNames = '$traitNames = @($playableChampions.traits | Sort-Object -Unique)'
-    $newTraitNames = '$traitNames = @($playableChampions | ForEach-Object { @(Get-PropertyValue -Object $_ -Name ''traits'') } | Where-Object { $_ } | Sort-Object -Unique)'
-    if ($catalogText.Contains($newTraitNames)) {
-        # Source is already namespace-safe; no replacement required.
-    } elseif ($catalogText.Contains($oldTraitNames)) {
-        $catalogText = $catalogText.Replace($oldTraitNames, $newTraitNames)
-    } else {
-        throw 'Could not patch or verify champion trait flattening.'
-    }
-
-    $oldOutOfSet = '$outOfSetChampions = @($champions | Where-Object { $_.id -notmatch "^TFT${SetNumber}_" })'
-    $newOutOfSet = @'
-$expectedChampionIds = @{}
-foreach ($expectedChampion in $playableChampions) { $expectedChampionIds[[string]$expectedChampion.apiName] = $true }
-$outOfSetChampions = @($champions | Where-Object { -not $expectedChampionIds.ContainsKey([string]$_.id) })
-'@.TrimEnd()
-    if ($catalogText.Contains($oldOutOfSet)) { $catalogText = $catalogText.Replace($oldOutOfSet, $newOutOfSet) }
-
-    Write-Utf8NoBom -Path $catalogPath -Text $catalogText
-
-    $metaPath = Join-Path $PSScriptRoot 'refresh-static-meta.ps1'
-    $metaText = [IO.File]::ReadAllText($metaPath).Replace("`r`n", "`n")
-    $metaStart = $metaText.IndexOf('$unitMap = @{}', [StringComparison]::Ordinal)
-    $metaEnd = $metaText.IndexOf('$traitMap = @{}', $metaStart, [StringComparison]::Ordinal)
-    if ($metaStart -lt 0 -or $metaEnd -lt 0) { throw 'Could not locate static-meta unit map block.' }
-    $metaReplacement = @'
-$unitMap = @{}
-foreach ($unit in $setData.champions) {
-    if ($unit.apiName -and $unit.name) {
-        $unitMap[[string]$unit.apiName] = $unit
-    }
-}
-if ($unitMap.Count -lt 40) {
-    $rawCatalogPath = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
-    if (-not (Test-Path -LiteralPath $rawCatalogPath)) { throw "Raw-rebuilt catalog not found: $rawCatalogPath" }
-    $rawCatalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $rawCatalogPath | ConvertFrom-Json
-    foreach ($unit in @($rawCatalog.champions)) {
-        $unitMap[[string]$unit.id] = [pscustomobject]@{
-            apiName = [string]$unit.id
-            name = [string]$unit.nameJa
-            cost = [int]$unit.cost
-            traits = @($unit.traits)
-        }
-    }
-    Write-Output "Static-meta unit map recovered from raw-rebuilt catalog: $($unitMap.Count) units"
-}
-
-'@
-    $metaText = $metaText.Substring(0, $metaStart) + $metaReplacement + $metaText.Substring($metaEnd)
-    $oldCompositionCount = '$($compositions.Count)'
-    $newCompositionCount = '$(@($compositions).Count)'
-    if (-not $metaText.Contains($oldCompositionCount)) { throw 'Could not patch scalar composition count handling.' }
-    $metaText = $metaText.Replace($oldCompositionCount, $newCompositionCount)
-    Write-Utf8NoBom -Path $metaPath -Text $metaText
-
-    # Catalog-first snapshots intentionally contain no composition objects yet.
-    # Make the publication metadata calculation ignore JSON null placeholders.
-    $historyPath = Join-Path $PSScriptRoot 'publish-data-history.ps1'
-    $historyText = [IO.File]::ReadAllText($historyPath).Replace("`r`n", "`n")
-    $oldHistoryStats = @'
-    compositionCount = @($meta.compositions).Count
-    itemStatCount = @($meta.compositions | ForEach-Object { @($_.units | ForEach-Object { @($_.itemStats) }) }).Count
-'@
-    $newHistoryStats = @'
-    compositionCount = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count
-    itemStatCount = @(
-        foreach ($composition in @($meta.compositions)) {
-            if ($composition -isnot [pscustomobject] -or -not ($composition.PSObject.Properties.Name -contains 'units')) { continue }
-            foreach ($unit in @($composition.units)) {
-                if ($unit -is [pscustomobject] -and ($unit.PSObject.Properties.Name -contains 'itemStats')) {
-                    @($unit.itemStats)
-                }
-            }
-        }
-    ).Count
-'@
-    if (-not $historyText.Contains($oldHistoryStats)) { throw 'Could not patch catalog-first history statistics.' }
-    $historyText = $historyText.Replace($oldHistoryStats, $newHistoryStats)
-    Write-Utf8NoBom -Path $historyPath -Text $historyText
-
-    if ($setNumber -eq 18) {
-        $livePath = Join-Path $PSScriptRoot 'refresh-live-data.ps1'
-        $liveText = [IO.File]::ReadAllText($livePath).Replace("`r`n", "`n")
-        $oldNames = @'
-    $setNameJa = if ([string]$setJa.name) { [string]$setJa.name } else { "Set $setNumber" }
-    $setNameEn = if ([string]$setEn.name) { [string]$setEn.name } else { "Set $setNumber" }
-'@
-        $newNames = @'
-    $setNameJa = if ($setNumber -eq 18) { "神秘の森" } elseif ([string]$setJa.name) { [string]$setJa.name } else { "Set $setNumber" }
-    $setNameEn = if ($setNumber -eq 18) { "Enchanted Wilds" } elseif ([string]$setEn.name) { [string]$setEn.name } else { "Set $setNumber" }
-'@
-        if ($liveText.Contains($oldNames)) {
-            $liveText = $liveText.Replace($oldNames, $newNames)
-            Write-Utf8NoBom -Path $livePath -Text $liveText
-        }
-    }
-}
-
 $clusterResponse = Get-WebText 'https://api-hc.metatft.com/tft-comps-api/latest_cluster_info' | ConvertFrom-Json
 $cluster = $clusterResponse.cluster_info
 if (-not $cluster -or -not $cluster.cluster_id -or -not $cluster.tft_set -or [string]$cluster.state -ne 'published' -or [bool]$cluster.is_failed -or [bool]$cluster.is_deleted) {
@@ -263,8 +94,7 @@ if ($jaAugmentCount -lt 20) {
 }
 
 if ($derivedPlayable.Count -lt 40) {
-    Write-Warning "Derived CommunityDragon champion block is incomplete for $setId ($($derivedPlayable.Count) playable). Enabling LIVE raw-client fallback."
-    Enable-RawChampionFallback
+    Write-Warning "Derived CommunityDragon champion block is incomplete for $setId ($($derivedPlayable.Count) playable). The catalog generator will use its source-backed raw LIVE fallback."
 } else {
     Write-Output "CommunityDragon source readiness passed: Set=$setId Champions=$($derivedPlayable.Count) Traits=$jaTraitCount/$enTraitCount Items=$jaItemCount Augments=$jaAugmentCount"
 }

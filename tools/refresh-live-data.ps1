@@ -17,6 +17,7 @@ $identityEvidenceRoot = Join-Path $buildRoot "source-identity-evidence"
 $userAgent = "TFT-Mobile-Overlay-Data/1.0 scheduled-version-check"
 . (Join-Path $PSScriptRoot 'material-publication-policy.ps1')
 . (Join-Path $PSScriptRoot 'patch-detection-policy.ps1')
+. (Join-Path $PSScriptRoot 'current-set-name-policy.ps1')
 
 function Set-ActionOutput([string]$Name, [string]$Value) {
     if ($env:GITHUB_OUTPUT) { Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "$Name=$Value" -Encoding UTF8 }
@@ -171,8 +172,16 @@ try {
     Write-SourceIdentityEvidence -Url $jaUrl -ResponseText $jaText -EvidenceKind 'RESPONSE_CURRENT_SET_MEMBERSHIP' -NativeClaims @{ setId=$setId }
     Write-SourceIdentityEvidence -Url $enUrl -ResponseText $enText -EvidenceKind 'RESPONSE_CURRENT_SET_MEMBERSHIP' -NativeClaims @{ setId=$setId }
     $setNumber = if ($setJa.number) { [int]$setJa.number } else { [int]($setId -replace '\D','') }
-    $setNameJa = if ([string]$setJa.name) { [string]$setJa.name } else { "Set $setNumber" }
-    $setNameEn = if ([string]$setEn.name) { [string]$setEn.name } else { "Set $setNumber" }
+    $lookupUrl = "https://data.metatft.com/lookups/$($setId)_latest_ja_jp.json"
+    $lookupText = Get-WebText $lookupUrl
+    $lookup = $lookupText | ConvertFrom-Json
+    if (-not $lookup._metadata -or [string]$lookup._metadata.set -ne $setId) {
+        throw "MetaTFT lookup does not match detected current set $setId"
+    }
+    Write-SourceIdentityEvidence -Url $lookupUrl -ResponseText $lookupText -EvidenceKind 'RESPONSE_CURRENT_SET_MEMBERSHIP' -NativeClaims @{ setId=$setId }
+    $lookupSetName = [string]$lookup._metadata.setName
+    $setNameJa = Resolve-CurrentSetDisplayName -CommunityDragonName ([string]$setJa.name) -SetNumber $setNumber -MetaTftSetName $lookupSetName
+    $setNameEn = Resolve-CurrentSetDisplayName -CommunityDragonName ([string]$setEn.name) -SetNumber $setNumber -MetaTftSetName $lookupSetName
 
     $stage = "catalog"
     & (Join-Path $PSScriptRoot "refresh-catalog.ps1") -SetId $setId -SetNumber $setNumber -SetNameJa $setNameJa -SetNameEn $setNameEn -TftPatch $patch

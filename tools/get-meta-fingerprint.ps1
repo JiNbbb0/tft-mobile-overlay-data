@@ -53,6 +53,72 @@ $normalized = [ordered]@{
             pageParity = Optional $scope 'pageParity' $null
         }
     } else { $null }
+    catalogStatistics = if (Optional $snapshot 'catalogStatistics' $null) {
+        $catalogStats = $snapshot.catalogStatistics
+        [ordered]@{
+            sourceUpdatedEpochMs = [int64](Optional $catalogStats 'sourceUpdatedEpochMs' 0)
+            scope = Optional $catalogStats 'scope' $null
+            games = Optional $catalogStats 'games' $null
+            excludedUnresolvableItemIds = @((Optional $catalogStats 'excludedUnresolvableItemIds' @()) | ForEach-Object { [string]$_ } | Sort-Object)
+            units = @(
+                @(Optional $catalogStats 'units' @()) | Sort-Object id | ForEach-Object {
+                    [ordered]@{
+                        id = [string]$_.id
+                        tier = [string]$_.tier
+                        tierScore = Exact-Numeric $_.tierScore
+                        averagePlacement = Exact-Numeric $_.averagePlacement
+                        winRate = Exact-Numeric $_.winRate
+                        topFourRate = Exact-Numeric $_.topFourRate
+                        frequency = Exact-Numeric $_.frequency
+                        sampleCount = [int64]$_.sampleCount
+                        popularItemIds = @($_.popularItemIds | ForEach-Object { [string]$_ })
+                    }
+                }
+            )
+            items = @(
+                @(Optional $catalogStats 'items' @()) | Sort-Object id | ForEach-Object {
+                    [ordered]@{
+                        id = [string]$_.id
+                        sourceIds = @((Optional $_ 'sourceIds' @()) | ForEach-Object { [string]$_ } | Sort-Object)
+                        type = [string]$_.type
+                        tier = [string]$_.tier
+                        tierScore = Exact-Numeric $_.tierScore
+                        averagePlacement = Exact-Numeric $_.averagePlacement
+                        placementDelta = Exact-Numeric $_.placementDelta
+                        winRate = Exact-Numeric $_.winRate
+                        topFourRate = Exact-Numeric $_.topFourRate
+                        frequency = Exact-Numeric $_.frequency
+                        sampleCount = [int64]$_.sampleCount
+                        popularUnitIds = @($_.popularUnitIds | ForEach-Object { [string]$_ })
+                    }
+                }
+            )
+            traits = @(
+                @(Optional $catalogStats 'traits' @()) | Sort-Object id | ForEach-Object {
+                    [ordered]@{
+                        id = [string]$_.id
+                        tier = [string]$_.tier
+                        tierScore = Exact-Numeric $_.tierScore
+                        averagePlacement = Exact-Numeric $_.averagePlacement
+                        winRate = Exact-Numeric $_.winRate
+                        topFourRate = Exact-Numeric $_.topFourRate
+                        frequency = Exact-Numeric $_.frequency
+                        sampleCount = [int64]$_.sampleCount
+                        variations = @($_.variations | Sort-Object sourceId | ForEach-Object {
+                            [ordered]@{
+                                sourceId = [string]$_.sourceId
+                                level = [int]$_.level
+                                averagePlacement = Exact-Numeric $_.averagePlacement
+                                winRate = Exact-Numeric $_.winRate
+                                frequency = Exact-Numeric $_.frequency
+                                sampleCount = [int64]$_.sampleCount
+                            }
+                        })
+                    }
+                }
+            )
+        }
+    } else { $null }
     augments = @(
         @(Optional $snapshot 'augments' @()) | Sort-Object id | ForEach-Object {
             [ordered]@{
@@ -60,6 +126,8 @@ $normalized = [ordered]@{
                 name = [string](Optional $_ 'name' '')
                 tier = [string]$_.tier
                 rarity = [string](Optional $_ 'rarity' '')
+                stages = @((Optional $_ 'stages' @()) | ForEach-Object { [string]$_ })
+                tags = @((Optional $_ 'tags' @()) | ForEach-Object { [string]$_ } | Sort-Object)
                 averagePlacement = Exact-Numeric (Optional $_ 'averagePlacement' $null)
                 sampleCount = [int64](Optional $_ 'sampleCount' 0)
             }

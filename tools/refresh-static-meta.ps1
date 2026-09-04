@@ -23,6 +23,10 @@ $CompsDataUrl = "https://api-hc.metatft.com/tft-comps-api/comps_data"
 $CompsStatsBaseUrl = "https://api-hc.metatft.com/tft-comps-api/comps_stats"
 $AugmentTiersUrl = "https://api-hc.metatft.com/tft-stat-api/augments_tiers"
 $CompAugmentTiersBaseUrl = "https://api-hc.metatft.com/tft-comps-api/comp_augment_tiers"
+$UnitStatsBaseUrl = "https://api-hc.metatft.com/tft-stat-api/units"
+$ItemStatsBaseUrl = "https://api-hc.metatft.com/tft-stat-api/items_matches"
+$TraitStatsBaseUrl = "https://api-hc.metatft.com/tft-stat-api/traits"
+$UnitItemsBaseUrl = "https://api-hc.metatft.com/tft-comps-api/unit_items_processed"
 $CommunityDragonUrl = "https://raw.communitydragon.org/latest/cdragon/tft/$Locale.json"
 $RepositoryRoot = Split-Path -Parent $PSScriptRoot
 $ObservationRoot = Join-Path $RepositoryRoot "build/source-observations"
@@ -112,6 +116,82 @@ function Get-Json {
     } catch {
         throw "Invalid JSON from $Url`: $($_.Exception.Message)"
     }
+}
+
+function Get-PlacementStatistics {
+    param(
+        [Parameter(Mandatory = $true)][object[]]$Places,
+        [Parameter(Mandatory = $true)][double]$GameCount,
+        [Parameter(Mandatory = $true)][ValidateSet('UNIT','ITEM','TRAIT')][string]$Kind,
+        [string]$ItemType = 'NORMAL',
+        [string]$RawItemId = ''
+    )
+
+    $placeCounts = @($Places | ForEach-Object { [double]$_ })
+    if ($placeCounts.Count -ne 8) { throw "$Kind statistics must contain exactly eight placement buckets." }
+    $sampleCount = [double](($placeCounts | Measure-Object -Sum).Sum)
+    if ($sampleCount -le 0 -or $GameCount -le 0) { throw "$Kind statistics contain an invalid sample count." }
+    $weightedPlacement = 0.0
+    for ($index = 0; $index -lt 8; $index++) {
+        $weightedPlacement += $placeCounts[$index] * ($index + 1)
+    }
+    $averagePlacement = $weightedPlacement / $sampleCount
+    $frequency = $sampleCount / $GameCount
+    $tierScore = switch ($Kind) {
+        'UNIT' { 4.5 - $averagePlacement }
+        'TRAIT' { 4.5 - $averagePlacement }
+        'ITEM' {
+            $bonus = 0.5
+            $frequencyExponent = 1.0
+            if ($ItemType -in @('ARTIFACT','RADIANT','SUPPORT','TRAIT')) {
+                $bonus = 0.0
+                $frequencyExponent = 0.0
+            } elseif ($RawItemId -match '_GenAE') {
+                $bonus = 0.125
+                $frequencyExponent = 0.125
+            } elseif ($ItemType -eq 'EMBLEM') {
+                $bonus = 0.125
+                $frequencyExponent = 0.25
+            } elseif ($RawItemId -match 'ForceOfNature') {
+                $bonus = 0.0
+                $frequencyExponent = 0.0
+            }
+            (4.5 - $averagePlacement + $bonus) * [Math]::Pow($frequency, $frequencyExponent)
+        }
+    }
+    $tier = switch ($Kind) {
+        'UNIT' {
+            if ($tierScore -gt 0.3) { 'S' } elseif ($tierScore -gt 0.1) { 'A' } elseif ($tierScore -gt -0.1) { 'B' } elseif ($tierScore -gt -0.3) { 'C' } else { 'D' }
+        }
+        'TRAIT' {
+            if ($tierScore -gt 0.25) { 'S' } elseif ($tierScore -gt 0) { 'A' } elseif ($tierScore -gt -0.25) { 'B' } elseif ($tierScore -gt -0.5) { 'C' } else { 'D' }
+        }
+        'ITEM' {
+            if ($tierScore -gt 0.3) { 'S' } elseif ($tierScore -gt 0.2) { 'A' } elseif ($tierScore -gt 0.1) { 'B' } elseif ($tierScore -gt 0) { 'C' } else { 'D' }
+        }
+    }
+    return [pscustomobject][ordered]@{
+        tier = $tier
+        tierScore = [double]$tierScore
+        averagePlacement = [double]$averagePlacement
+        winRate = [double]($placeCounts[0] / $sampleCount)
+        topFourRate = [double](($placeCounts[0] + $placeCounts[1] + $placeCounts[2] + $placeCounts[3]) / $sampleCount)
+        frequency = [double]$frequency
+        sampleCount = [int64]$sampleCount
+    }
+}
+
+function Get-MetaTftItemType {
+    param([Parameter(Mandatory = $true)][object]$Item)
+    $apiName = [string]$Item.apiName
+    $tags = @($Item.tags | ForEach-Object { [string]$_ })
+    $composition = @($Item.composition | ForEach-Object { [string]$_ })
+    if ($apiName -match 'Radiant') { return 'RADIANT' }
+    if ($tags -contains 'Artifact') { return 'ARTIFACT' }
+    if ($tags -contains 'Support') { return 'SUPPORT' }
+    if ($tags -contains 'Emblem' -or $composition -contains 'DA_Component_Spatula' -or $composition -contains 'DA_Component_FryingPan') { return 'EMBLEM' }
+    if ($composition.Count -eq 2) { return 'NORMAL' }
+    return 'TRAIT'
 }
 
 function ConvertTo-ReadableName {
@@ -435,6 +515,24 @@ Assert-MetaTftStatsContract -Stats $compsStats `
     -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
     -ExpectedRankFilter $preferredRankFilter `
     -Context "MetaTFT $($statisticsScopeContract.displayName) comps_stats"
+$catalogStatsQuery = "queue=1100&patch=current&days=3&rank=$preferredRankFilter"
+$unitStatsUrl = "$UnitStatsBaseUrl`?$catalogStatsQuery"
+$itemStatsUrl = "$ItemStatsBaseUrl`?$catalogStatsQuery"
+$traitStatsUrl = "$TraitStatsBaseUrl`?$catalogStatsQuery"
+$unitItemsUrl = "$UnitItemsBaseUrl`?$catalogStatsQuery"
+Start-Sleep -Milliseconds 350
+$unitStatsResponse = Get-Json -Url $unitStatsUrl
+Start-Sleep -Milliseconds 350
+$itemStatsResponse = Get-Json -Url $itemStatsUrl
+Start-Sleep -Milliseconds 350
+$traitStatsResponse = Get-Json -Url $traitStatsUrl
+Start-Sleep -Milliseconds 350
+$unitItemsResponse = Get-Json -Url $unitItemsUrl
+foreach ($response in @($unitStatsResponse, $itemStatsResponse, $traitStatsResponse, $unitItemsResponse)) {
+    if ([string]$response.tft_set -ne [string]$clusterInfo.tft_set) {
+        throw "MetaTFT catalog statistics do not match current set $($clusterInfo.tft_set)."
+    }
+}
 $requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
 $gameRow = @($compsStats.results | Where-Object { [string]$_.cluster -eq '' } | Select-Object -First 1)
 if ($gameRow.Count -eq 0 -or @($gameRow[0].places).Count -lt 1 -or [double]$gameRow[0].places[0] -le 0) {
@@ -496,6 +594,26 @@ foreach ($unit in $setData.champions) {
         $unitMap[[string]$unit.apiName] = $unit
     }
 }
+if ($unitMap.Count -lt 40) {
+    $rawCatalogPath = Join-Path $RepositoryRoot 'source/current/tft/tft_catalog.json'
+    if (-not (Test-Path -LiteralPath $rawCatalogPath -PathType Leaf)) {
+        throw "Current-set catalog is unavailable for unit-map recovery: $rawCatalogPath"
+    }
+    $rawCatalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $rawCatalogPath | ConvertFrom-Json
+    foreach ($unit in @($rawCatalog.champions)) {
+        if (-not $unit.id -or -not $unit.nameJa) { continue }
+        $unitMap[[string]$unit.id] = [pscustomobject]@{
+            apiName = [string]$unit.id
+            name = [string]$unit.nameJa
+            cost = [int]$unit.cost
+            traits = @($unit.traits)
+        }
+    }
+    if ($unitMap.Count -lt 40) {
+        throw "Current-set unit map is still incomplete after catalog recovery: $($unitMap.Count)"
+    }
+    Write-Output "Static-meta unit map recovered from the validated current-set catalog: $($unitMap.Count) units"
+}
 
 $traitMap = @{}
 foreach ($trait in $setData.traits) {
@@ -546,10 +664,30 @@ foreach ($canonicalItem in @($canonicalCatalog.items)) {
     if ($canonicalItem.id) { $canonicalItemMap[[string]$canonicalItem.id] = $canonicalItem }
 }
 if ($canonicalItemMap.Count -eq 0) { throw 'Canonical item catalog is empty.' }
+$canonicalChampionMap = @{}
+foreach ($canonicalChampion in @($canonicalCatalog.champions)) {
+    if ($canonicalChampion.id) { $canonicalChampionMap[[string]$canonicalChampion.id] = $canonicalChampion }
+}
+$canonicalTraitMap = @{}
+foreach ($canonicalTrait in @($canonicalCatalog.traits)) {
+    if ($canonicalTrait.id) { $canonicalTraitMap[[string]$canonicalTrait.id] = $canonicalTrait }
+}
+$metaTftItemMap = @{}
+foreach ($metaTftItem in @($metaTftLookup.items)) {
+    if ($metaTftItem.apiName -and $metaTftItem.name) { $metaTftItemMap[[string]$metaTftItem.apiName] = $metaTftItem }
+}
+$metaTftAugmentMap = @{}
+foreach ($metaTftAugment in @($metaTftLookup.augments)) {
+    if ($metaTftAugment.apiName -and $metaTftAugment.name) { $metaTftAugmentMap[[string]$metaTftAugment.apiName] = $metaTftAugment }
+}
 
 function Resolve-CanonicalPublicationItemId([string]$RawId) {
     if (-not $RawId) { throw 'Empty MetaTFT item ID cannot be published.' }
-    $sourceName = if ($itemMap.ContainsKey($RawId)) { [string]$itemMap[$RawId].name } else { '' }
+    $sourceName = if ($metaTftItemMap.ContainsKey($RawId)) {
+        [string]$metaTftItemMap[$RawId].name
+    } elseif ($itemMap.ContainsKey($RawId)) {
+        [string]$itemMap[$RawId].name
+    } else { '' }
     $resolution = Resolve-TftCanonicalId -Index $canonicalItemIndex -SourceId $RawId -SourceName $sourceName
     if ($resolution.status -in @('EXACT','ALIAS','NAME')) { return [string]$resolution.canonicalId }
     if ($resolution.status -eq 'AMBIGUOUS') {
@@ -571,16 +709,170 @@ $augments = foreach ($tierGroup in $augmentResponse.content.content.tierList) {
         if (-not $activeAugments.ContainsKey($id) -or -not $itemMap.ContainsKey($id)) {
             continue
         }
+        $lookup = if ($metaTftAugmentMap.ContainsKey($id)) { $metaTftAugmentMap[$id] } else { $null }
+        $sourceTags = @()
+        $tagProperty = $augmentResponse.content.content.tags.PSObject.Properties[$id]
+        if ($tagProperty -and $tagProperty.Value) { $sourceTags += @(([string]$tagProperty.Value).Split(',')) }
+        if ($lookup) { $sourceTags += @($lookup.manual_tags | ForEach-Object { [string]$_ }) }
+        [object[]]$stageValues = if ($lookup) { @($lookup.rounds | ForEach-Object { [string]$_ } | Where-Object { $_ }) } else { @() }
         [pscustomobject][ordered]@{
             id = $id
             name = [string]$itemMap[$id].name
             tier = $tier
+            rarity = if ($lookup -and $lookup.rarity) { [string]$lookup.rarity } else { '' }
+            stages = $stageValues
+            tags = @($sourceTags | Where-Object { $_ } | Sort-Object -Unique)
         }
     }
 }
 $augments = @($augments | Sort-Object @{ Expression = { $tierOrder[$_.tier] } }, name)
 if ($augments.Count -eq 0) {
     throw "No active augments were mapped from MetaTFT to CommunityDragon."
+}
+
+$unitGameCount = [double]@($unitStatsResponse.games)[0].count
+$itemGameCount = [double]@($itemStatsResponse.games)[0].count
+$traitGameCount = [double]@($traitStatsResponse.games)[0].count
+if ($unitGameCount -le 0 -or $itemGameCount -le 0 -or $traitGameCount -le 0) {
+    throw 'MetaTFT catalog statistics are missing aggregate game counts.'
+}
+
+$excludedCatalogItemIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+$unitStatistics = foreach ($row in @($unitStatsResponse.results)) {
+    $id = [string]$row.unit
+    if (-not $canonicalChampionMap.ContainsKey($id)) { continue }
+    $metrics = Get-PlacementStatistics -Places @($row.places) -GameCount $unitGameCount -Kind UNIT
+    $popularItemIds = @()
+    $unitItemsProperty = $unitItemsResponse.units.PSObject.Properties[$id]
+    if ($unitItemsProperty) {
+        foreach ($popularItem in @($unitItemsProperty.Value.items) | Select-Object -First 5) {
+            $rawItemId = [string]$popularItem.itemName
+            if (-not $rawItemId -or -not $metaTftItemMap.ContainsKey($rawItemId)) { continue }
+            try {
+                $popularItemIds += Resolve-CanonicalPublicationItemId -RawId $rawItemId
+            } catch {
+                [void]$excludedCatalogItemIds.Add($rawItemId)
+            }
+        }
+    }
+    [pscustomobject][ordered]@{
+        id = $id
+        tier = [string]$metrics.tier
+        tierScore = [double]$metrics.tierScore
+        averagePlacement = [double]$metrics.averagePlacement
+        winRate = [double]$metrics.winRate
+        topFourRate = [double]$metrics.topFourRate
+        frequency = [double]$metrics.frequency
+        sampleCount = [int64]$metrics.sampleCount
+        popularItemIds = @($popularItemIds | Select-Object -Unique)
+    }
+}
+$unitStatistics = @($unitStatistics | Sort-Object @{ Expression = { [double]$_.tierScore }; Descending = $true }, id)
+
+$itemStatGroups = @{}
+foreach ($row in @($itemStatsResponse.results)) {
+    $rawId = [string]$row.itemName
+    if (-not $metaTftItemMap.ContainsKey($rawId)) { continue }
+    try {
+        $canonicalId = Resolve-CanonicalPublicationItemId -RawId $rawId
+    } catch {
+        [void]$excludedCatalogItemIds.Add($rawId)
+        continue
+    }
+    if (-not $canonicalItemMap.ContainsKey($canonicalId)) { continue }
+    $itemType = Get-MetaTftItemType -Item $metaTftItemMap[$rawId]
+    if (-not $itemStatGroups.ContainsKey($canonicalId)) {
+        $itemStatGroups[$canonicalId] = [pscustomobject]@{
+            places = [double[]]::new(8)
+            sourceIds = [Collections.Generic.List[string]]::new()
+            types = [Collections.Generic.List[string]]::new()
+            popularUnitIds = [Collections.Generic.List[string]]::new()
+        }
+    }
+    $group = $itemStatGroups[$canonicalId]
+    $rawPlaces = @($row.places | ForEach-Object { [double]$_ })
+    if ($rawPlaces.Count -ne 8) { throw "Item statistics must contain eight placement buckets: $rawId" }
+    for ($index = 0; $index -lt 8; $index++) { $group.places[$index] += $rawPlaces[$index] }
+    $group.sourceIds.Add($rawId)
+    $group.types.Add($itemType)
+    $itemUnitsProperty = $unitItemsResponse.itemNames.PSObject.Properties[$rawId]
+    if ($itemUnitsProperty) {
+        foreach ($popularUnit in @($itemUnitsProperty.Value.units) | Select-Object -First 5) {
+            $unitId = [string]$popularUnit.unit
+            if ($canonicalChampionMap.ContainsKey($unitId)) { $group.popularUnitIds.Add($unitId) }
+        }
+    }
+}
+$itemStatistics = foreach ($canonicalId in $itemStatGroups.Keys) {
+    $group = $itemStatGroups[$canonicalId]
+    $itemType = @($group.types | Group-Object | Sort-Object @{ Expression = { $_.Count }; Descending = $true }, Name | Select-Object -First 1)[0].Name
+    $rawItemId = @($group.sourceIds | Sort-Object | Select-Object -First 1)[0]
+    $metrics = Get-PlacementStatistics -Places @($group.places) -GameCount $itemGameCount -Kind ITEM -ItemType $itemType -RawItemId $rawItemId
+    [pscustomobject][ordered]@{
+        id = $canonicalId
+        sourceIds = @($group.sourceIds | Sort-Object -Unique)
+        type = $itemType
+        tier = [string]$metrics.tier
+        tierScore = [double]$metrics.tierScore
+        averagePlacement = [double]$metrics.averagePlacement
+        placementDelta = [double](-1.0 * $metrics.tierScore)
+        winRate = [double]$metrics.winRate
+        topFourRate = [double]$metrics.topFourRate
+        frequency = [double]$metrics.frequency
+        sampleCount = [int64]$metrics.sampleCount
+        popularUnitIds = @($group.popularUnitIds | Select-Object -Unique | Select-Object -First 5)
+    }
+}
+$itemStatistics = @($itemStatistics | Sort-Object @{ Expression = { [double]$_.tierScore }; Descending = $true }, id)
+
+$traitGroups = @{}
+$catalogTraitsByLength = @($canonicalCatalog.traits | Sort-Object { ([string]$_.id).Length } -Descending)
+foreach ($row in @($traitStatsResponse.results)) {
+    $rawId = [string]$row.trait
+    $catalogTrait = $catalogTraitsByLength | Where-Object {
+        $id = [string]$_.id
+        $rawId -eq $id -or $rawId.StartsWith("${id}_", [StringComparison]::Ordinal)
+    } | Select-Object -First 1
+    if (-not $catalogTrait) { continue }
+    $id = [string]$catalogTrait.id
+    if (-not $traitGroups.ContainsKey($id)) {
+        $traitGroups[$id] = [pscustomobject]@{ places = [double[]]::new(8); variations = [Collections.Generic.List[object]]::new() }
+    }
+    $group = $traitGroups[$id]
+    $rawPlaces = @($row.places | ForEach-Object { [double]$_ })
+    if ($rawPlaces.Count -ne 8) { throw "Trait statistics must contain eight placement buckets: $rawId" }
+    for ($index = 0; $index -lt 8; $index++) { $group.places[$index] += $rawPlaces[$index] }
+    $suffix = $rawId.Substring($id.Length).TrimStart('_')
+    $level = 0
+    [void][int]::TryParse(($suffix -split '_')[0], [ref]$level)
+    $variationMetrics = Get-PlacementStatistics -Places $rawPlaces -GameCount $traitGameCount -Kind TRAIT
+    $group.variations.Add([pscustomobject][ordered]@{
+        sourceId = $rawId
+        level = $level
+        averagePlacement = [double]$variationMetrics.averagePlacement
+        winRate = [double]$variationMetrics.winRate
+        frequency = [double]$variationMetrics.frequency
+        sampleCount = [int64]$variationMetrics.sampleCount
+    })
+}
+$traitStatistics = foreach ($id in $traitGroups.Keys) {
+    $group = $traitGroups[$id]
+    $metrics = Get-PlacementStatistics -Places @($group.places) -GameCount $traitGameCount -Kind TRAIT
+    [pscustomobject][ordered]@{
+        id = [string]$id
+        tier = [string]$metrics.tier
+        tierScore = [double]$metrics.tierScore
+        averagePlacement = [double]$metrics.averagePlacement
+        winRate = [double]$metrics.winRate
+        topFourRate = [double]$metrics.topFourRate
+        frequency = [double]$metrics.frequency
+        sampleCount = [int64]$metrics.sampleCount
+        variations = @($group.variations | Sort-Object level, sourceId)
+    }
+}
+$traitStatistics = @($traitStatistics | Sort-Object @{ Expression = { [double]$_.tierScore }; Descending = $true }, id)
+if ($unitStatistics.Count -eq 0 -or $itemStatistics.Count -eq 0 -or $traitStatistics.Count -eq 0) {
+    throw "MetaTFT catalog statistics mapping is empty: units=$($unitStatistics.Count) items=$($itemStatistics.Count) traits=$($traitStatistics.Count)"
 }
 
 $clusters = @{}
@@ -1046,6 +1338,28 @@ $snapshot = [pscustomobject][ordered]@{
         compositionRankingDirection = 'descending'
         excludedUnresolvableRecommendationRows = $excludedUnresolvableItemRecommendations
     }
+    catalogStatistics = [ordered]@{
+        sourceUpdatedEpochMs = [int64]([Math]::Min(
+            [Math]::Min([int64]$unitStatsResponse.updated, [int64]$itemStatsResponse.updated),
+            [int64]$traitStatsResponse.updated
+        ))
+        scope = [ordered]@{
+            queue = '1100'
+            patch = 'current'
+            days = 3
+            rank = $preferredRankFilter
+            displayRank = [string]$statisticsScopeContract.displayName
+        }
+        games = [ordered]@{
+            units = [int64]$unitGameCount
+            items = [int64]$itemGameCount
+            traits = [int64]$traitGameCount
+        }
+        excludedUnresolvableItemIds = @($excludedCatalogItemIds | Sort-Object)
+        units = @($unitStatistics)
+        items = @($itemStatistics)
+        traits = @($traitStatistics)
+    }
     sources = [ordered]@{
         metaTftRobots = $MetaTftRobotsUrl
         augmentTiers = $AugmentTiersUrl
@@ -1056,6 +1370,10 @@ $snapshot = [pscustomobject][ordered]@{
         compositionItemBuilds = $compBuildsUrl
         compositionAugmentTiers = $compAugmentTiersUrl
         compositionDetails = 'https://api-hc.metatft.com/tft-comps-api/comp_details'
+        unitStatistics = $unitStatsUrl
+        itemStatistics = $itemStatsUrl
+        traitStatistics = $traitStatsUrl
+        unitItemPopularity = $unitItemsUrl
         metaTftJapaneseLookup = $metaTftLookupUrl
         communityDragon = $CommunityDragonUrl
     }

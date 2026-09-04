@@ -128,8 +128,17 @@ $statsBasis = [pscustomobject][ordered]@{
     revision = $revision
     sourceSummary = [string]$meta.sourceSummary
     itemStatBasis = $meta.itemStatBasis
-    compositionCount = @($meta.compositions).Count
-    itemStatCount = @($meta.compositions | ForEach-Object { @($_.units | ForEach-Object { @($_.itemStats) }) }).Count
+    compositionCount = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count
+    itemStatCount = @(
+        foreach ($composition in @($meta.compositions)) {
+            if ($composition -isnot [pscustomobject] -or -not ($composition.PSObject.Properties.Name -contains 'units')) { continue }
+            foreach ($unit in @($composition.units)) {
+                if ($unit -is [pscustomobject] -and ($unit.PSObject.Properties.Name -contains 'itemStats')) {
+                    @($unit.itemStats)
+                }
+            }
+        }
+    ).Count
 }
 [IO.File]::WriteAllText((Join-Path $statsRoot "STATS_BASIS.json"), (($statsBasis | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
@@ -218,10 +227,11 @@ $versions = @($versions | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedA
 $previousStableVersionId = if ($existingIndex -and $existingIndex.PSObject.Properties['latestStableVersionId']) {
     [string]$existingIndex.latestStableVersionId
 } else {
-    [string](@($existingVersions | Where-Object {
+    $previousStableRecord = @($existingVersions | Where-Object {
         [string](Get-TftObjectProperty $_ 'releaseState' '') -eq 'STABLE' -or
         (-not (Get-TftObjectProperty $_ 'releaseState' '') -and [string](Get-TftObjectProperty $_ 'readiness' '') -eq 'META_STABLE')
-    } | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending | Select-Object -First 1).id)
+    } | Sort-Object { ConvertTo-DataUtcTimestamp (Get-TftObjectProperty $_ 'generatedAtUtc' '') } -Descending | Select-Object -First 1)
+    if ($previousStableRecord.Count -gt 0) { [string](Get-TftObjectProperty $previousStableRecord[0] 'id' '') } else { '' }
 }
 $latestStableVersionId = if ([bool]$releaseContract.stableEligible) { $versionId } else { $previousStableVersionId }
 if (-not $latestStableVersionId) {

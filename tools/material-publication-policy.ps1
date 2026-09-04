@@ -27,11 +27,15 @@ function Resolve-MaterialPublicationDecision {
     $observationDue = -not $materialChanged -and $sourceAdvanced -and
         ($currentSource - $previousSource).TotalHours -ge $ObservationIntervalHours
     return [pscustomobject][ordered]@{
-        publish = [bool]($Force -or $materialChanged -or $observationDue)
+        # An immutable version represents content, not a polling observation.
+        # Force may refresh mutable status metadata, but it must never create a
+        # second version for identical content.
+        publish = [bool]$materialChanged
+        metadataRefreshDue = [bool]($Force -or $observationDue)
         materialChanged = [bool]$materialChanged
         observationDue = [bool]$observationDue
-        useObservationIdentity = [bool](($Force -and -not $materialChanged) -or $observationDue)
-        reason = if ($Force) { 'FORCED' } elseif ($materialChanged) { 'MATERIAL_CHANGE' } elseif ($observationDue) { 'OBSERVATION_REFRESH' } else { 'NO_CHANGE' }
+        useObservationIdentity = $false
+        reason = if ($materialChanged) { 'MATERIAL_CHANGE' } elseif ($Force -or $observationDue) { 'OBSERVATION_STATUS_REFRESH' } else { 'NO_CHANGE' }
         sourceAdvanced = [bool]$sourceAdvanced
         sourceAgeDeltaSeconds = [int64][Math]::Max(0, ($currentSource - $previousSource).TotalSeconds)
     }

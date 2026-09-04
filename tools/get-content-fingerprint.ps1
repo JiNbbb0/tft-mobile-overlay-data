@@ -36,6 +36,7 @@ $metaFingerprint = & (Join-Path $PSScriptRoot 'get-meta-fingerprint.ps1') -Snaps
 $catalogSemantic = [ordered]@{
     schemaVersion = [int]$catalog.schemaVersion
     set = $catalog.set
+    sourceUniverse = $(if ($catalog.PSObject.Properties['sourceUniverse']) { $catalog.sourceUniverse } else { $null })
     champions = @($catalog.champions | Sort-Object id)
     traits = @($catalog.traits | Sort-Object id)
     items = @($catalog.items | Sort-Object id)

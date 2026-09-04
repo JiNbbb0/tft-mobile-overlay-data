@@ -13,6 +13,7 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot "data-history-policy.ps1")
+. (Join-Path $PSScriptRoot "release-contract-policy.ps1")
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
@@ -35,6 +36,7 @@ if (-not (Test-Path -LiteralPath $imageSourceRoot -PathType Container)) { throw 
 
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogSource | ConvertFrom-Json
 $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaSource | ConvertFrom-Json
+$sourceManifestDocument = Get-Content -Raw -Encoding UTF8 -LiteralPath $sourceManifest | ConvertFrom-Json
 if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -notin @(4,5)) { throw "Unsupported source schema" }
 if ([string]$catalog.set.id -ne [string]$meta.setId) { throw "Catalog and composition set do not match" }
 $setId = [string]$catalog.set.id
@@ -67,6 +69,8 @@ if ($MetaFingerprint -notmatch '^[0-9a-f]{64}$') { throw "Invalid meta fingerpri
 if (-not $Readiness) {
     $Readiness = if ($meta.PSObject.Properties['readiness']) { [string]$meta.readiness } else { "META_STABLE" }
 }
+$releaseContract = Resolve-TftReleaseContract -Catalog $catalog -Snapshot $meta -SourceManifest $sourceManifestDocument
+$validatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", [Globalization.CultureInfo]::InvariantCulture)
 
 $stagingRoot = Join-Path $repositoryRoot "build/site-staging"
 if (Test-Path -LiteralPath $stagingRoot) { Remove-Item -Recurse -Force -LiteralPath $stagingRoot }
@@ -173,6 +177,12 @@ $manifest = [pscustomobject][ordered]@{
     metaFingerprint = $MetaFingerprint
     sourceQueryHash = $sourceQueryHash
     readiness = $Readiness
+    releaseState = [string]$releaseContract.releaseState
+    validationStatus = [string]$releaseContract.validationStatus
+    sourceAlignment = [string]$releaseContract.sourceAlignment
+    validatedAtUtc = $validatedAtUtc
+    featureReadiness = $releaseContract.featureReadiness
+    levelBoardReadiness = $releaseContract.levelBoardReadiness
     minimumAppVersionCode = $MinimumAppVersionCode
     files = @($entries)
 }
@@ -194,14 +204,47 @@ $record = [pscustomobject][ordered]@{
     manifestSha256 = $manifestSha256
     sourceQueryHash = $sourceQueryHash
     readiness = $Readiness
+    releaseState = [string]$releaseContract.releaseState
+    validationStatus = [string]$releaseContract.validationStatus
+    sourceAlignment = [string]$releaseContract.sourceAlignment
+    validatedAtUtc = $validatedAtUtc
+    featureReadiness = $releaseContract.featureReadiness
+    levelBoardReadiness = $releaseContract.levelBoardReadiness
     manifestUrl = "bundles/$versionId/manifest.json"
     hidden = $false
 }
 $versions = @($record) + @($existingVersions | Where-Object { [string]$_.id -ne $versionId })
 $versions = @($versions | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
+$previousStableVersionId = if ($existingIndex -and $existingIndex.PSObject.Properties['latestStableVersionId']) {
+    [string]$existingIndex.latestStableVersionId
+} else {
+    [string](@($existingVersions | Where-Object {
+        [string](Get-TftObjectProperty $_ 'releaseState' '') -eq 'STABLE' -or
+        (-not (Get-TftObjectProperty $_ 'releaseState' '') -and [string](Get-TftObjectProperty $_ 'readiness' '') -eq 'META_STABLE')
+    } | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending | Select-Object -First 1).id)
+}
+$latestStableVersionId = if ([bool]$releaseContract.stableEligible) { $versionId } else { $previousStableVersionId }
+if (-not $latestStableVersionId) {
+    throw 'A partial candidate cannot be exposed before a validated stable baseline exists.'
+}
+$stablePointerRecord = @($versions | Where-Object { [string]$_.id -eq $latestStableVersionId }) | Select-Object -First 1
+if (-not $stablePointerRecord) { throw "Stable pointer record is missing: $latestStableVersionId" }
+if (-not [bool]$releaseContract.stableEligible) {
+    foreach ($field in @('metaFingerprint','manifestSha256','sourceQueryHash')) {
+        if ([string](Get-TftObjectProperty $stablePointerRecord $field '') -notmatch '^[0-9a-f]{64}$') {
+            throw "A partial candidate requires a content-addressed v2 stable baseline: missing $field"
+        }
+    }
+    if ([string](Get-TftObjectProperty $stablePointerRecord 'releaseState' '') -ne 'STABLE' -or
+        [string](Get-TftObjectProperty $stablePointerRecord 'validationStatus' '') -ne 'PASS' -or
+        [string](Get-TftObjectProperty $stablePointerRecord 'sourceAlignment' '') -ne 'VERIFIED') {
+        throw 'A partial candidate requires a validated and source-aligned v2 stable baseline.'
+    }
+}
 $retention = Select-ActiveDataHistory `
     -Versions $versions `
     -LatestVersionId $versionId `
+    -ProtectedVersionIds @($latestStableVersionId) `
     -MaxActiveVersions $MaxActiveVersions `
     -MaxRecentMetaUpdates $MaxRecentMetaUpdates
 $versions = @($retention.retained)
@@ -282,8 +325,18 @@ foreach ($blob in @(Get-ChildItem -LiteralPath $blobsRoot -File)) {
 }
 $index = [pscustomobject][ordered]@{
     schemaVersion = 1
-    latestVersionId = $versionId
+    # Legacy clients understand only latestVersionId and cannot safely render a
+    # catalog-first partial bundle. Keep it pinned to the formal stable LKG.
+    latestVersionId = $latestStableVersionId
+    latestStableVersionId = $latestStableVersionId
+    latestAvailableVersionId = $versionId
     generatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+    sourceCheckedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
+    latestObservedSourceTimestampUtc = $sourceTimestampUtc
+    freshnessPolicy = [pscustomobject][ordered]@{
+        warningAfterSeconds = 21600
+        criticalAfterSeconds = 86400
+    }
     versions = $versions
 }
 
@@ -298,37 +351,65 @@ $indexHtml = @"
 [IO.File]::WriteAllText((Join-Path $stagingRoot "index.html"), $indexHtml, [Text.UTF8Encoding]::new($false))
 
 $workflowRunId = if ($env:GITHUB_RUN_ID) { [string]$env:GITHUB_RUN_ID } else { "local" }
-$freshnessSlaSeconds = 21600
+$freshnessWarningAfterSeconds = 21600
+$freshnessCriticalAfterSeconds = 86400
 $sourceAgeSeconds = ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse(
     $sourceTimestampUtc,
     [Globalization.CultureInfo]::InvariantCulture,
     [Globalization.DateTimeStyles]::AssumeUniversal
 )).TotalSeconds
-$freshnessStatus = if ($sourceAgeSeconds -le $freshnessSlaSeconds -and $sourceAgeSeconds -ge -60) { "FRESH" } else { "STALE" }
+$freshnessStatus = if ($sourceAgeSeconds -lt -60) {
+    "CRITICAL"
+} elseif ($sourceAgeSeconds -ge $freshnessCriticalAfterSeconds) {
+    "CRITICAL"
+} elseif ($sourceAgeSeconds -ge $freshnessWarningAfterSeconds) {
+    "WARNING"
+} else {
+    "FRESH"
+}
+$stableVersion = @($versions | Where-Object { [string]$_.id -eq $latestStableVersionId }) | Select-Object -First 1
+if (-not $stableVersion) { throw "Stable version was lost during retention: $latestStableVersionId" }
+$stableManifestPath = Join-Path $stagingRoot ([string]$stableVersion.manifestUrl)
+$stableManifestSha256 = if ($stableVersion.PSObject.Properties['manifestSha256'] -and [string]$stableVersion.manifestSha256) {
+    [string]$stableVersion.manifestSha256
+} else {
+    (Get-FileHash -Algorithm SHA256 -LiteralPath $stableManifestPath).Hash.ToLowerInvariant()
+}
 $health = [pscustomobject][ordered]@{
     status = "ok"
     freshnessStatus = $freshnessStatus
-    freshnessSlaSeconds = $freshnessSlaSeconds
+    freshnessSlaSeconds = $freshnessWarningAfterSeconds
+    freshnessWarningAfterSeconds = $freshnessWarningAfterSeconds
+    freshnessCriticalAfterSeconds = $freshnessCriticalAfterSeconds
     generatedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
     publishedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
-    latestSetId = $setId
-    latestPatch = $patch
-    latestRevision = $revision
+    latestSetId = [string]$stableVersion.setId
+    latestPatch = [string]$stableVersion.patch
+    latestRevision = [string]$stableVersion.revision
+    latestStableVersionId = $latestStableVersionId
+    latestAvailableVersionId = $versionId
+    latestAvailableSetId = $setId
+    latestAvailablePatch = $patch
+    latestAvailableRevision = $revision
     versionCount = $versions.Count
     fileCount = 0
     workflowRunId = $workflowRunId
     lastSuccessfulRunId = $workflowRunId
     consecutiveFailures = 0
     sourceUpdatedAt = $sourceTimestampUtc
-    latestMetaFingerprint = $MetaFingerprint
-    latestManifestSha256 = $manifestSha256
-    sourceQueryHash = $sourceQueryHash
+    latestMetaFingerprint = [string](Get-TftObjectProperty $stableVersion 'metaFingerprint' '')
+    latestManifestSha256 = $stableManifestSha256
+    sourceQueryHash = [string](Get-TftObjectProperty $stableVersion 'sourceQueryHash' '')
+    latestAvailableMetaFingerprint = $MetaFingerprint
+    latestAvailableManifestSha256 = $manifestSha256
+    latestAvailableSourceQueryHash = $sourceQueryHash
 }
 $healthPath = Join-Path $stagingRoot "health.json"
 [IO.File]::WriteAllText($healthPath, (($health | ConvertTo-Json).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 $health.fileCount = @(Get-ChildItem -LiteralPath $stagingRoot -File -Recurse).Count
 [IO.File]::WriteAllText($healthPath, (($health | ConvertTo-Json).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 
+& (Join-Path $PSScriptRoot 'write-data-quality-status.ps1') -SiteDirectory $stagingRoot -SnapshotPath $metaSource -CatalogPath $catalogSource
 & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $stagingRoot
 
 $backupRoot = Join-Path $repositoryRoot "build/site-previous"
@@ -342,4 +423,4 @@ try {
     throw
 }
 
-Write-Output "Published local site: Version=$versionId Kind=$updateKind Files=$($entries.Count) Versions=$($versions.Count)"
+Write-Output "Published local site: Available=$versionId Stable=$latestStableVersionId State=$($releaseContract.releaseState) Kind=$updateKind Files=$($entries.Count) Versions=$($versions.Count)"

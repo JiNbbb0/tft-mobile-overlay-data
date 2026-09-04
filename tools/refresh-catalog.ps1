@@ -73,12 +73,40 @@ function Write-SourceObservation {
     $sha.Dispose()
     $record = [ordered]@{
         sourceUrl = $Url
+        finalUrl = $Url
         fetchedAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
         responseHash = $responseHash
         bytes = [int64]$bytes.Length
     }
     [IO.File]::WriteAllText(
-        (Join-Path $ObservationRoot "$urlKey.json"),
+        (Join-Path $ObservationRoot "$urlKey-$responseHash.json"),
+        (($record | ConvertTo-Json).Replace("`r`n", "`n") + "`n"),
+        [Text.UTF8Encoding]::new($false)
+    )
+}
+
+function Write-SourceByteObservation {
+    param(
+        [Parameter(Mandatory = $true)][string]$Url,
+        [Parameter(Mandatory = $true)][byte[]]$Bytes
+    )
+    New-Item -ItemType Directory -Force -Path $ObservationRoot | Out-Null
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try {
+        $urlKey = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($Url)) | ForEach-Object { $_.ToString('x2') }) -join ''
+        $responseHash = ($sha.ComputeHash($Bytes) | ForEach-Object { $_.ToString('x2') }) -join ''
+    } finally {
+        $sha.Dispose()
+    }
+    $record = [ordered]@{
+        sourceUrl = $Url
+        finalUrl = $Url
+        fetchedAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+        responseHash = $responseHash
+        bytes = [int64]$Bytes.Length
+    }
+    [IO.File]::WriteAllText(
+        (Join-Path $ObservationRoot "$urlKey-$responseHash.json"),
         (($record | ConvertTo-Json).Replace("`r`n", "`n") + "`n"),
         [Text.UTF8Encoding]::new($false)
     )
@@ -403,6 +431,7 @@ function Complete-PendingDownloads {
             })
             continue
         }
+        Write-SourceByteObservation -Url ([string]$pending.url) -Bytes $bytes
         [IO.File]::WriteAllBytes([string]$pending.destination, $bytes)
     }
     $PendingDownloads.Clear()
@@ -705,6 +734,20 @@ foreach ($augmentId in @($setJa.augments | Sort-Object -Unique)) {
 
 Complete-PendingDownloads
 
+$expectedChampionIds = @($playableChampions | ForEach-Object { [string]$_.apiName } | Where-Object { $_ } | Sort-Object -Unique)
+$expectedTraitIds = @(
+    foreach ($traitName in $traitNames) {
+        $sourceTrait = @($setJa.traits | Where-Object { [string]$_.name -eq [string]$traitName }) | Select-Object -First 1
+        if ($sourceTrait -and $sourceTrait.apiName) { [string]$sourceTrait.apiName }
+    }
+    ) | Sort-Object -Unique
+$expectedItemIds = @($candidateItems | ForEach-Object { [string]$_.apiName } | Where-Object { $_ } | Sort-Object -Unique)
+$expectedAugmentIds = @(
+    foreach ($augmentId in @($setJa.augments | Sort-Object -Unique)) {
+        if ($jaItemMap.ContainsKey([string]$augmentId)) { [string]$augmentId }
+    }
+)
+
 $catalog = [pscustomobject][ordered]@{
     schemaVersion = 1
     fetchedAtUtc = $FetchedAtUtc
@@ -719,6 +762,14 @@ $catalog = [pscustomobject][ordered]@{
         mechanics = @()
     }
     sources = $Sources
+    sourceUniverse = [ordered]@{
+        evidenceKind = 'COMMUNITYDRAGON_CURRENT_SET'
+        setId = $SetId
+        championIds = $expectedChampionIds
+        traitIds = $expectedTraitIds
+        itemIds = $expectedItemIds
+        augmentIds = $expectedAugmentIds
+    }
     champions = @($champions)
     traits = @($traits)
     items = @($items)

@@ -43,20 +43,21 @@ try {
     $qualityUri = [uri]::new($indexUri, 'data-quality.json')
     $index = Get-Json $indexUri
     $quality = Get-Json $qualityUri
-    if ([int]$quality.schemaVersion -ne 1) { throw "Unsupported data-quality schema: $($quality.schemaVersion)" }
+    if ([int]$quality.schemaVersion -notin @(1,2)) { throw "Unsupported data-quality schema: $($quality.schemaVersion)" }
     $qualityState = [string]$quality.qualityState
-    if ($qualityState -notin @('READY', 'DEGRADED_OPTIONAL', 'CATALOG_ONLY')) { throw "Unknown quality state: $qualityState" }
-    if ([string]$quality.versionId -ne [string]$index.latestVersionId) {
+    if ($qualityState -notin @('READY', 'DEGRADED_OPTIONAL', 'DEGRADED_CORE', 'CATALOG_ONLY')) { throw "Unknown quality state: $qualityState" }
+    $expectedVersionId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
+    if ([string]$quality.versionId -ne $expectedVersionId) {
         $requiresAttention = $true
         $reason = 'QUALITY_STATUS_OUT_OF_SYNC'
-    } elseif ($qualityState -eq 'CATALOG_ONLY') {
+    } elseif ($qualityState -in @('CATALOG_ONLY', 'DEGRADED_CORE')) {
         $generatedAt = [DateTimeOffset]::Parse([string]$quality.generatedAtUtc)
         $ageHours = ([DateTimeOffset]::UtcNow - $generatedAt).TotalHours
         if ($ageHours -ge $CatalogOnlyGraceHours) {
             $requiresAttention = $true
-            $reason = 'CATALOG_ONLY_TOO_LONG'
+            $reason = if ($qualityState -eq 'CATALOG_ONLY') { 'CATALOG_ONLY_TOO_LONG' } else { 'LIMITED_COVERAGE_TOO_LONG' }
         } else {
-            $reason = 'CATALOG_ONLY_WITHIN_GRACE'
+            $reason = if ($qualityState -eq 'CATALOG_ONLY') { 'CATALOG_ONLY_WITHIN_GRACE' } else { 'LIMITED_COVERAGE_WITHIN_GRACE' }
         }
     } elseif ($qualityState -eq 'DEGRADED_OPTIONAL') {
         $reason = 'DEGRADED_OPTIONAL_USABLE'

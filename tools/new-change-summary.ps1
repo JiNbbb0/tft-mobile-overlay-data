@@ -26,7 +26,8 @@ $previousManifest = $null
 $indexPath = Join-Path $siteRoot "data-index.json"
 if (Test-Path -LiteralPath $indexPath) {
     $index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
-    $previousVersion = @($index.versions | Where-Object { [string]$_.id -eq [string]$index.latestVersionId }) | Select-Object -First 1
+    $previousId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
+    $previousVersion = @($index.versions | Where-Object { [string]$_.id -eq $previousId }) | Select-Object -First 1
     if ($previousVersion) {
         $manifestPath = [IO.Path]::GetFullPath((Join-Path $siteRoot ([string]$previousVersion.manifestUrl)))
         $previousManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json

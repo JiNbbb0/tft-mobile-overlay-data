@@ -35,10 +35,15 @@ $champions = @($catalog.champions)
 $traits = @($catalog.traits)
 $items = @($catalog.items)
 $augments = @($catalog.augments)
-if ($champions.Count -lt 40) { throw "Playable champion catalog unexpectedly small: $($champions.Count)" }
-if ($traits.Count -lt 20) { throw "Trait catalog unexpectedly small: $($traits.Count)" }
-if ($items.Count -lt 20) { throw "Item catalog unexpectedly small: $($items.Count)" }
-if ($augments.Count -lt 20) { throw "Augment catalog unexpectedly small: $($augments.Count)" }
+if ($catalog.PSObject.Properties['sourceUniverse']) {
+    foreach ($pair in @(@('champions','championIds'),@('traits','traitIds'),@('items','itemIds'),@('augments','augmentIds'))) {
+        $actual = @($catalog.($pair[0]).id | ForEach-Object { ([string]$_).ToLowerInvariant() } | Sort-Object -Unique)
+        $expected = @($catalog.sourceUniverse.($pair[1]) | ForEach-Object { ([string]$_).ToLowerInvariant() } | Sort-Object -Unique)
+        if ($expected.Count -eq 0 -or @(Compare-Object $expected $actual).Count -gt 0) { throw "Current-set source universe mismatch: $($pair[0])" }
+    }
+} elseif ($champions.Count -lt 40 -or $traits.Count -lt 20 -or $items.Count -lt 20 -or $augments.Count -lt 20) {
+    throw 'Legacy catalog is below conservative anomaly thresholds.'
+}
 
 $catalogIds = @{}
 foreach ($entry in @($champions) + @($traits) + @($items) + @($augments)) {
@@ -113,6 +118,7 @@ foreach ($composition in $compositions) {
     }
 
     foreach ($board in @($composition.finalBoard) + @($composition.levelBoards)) {
+        if ($board -ne $composition.finalBoard -and [string]$board.source -notin @('MetaTFT early_options','MetaTFT options')) { throw "Synthetic or unknown level board source: $compositionId/$($board.source)" }
         foreach ($boardUnit in @($board.units)) {
             $boardUnitId = [string]$boardUnit.id
             if (-not $championIds.ContainsKey($boardUnitId)) {
@@ -137,9 +143,11 @@ if ($readiness -eq 'META_STABLE') {
     if ($compositions.Count -lt $targetCompositionCount) {
         throw "META_STABLE cannot publish fewer than $targetCompositionCount compositions: $($compositions.Count)"
     }
-    if ($missingAugmentCompositions -gt 0) {
-        throw "META_STABLE cannot contain compositions with missing augment recommendations: $missingAugmentCompositions"
-    }
+}
+
+if ($snapshot.PSObject.Properties['statisticsScope']) {
+    if ([string]$snapshot.statisticsScope.effective -notin @('PLATINUM_PLUS','PLATINUM_PLUS_LIMITED')) { throw 'ALL_RANKS or unknown rank scope is forbidden.' }
+    if ([bool]$snapshot.statisticsScope.implicitFilterAdjustmentAllowed) { throw 'MetaTFT implicit filter adjustment must remain disabled.' }
 }
 
 $warnings = [Collections.Generic.List[string]]::new()

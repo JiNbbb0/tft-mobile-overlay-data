@@ -73,7 +73,8 @@ function Get-RemoteBytes([uri]$Uri, [int64]$MaximumBytes) {
 $indexPath = Join-Path $siteRoot 'data-index.json'
 if (-not (Test-Path -LiteralPath $indexPath -PathType Leaf)) { throw 'Tracked data-index.json is missing.' }
 $localIndex = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
-$localVersion = @($localIndex.versions | Where-Object { [string]$_.id -eq [string]$localIndex.latestVersionId }) | Select-Object -First 1
+$localAvailableId = if ($localIndex.PSObject.Properties['latestAvailableVersionId']) { [string]$localIndex.latestAvailableVersionId } else { [string]$localIndex.latestVersionId }
+$localVersion = @($localIndex.versions | Where-Object { [string]$_.id -eq $localAvailableId }) | Select-Object -First 1
 if (-not $localVersion) { throw 'Tracked latest version is missing from data-index.json.' }
 $localManifestPath = Join-Path $siteRoot ([string]$localVersion.manifestUrl).Replace('/', [IO.Path]::DirectorySeparatorChar)
 $localManifestPath = [IO.Path]::GetFullPath($localManifestPath)
@@ -94,7 +95,7 @@ if (-not (Test-Path -LiteralPath $localQualityPath -PathType Leaf)) { throw 'Tra
 $localQualityBytes = [IO.File]::ReadAllBytes($localQualityPath)
 $localQualitySha = Get-Sha256 $localQualityBytes
 $localQuality = [Text.Encoding]::UTF8.GetString($localQualityBytes) | ConvertFrom-Json
-if ([int]$localQuality.schemaVersion -ne 1) { throw 'Tracked data-quality.json has an unsupported schema.' }
+if ([int]$localQuality.schemaVersion -notin @(1,2)) { throw 'Tracked data-quality.json has an unsupported schema.' }
 if ([string]$localQuality.versionId -ne [string]$localVersion.id) {
     throw 'Tracked data-quality.json does not describe the tracked latest version.'
 }
@@ -107,7 +108,8 @@ $indexUri = [uri]$DataIndexUrl
 try {
     $remoteIndexBytes = Get-RemoteBytes -Uri $indexUri -MaximumBytes 1MB
     $remoteIndex = [Text.Encoding]::UTF8.GetString($remoteIndexBytes) | ConvertFrom-Json
-    $remoteVersion = @($remoteIndex.versions | Where-Object { [string]$_.id -eq [string]$remoteIndex.latestVersionId }) | Select-Object -First 1
+    $remoteAvailableId = if ($remoteIndex.PSObject.Properties['latestAvailableVersionId']) { [string]$remoteIndex.latestAvailableVersionId } else { [string]$remoteIndex.latestVersionId }
+    $remoteVersion = @($remoteIndex.versions | Where-Object { [string]$_.id -eq $remoteAvailableId }) | Select-Object -First 1
     if (-not $remoteVersion) { throw 'Public latest version is missing from its index.' }
     $remoteVersionId = [string]$remoteVersion.id
     $manifestUri = [uri]::new($indexUri, [string]$remoteVersion.manifestUrl)
@@ -137,7 +139,7 @@ if ($remoteReachable) {
         $remoteQualityBytes = Get-RemoteBytes -Uri $qualityUri -MaximumBytes 1MB
         $remoteQualitySha = Get-Sha256 $remoteQualityBytes
         $remoteQuality = [Text.Encoding]::UTF8.GetString($remoteQualityBytes) | ConvertFrom-Json
-        if ([int]$remoteQuality.schemaVersion -ne 1) { throw 'Public data-quality.json has an unsupported schema.' }
+        if ([int]$remoteQuality.schemaVersion -notin @(1,2)) { throw 'Public data-quality.json has an unsupported schema.' }
         if ([string]$remoteQuality.versionId -ne $remoteVersionId) {
             throw 'Public data-quality.json does not describe the public latest version.'
         }

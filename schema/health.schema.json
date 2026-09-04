@@ -7,13 +7,20 @@
   "required": ["status", "freshnessStatus", "freshnessSlaSeconds", "generatedAt", "publishedAtUtc", "latestSetId", "latestPatch", "latestRevision", "versionCount", "fileCount", "workflowRunId", "lastSuccessfulRunId", "consecutiveFailures", "sourceUpdatedAt", "latestMetaFingerprint", "latestManifestSha256", "sourceQueryHash"],
   "properties": {
     "status": { "const": "ok" },
-    "freshnessStatus": { "enum": ["FRESH", "STALE"] },
+    "freshnessStatus": { "enum": ["FRESH", "WARNING", "CRITICAL", "STALE"] },
     "freshnessSlaSeconds": { "type": "integer", "minimum": 900, "maximum": 86400 },
+    "freshnessWarningAfterSeconds": { "const": 21600 },
+    "freshnessCriticalAfterSeconds": { "const": 86400 },
     "generatedAt": { "type": "string", "format": "date-time" },
     "publishedAtUtc": { "type": "string", "format": "date-time" },
     "latestSetId": { "type": "string", "minLength": 1 },
     "latestPatch": { "type": "string", "minLength": 1 },
     "latestRevision": { "type": "string", "minLength": 1 },
+    "latestStableVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "latestAvailableVersionId": { "type": "string", "pattern": "^[a-z0-9._-]+$" },
+    "latestAvailableSetId": { "type": "string", "minLength": 1 },
+    "latestAvailablePatch": { "type": "string", "minLength": 1 },
+    "latestAvailableRevision": { "type": "string", "minLength": 1 },
     "versionCount": { "type": "integer", "minimum": 1, "maximum": 100 },
     "fileCount": { "type": "integer", "minimum": 1 },
     "workflowRunId": { "type": "string", "minLength": 1 },
@@ -22,6 +29,9 @@
     "sourceUpdatedAt": { "type": "string", "format": "date-time" },
     "latestMetaFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
     "latestManifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-    "sourceQueryHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+    "sourceQueryHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "latestAvailableMetaFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "latestAvailableManifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "latestAvailableSourceQueryHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
   }
 }

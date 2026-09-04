@@ -16,6 +16,10 @@ TFT Mobile Overlay の個人利用版へ、検証済み戦術データと画像�
 
 公開単位は不変の `bundles/<version-id>/` とSHA-256名の共有 `blobs/` です。最新版ポインタは全ファイルの検証後に `data-index.json` へ反映します。Pagesのactive履歴は最新META_UPDATE 5件と新セット・パッチ・Bパッチの基準版を合わせて最大20件に制限します。外れた版は `archive-map.json` に復旧情報を残し、Git履歴から戻せます。
 
+`latestStableVersionId` は取得元整合性と主要機能が全て検証済みの正式最新版、`latestAvailableVersionId` は新セット直後の図鑑先行版を含む最新利用可能版です。旧クライアント向け `latestVersionId` は常に正式最新版を指します。新セット先行版では構成を `COLLECTING` とし、旧セットの構成を混在させません。
+
+表示される数値、sample count、名称、Tier、盤面、装備、図鑑、画像の変化はcontent fingerprintへ含め、同一パッチ内でもMETA_UPDATEとして公開します。取得時刻だけの変化では重複bundleを作りません。鮮度は6時間で警告、24時間で強い警告です。
+
 ## 安全性
 
 - HTTPSのみをアプリで受け入れます。

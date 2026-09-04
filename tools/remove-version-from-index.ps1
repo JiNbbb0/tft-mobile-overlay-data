@@ -12,7 +12,10 @@ $healthPath = Join-Path $siteRoot "health.json"
 $originalIndex = [IO.File]::ReadAllBytes($indexPath)
 $originalHealth = [IO.File]::ReadAllBytes($healthPath)
 $index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexPath | ConvertFrom-Json
-if ([string]$index.latestVersionId -eq $VersionId) { throw "Refusing to remove the current latest version; restore a production version first" }
+$protectedPointers = @([string]$index.latestVersionId)
+if ($index.PSObject.Properties['latestStableVersionId']) { $protectedPointers += [string]$index.latestStableVersionId }
+if ($index.PSObject.Properties['latestAvailableVersionId']) { $protectedPointers += [string]$index.latestAvailableVersionId }
+if ($VersionId -in $protectedPointers) { throw "Refusing to remove a current stable/available version; restore a production version first" }
 $remaining = @($index.versions | Where-Object { [string]$_.id -ne $VersionId })
 if ($remaining.Count -eq @($index.versions).Count) { throw "Version is not present in data-index: $VersionId" }
 if ($remaining.Count -lt 1) { throw "Refusing to remove the only version" }

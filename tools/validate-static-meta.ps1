@@ -67,7 +67,7 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
     }
     $statsUrl = [string]$snapshot.sources.compositionStats
     if ($statsUrl -notmatch 'rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM' -or
-        $statsUrl -notmatch 'permit_filter_adjustment=true' -or
+        $statsUrl -notmatch 'permit_filter_adjustment=false' -or
         $statsUrl -notmatch 'cluster_id=') {
         throw "MetaTFT composition statistics URL does not match the public comps page"
     }
@@ -186,8 +186,8 @@ foreach ($composition in $compositions) {
 
     $boards = @($composition.finalBoard) + @($composition.levelBoards)
     $levels = @($composition.levelBoards | ForEach-Object { [int]$_.level } | Sort-Object -Unique)
-    if (($levels -join ',') -ne '4,5,6,7,8,9') {
-        throw "Composition level boards must include Lv4-Lv9: $($composition.id) [$($levels -join ',')]"
+    if (@($levels | Where-Object { $_ -lt 4 -or $_ -gt 9 }).Count -gt 0) {
+        throw "Composition level board is outside Lv4-Lv9: $($composition.id) [$($levels -join ',')]"
     }
     foreach ($level in $levels) {
         $placements = @($composition.levelBoards | Where-Object { [int]$_.level -eq $level } | ForEach-Object { [double]$_.averagePlacement })
@@ -197,6 +197,9 @@ foreach ($composition in $compositions) {
         }
     }
     foreach ($board in $boards) {
+        if ($board -ne $composition.finalBoard -and [string]$board.source -notin @('MetaTFT early_options', 'MetaTFT options')) {
+            throw "Composition level board must come directly from MetaTFT: $($composition.id)/$($board.source)"
+        }
         $boardUnits = @($board.units)
         if ($boardUnits.Count -eq 0) { throw "Composition board has no units: $($composition.id)/Lv$($board.level)" }
         if ([int]$board.sampleCount -le 0) { throw "Composition board sample count missing: $($composition.id)/Lv$($board.level)" }

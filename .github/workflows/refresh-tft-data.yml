@@ -46,6 +46,26 @@ jobs:
         shell: pwsh
         run: ./tools/verify-runtime-hardening.ps1
 
+      - name: Test catalog image integrity policy
+        shell: pwsh
+        run: ./tools/test-catalog-image-policy.ps1
+
+      - name: Test exact content fingerprint policy
+        shell: pwsh
+        run: ./tools/test-content-fingerprint.ps1
+
+      - name: Test immutable publication policy
+        shell: pwsh
+        run: ./tools/test-material-publication-policy.ps1
+
+      - name: Test stable and catalog-first release contract
+        shell: pwsh
+        run: ./tools/test-release-contract-policy.ps1
+
+      - name: Test cross-source identity contract
+        shell: pwsh
+        run: ./tools/test-source-contract.ps1
+
       - name: Test current-set champion membership policy
         shell: pwsh
         run: ./tools/test-current-set-champion-membership.ps1

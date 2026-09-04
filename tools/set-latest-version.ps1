@@ -18,6 +18,8 @@ if (-not $manifestPath.StartsWith($sitePrefix, [StringComparison]::OrdinalIgnore
 if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { throw "Manifest missing for version: $VersionId" }
 $manifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $manifestPath | ConvertFrom-Json
 if ([string]$manifest.id -ne $VersionId) { throw "Manifest identity mismatch for version: $VersionId" }
+$targetReleaseState = if ($manifest.PSObject.Properties['releaseState']) { [string]$manifest.releaseState } elseif ([string]$manifest.readiness -eq 'META_STABLE') { 'STABLE' } else { 'PARTIAL' }
+if ($targetReleaseState -ne 'STABLE') { throw 'Rollback latest may only select a validated STABLE (or legacy META_STABLE) version.' }
 $manifestFingerprint = if ($manifest.PSObject.Properties['metaFingerprint']) { [string]$manifest.metaFingerprint } else { '' }
 $manifestQueryHash = if ($manifest.PSObject.Properties['sourceQueryHash']) { [string]$manifest.sourceQueryHash } else { '' }
 $manifestSourceTimestamp = if ($manifest.PSObject.Properties['sourceTimestampUtc']) { [string]$manifest.sourceTimestampUtc } else { [string]$manifest.generatedAtUtc }
@@ -32,8 +34,12 @@ if (-not $version.PSObject.Properties['sourceTimestampUtc']) { $version | Add-Me
 $oldLatest = [string]$index.latestVersionId
 $healthPath = Join-Path $siteRoot "health.json"
 $oldHealthText = Get-Content -Raw -Encoding UTF8 -LiteralPath $healthPath
+$qualityPath = Join-Path $siteRoot 'data-quality.json'
+$oldQualityText = if (Test-Path -LiteralPath $qualityPath) { Get-Content -Raw -Encoding UTF8 -LiteralPath $qualityPath } else { $null }
 $health = $oldHealthText | ConvertFrom-Json
 $index.latestVersionId = $VersionId
+if ($index.PSObject.Properties['latestStableVersionId']) { $index.latestStableVersionId = $VersionId } else { $index | Add-Member -NotePropertyName latestStableVersionId -NotePropertyValue $VersionId }
+if ($index.PSObject.Properties['latestAvailableVersionId']) { $index.latestAvailableVersionId = $VersionId } else { $index | Add-Member -NotePropertyName latestAvailableVersionId -NotePropertyValue $VersionId }
 $index.generatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $nextPath = Join-Path $siteRoot "data-index.next.json"
 [IO.File]::WriteAllText($nextPath, ($index | ConvertTo-Json -Depth 8) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
@@ -41,6 +47,12 @@ Move-Item -Force -LiteralPath $nextPath -Destination $indexPath
 $health.latestSetId = [string]$version.setId
 $health.latestPatch = [string]$version.patch
 $health.latestRevision = [string]$version.revision
+foreach ($pair in @(
+    @{ Name='latestStableVersionId'; Value=$VersionId }, @{ Name='latestAvailableVersionId'; Value=$VersionId },
+    @{ Name='latestAvailableSetId'; Value=[string]$version.setId }, @{ Name='latestAvailablePatch'; Value=[string]$version.patch }, @{ Name='latestAvailableRevision'; Value=[string]$version.revision }
+)) {
+    if ($health.PSObject.Properties[$pair.Name]) { $health.($pair.Name) = $pair.Value } else { $health | Add-Member -NotePropertyName $pair.Name -NotePropertyValue $pair.Value }
+}
 $health.generatedAt = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $health.publishedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
 $health.workflowRunId = $(if ($env:GITHUB_RUN_ID) { [string]$env:GITHUB_RUN_ID } else { "local-rollback" })
@@ -54,6 +66,13 @@ $health.latestManifestSha256 = if ($version.PSObject.Properties['manifestSha256'
     $calculatedManifestSha
 }
 $health.sourceQueryHash = if ($version.PSObject.Properties['sourceQueryHash']) { [string]$version.sourceQueryHash } else { $manifestQueryHash }
+foreach ($pair in @(
+    @{ Name='latestAvailableMetaFingerprint'; Value=[string]$health.latestMetaFingerprint },
+    @{ Name='latestAvailableManifestSha256'; Value=[string]$health.latestManifestSha256 },
+    @{ Name='latestAvailableSourceQueryHash'; Value=[string]$health.sourceQueryHash }
+)) {
+    if ($health.PSObject.Properties[$pair.Name]) { $health.($pair.Name) = $pair.Value } else { $health | Add-Member -NotePropertyName $pair.Name -NotePropertyValue $pair.Value }
+}
 $sourceUpdatedAt = if ($version.PSObject.Properties['sourceTimestampUtc'] -and $version.sourceTimestampUtc) {
     $version.sourceTimestampUtc
 } elseif ($manifest.PSObject.Properties['sourceTimestampUtc'] -and $manifest.sourceTimestampUtc) {
@@ -66,19 +85,41 @@ $health.sourceUpdatedAt = if ($sourceUpdatedAt -is [DateTime]) {
 } else {
     [string]$sourceUpdatedAt
 }
-$freshnessSlaSeconds = if ($health.PSObject.Properties['freshnessSlaSeconds']) { [int]$health.freshnessSlaSeconds } else { 21600 }
+$freshnessWarningAfterSeconds = if ($health.PSObject.Properties['freshnessWarningAfterSeconds']) { [int]$health.freshnessWarningAfterSeconds } else { 21600 }
+$freshnessCriticalAfterSeconds = if ($health.PSObject.Properties['freshnessCriticalAfterSeconds']) { [int]$health.freshnessCriticalAfterSeconds } else { 86400 }
+$health.freshnessSlaSeconds = $freshnessWarningAfterSeconds
+foreach ($pair in @(
+    @{ Name='freshnessWarningAfterSeconds'; Value=$freshnessWarningAfterSeconds },
+    @{ Name='freshnessCriticalAfterSeconds'; Value=$freshnessCriticalAfterSeconds }
+)) {
+    if ($health.PSObject.Properties[$pair.Name]) { $health.($pair.Name) = $pair.Value } else { $health | Add-Member -NotePropertyName $pair.Name -NotePropertyValue $pair.Value }
+}
 $sourceAgeSeconds = ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse(
     [string]$health.sourceUpdatedAt,
     [Globalization.CultureInfo]::InvariantCulture,
     [Globalization.DateTimeStyles]::AssumeUniversal
 )).TotalSeconds
-$health.freshnessStatus = if ($sourceAgeSeconds -le $freshnessSlaSeconds -and $sourceAgeSeconds -ge -60) { 'FRESH' } else { 'STALE' }
+$health.freshnessStatus = if ($sourceAgeSeconds -lt -60 -or $sourceAgeSeconds -ge $freshnessCriticalAfterSeconds) {
+    'CRITICAL'
+} elseif ($sourceAgeSeconds -ge $freshnessWarningAfterSeconds) {
+    'WARNING'
+} else {
+    'FRESH'
+}
 [IO.File]::WriteAllText($healthPath, ($health | ConvertTo-Json) + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
 try {
+    $catalogEntry = @($manifest.files | Where-Object { [string]$_.path -eq 'tft/tft_catalog.json' }) | Select-Object -First 1
+    $snapshotEntry = @($manifest.files | Where-Object { [string]$_.path -eq 'tft_static_snapshot.json' }) | Select-Object -First 1
+    if ($catalogEntry -and $snapshotEntry) {
+        $catalogPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$catalogEntry.url)))
+        $snapshotPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$snapshotEntry.url)))
+        & (Join-Path $PSScriptRoot 'write-data-quality-status.ps1') -SiteDirectory $siteRoot -CatalogPath $catalogPath -SnapshotPath $snapshotPath
+    }
     & (Join-Path $PSScriptRoot "validate-site.ps1") -SiteDirectory $SiteDirectory
 } catch {
     [IO.File]::WriteAllText($indexPath, $oldIndexText, [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText($healthPath, $oldHealthText, [Text.UTF8Encoding]::new($false))
+    if ($null -ne $oldQualityText) { [IO.File]::WriteAllText($qualityPath, $oldQualityText, [Text.UTF8Encoding]::new($false)) }
     throw
 }
 Write-Output "Latest changed safely: $oldLatest -> $VersionId"

@@ -25,6 +25,7 @@ $CompAugmentTiersBaseUrl = "https://api-hc.metatft.com/tft-comps-api/comp_augmen
 $CommunityDragonUrl = "https://raw.communitydragon.org/latest/cdragon/tft/$Locale.json"
 $RepositoryRoot = Split-Path -Parent $PSScriptRoot
 $ObservationRoot = Join-Path $RepositoryRoot "build/source-observations"
+$IdentityEvidenceRoot = Join-Path $RepositoryRoot "build/source-identity-evidence"
 
 function Write-SourceObservation {
     param(
@@ -39,12 +40,13 @@ function Write-SourceObservation {
     $sha.Dispose()
     $record = [ordered]@{
         sourceUrl = $Url
+        finalUrl = $Url
         fetchedAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
         responseHash = $responseHash
         bytes = [int64]$bytes.Length
     }
     [IO.File]::WriteAllText(
-        (Join-Path $ObservationRoot "$urlKey.json"),
+        (Join-Path $ObservationRoot "$urlKey-$responseHash.json"),
         ($record | ConvertTo-Json) + [Environment]::NewLine,
         [Text.UTF8Encoding]::new($false)
     )
@@ -71,7 +73,41 @@ function Get-Json {
 
     $text = Get-Text -Url $Url
     try {
-        return $text | ConvertFrom-Json
+        $document = $text | ConvertFrom-Json
+        $nativeClaims = [ordered]@{}
+        if ($document.PSObject.Properties['cluster_info'] -and $document.cluster_info) {
+            if ($document.cluster_info.tft_set) { $nativeClaims.setId = [string]$document.cluster_info.tft_set }
+            if ($document.cluster_info.cluster_id) { $nativeClaims.revisionId = [string]$document.cluster_info.cluster_id }
+        } elseif ($document.PSObject.Properties['tft_set']) {
+            if ($document.tft_set) { $nativeClaims.setId = [string]$document.tft_set }
+            if ($document.PSObject.Properties['cluster_id'] -and $document.cluster_id) { $nativeClaims.revisionId = [string]$document.cluster_id }
+        } elseif ($document.PSObject.Properties['results'] -and $document.results -and $document.results.PSObject.Properties['data']) {
+            if ($document.results.data.tft_set) { $nativeClaims.setId = [string]$document.results.data.tft_set }
+            if ($document.results.data.cluster_id) { $nativeClaims.revisionId = [string]$document.results.data.cluster_id }
+        }
+        $queryClaims = [ordered]@{}
+        if ($Url -match '(?:[?&])cluster_id=([^&]+)') { $queryClaims.revisionId = [uri]::UnescapeDataString($Matches[1]) }
+        if ($Url -match '(?:[?&])patch=([^&]+)') { $queryClaims.patchMode = [uri]::UnescapeDataString($Matches[1]) }
+        if ($Url -match '(?:[?&])rank=([^&]+)') { $queryClaims.rank = [uri]::UnescapeDataString($Matches[1]) }
+        if ($Url -match '(?:[?&])permit_filter_adjustment=([^&]+)') { $queryClaims.permitFilterAdjustment = [uri]::UnescapeDataString($Matches[1]) }
+        if ($nativeClaims.Count -gt 0 -or $queryClaims.Count -gt 0) {
+            New-Item -ItemType Directory -Force -Path $IdentityEvidenceRoot | Out-Null
+            $sha = [Security.Cryptography.SHA256]::Create()
+            try {
+                $urlKey = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($Url)) | ForEach-Object { $_.ToString('x2') }) -join ''
+                $responseHash = ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($text)) | ForEach-Object { $_.ToString('x2') }) -join ''
+            } finally { $sha.Dispose() }
+            $evidence = [ordered]@{
+                sourceUrl = $Url
+                responseHash = $responseHash
+                evidenceKind = $(if ($nativeClaims.Count -gt 0) { 'RESPONSE_NATIVE_IDENTITY' } else { 'QUERY_BOUND_RESPONSE' })
+                nativeClaims = $nativeClaims
+                queryClaims = $queryClaims
+                observedAtUtc = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
+            }
+            [IO.File]::WriteAllText((Join-Path $IdentityEvidenceRoot "$urlKey-$responseHash.json"), (($evidence | ConvertTo-Json -Depth 8) + "`n"), [Text.UTF8Encoding]::new($false))
+        }
+        return $document
     } catch {
         throw "Invalid JSON from $Url`: $($_.Exception.Message)"
     }
@@ -231,7 +267,7 @@ function New-BoardUnits {
                 name = [string]$UnitMap[[string]$unitId].name
                 position = [int]$assigned[[string]$instance.key]
                 starLevel = if ($StarTargets.ContainsKey([string]$unitId)) { [int]$StarTargets[[string]$unitId].level } else { 0 }
-                starRate = if ($StarTargets.ContainsKey([string]$unitId)) { [Math]::Round([double]$StarTargets[[string]$unitId].rate, 4) } else { 0.0 }
+                starRate = if ($StarTargets.ContainsKey([string]$unitId)) { [double]$StarTargets[[string]$unitId].rate } else { 0.0 }
             }
         }
     )
@@ -252,7 +288,7 @@ function New-BoardReference {
     return [pscustomobject][ordered]@{
         level = $Level
         source = $Source
-        averagePlacement = [Math]::Round($AveragePlacement, 4)
+        averagePlacement = [double]$AveragePlacement
         sampleCount = $SampleCount
         units = @(New-BoardUnits -UnitIds $UnitIds -Details $Details -UnitMap $UnitMap -StarTargets $StarTargets)
     }
@@ -389,7 +425,7 @@ if (-not $compsData.results.data.cluster_details -or
 
 Start-Sleep -Milliseconds 350
 $preferredRankFilter = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
-$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=true&cluster_id=$($clusterInfo.cluster_id)"
+$preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=false&cluster_id=$($clusterInfo.cluster_id)"
 $compsStatsUrl = $preferredCompsStatsUrl
 $compsStats = Get-Json -Url $preferredCompsStatsUrl
 Assert-MetaTftStatsContract -Stats $compsStats `
@@ -596,7 +632,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
         displayNameJa = $name
         titleSource = 'MetaTFT comps_data title localized with MetaTFT Japanese lookup'
         titleKey = (@($cluster.name) | ForEach-Object { [string]$_.name } | Where-Object { $_ }) -join '|'
-        averagePlacement = [Math]::Round($averagePlacement, 4)
+        averagePlacement = [double]$averagePlacement
         sampleCount = $sampleCount
         boardUnitIds = @($boardUnitIds)
         unitIds = @($boardUnitIds | Select-Object -Unique)
@@ -615,6 +651,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
 $effectiveQualifiedCompositions = @($compositionCandidates).Count
 $preferredQualifiedCompositions = $effectiveQualifiedCompositions
 $rankScopeDecision.qualified = $effectiveQualifiedCompositions
+$rankScopeDecision.effectiveScope = if ($effectiveQualifiedCompositions -lt $requiredPreferredCompositions) { 'PLATINUM_PLUS_LIMITED' } else { 'PLATINUM_PLUS' }
 Write-Output "Composition page parity: Scope=$($rankScopeDecision.effectiveScope) Games=$([int]$gameCount) MinimumSamples=$effectiveMinimumCompSamples Visible=$effectiveQualifiedCompositions Display=$requiredPreferredCompositions"
 $compositionCandidates = @(
     $compositionCandidates |
@@ -726,8 +763,8 @@ $compositions = foreach ($composition in $compositionCandidates) {
             [pscustomobject][ordered]@{
                 itemId = $canonicalItemId
                 itemName = [string]$canonicalItemMap[$canonicalItemId].nameJa
-                adoptionRate = [Math]::Round($adoptionRate, 5)
-                averagePlacement = [Math]::Round($averagePlacement, 4)
+                adoptionRate = [double]$adoptionRate
+                averagePlacement = [double]$averagePlacement
                 sampleCount = $sampleCount
             }
         }
@@ -791,8 +828,8 @@ $compositions = foreach ($composition in $compositionCandidates) {
             [pscustomobject][ordered]@{
                 itemId = [string]$itemId
                 itemName = [string]$canonicalItemMap[$itemId].nameJa
-                averagePlacement = [Math]::Round($itemAverage, 4)
-                placementDelta = [Math]::Round($itemAverage - [double]$composition.averagePlacement, 4)
+                averagePlacement = [double]$itemAverage
+                placementDelta = [double]($itemAverage - [double]$composition.averagePlacement)
                 sampleCount = [int]$aggregate.sampleCount
                 bestBuildSampleCount = [int]$aggregate.bestBuildSampleCount
                 bestBuild = @(
@@ -879,28 +916,6 @@ $compositions = foreach ($composition in $compositionCandidates) {
         )
         if ($rows.Count -gt 0) { $levelBoardRows[[string]$level] = @($rows) }
     }
-    foreach ($level in 4..9) {
-        if ($levelBoardRows.ContainsKey([string]$level)) { continue }
-        $nearbyLevels = @($levelBoardRows.Keys | ForEach-Object { [int]$_ } | Sort-Object @{ Expression = { [Math]::Abs($_ - $level) } }, @{ Expression = { $_ } })
-        if ($nearbyLevels.Count -eq 0) { throw "No adjacent public board available for $($composition.id)/Lv$level" }
-        $base = @($levelBoardRows[[string]$nearbyLevels[0]])[0]
-        $derivedUnitIds = @(
-            @($base.unitIds) +
-                @($nearbyLevels | ForEach-Object { @($levelBoardRows[[string]$_])[0].unitIds }) +
-                @($composition.boardUnitIds) |
-                Where-Object {
-                    $unitMap.ContainsKey([string]$_) -and @($unitMap[[string]$_].traits).Count -gt 0
-                } |
-                Select-Object -First $level
-        )
-        $levelBoardRows[[string]$level] = @([pscustomobject]@{
-            unitIds = @($derivedUnitIds)
-            source = 'Derived from adjacent MetaTFT public boards'
-            averagePlacement = [double]$base.averagePlacement
-            sampleCount = [int]$base.sampleCount
-        })
-    }
-
     $levelBoards = foreach ($level in 4..9) {
         foreach ($row in @($levelBoardRows[[string]$level] | Sort-Object averagePlacement, @{ Expression = { -[int]$_.sampleCount } })) {
             New-BoardReference `
@@ -964,7 +979,7 @@ $snapshot = [pscustomobject][ordered]@{
         qualifiedEffectiveCompositions = $effectiveQualifiedCompositions
         fallbackAttempted = $fallbackAttempted
         fallbackReason = [string]$rankScopeDecision.reason
-        implicitFilterAdjustmentAllowed = $true
+        implicitFilterAdjustmentAllowed = $false
         preferredRankFilter = $preferredRankFilter
         fallbackRankFilter = ''
         pageParity = [ordered]@{

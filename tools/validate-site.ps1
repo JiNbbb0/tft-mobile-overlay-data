@@ -4,6 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'release-contract-policy.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $root = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
@@ -47,6 +48,21 @@ if (@($versions.id | ForEach-Object { ([string]$_).ToLowerInvariant() } | Sort-O
 $latest = @($versions | Where-Object { [string]$_.id -eq [string]$index.latestVersionId }) | Select-Object -First 1
 if (-not $latest) { throw "latestVersionId is not present" }
 if ([bool]$latest.hidden) { throw "latestVersionId must not point to a hidden version" }
+$hasDualPointers = $index.PSObject.Properties['latestStableVersionId'] -or $index.PSObject.Properties['latestAvailableVersionId']
+$latestStable = $latest
+$latestAvailable = $latest
+if ($hasDualPointers) {
+    foreach ($field in @('latestStableVersionId','latestAvailableVersionId','sourceCheckedAtUtc','latestObservedSourceTimestampUtc','freshnessPolicy')) {
+        if (-not $index.PSObject.Properties[$field]) { throw "Ideal update contract is incomplete: missing $field" }
+    }
+    if ([string]$index.latestVersionId -ne [string]$index.latestStableVersionId) { throw 'Legacy latestVersionId must alias latestStableVersionId.' }
+    $latestStable = @($versions | Where-Object { [string]$_.id -eq [string]$index.latestStableVersionId }) | Select-Object -First 1
+    $latestAvailable = @($versions | Where-Object { [string]$_.id -eq [string]$index.latestAvailableVersionId }) | Select-Object -First 1
+    if (-not $latestStable -or -not $latestAvailable -or [bool]$latestStable.hidden -or [bool]$latestAvailable.hidden) { throw 'Stable/available pointer is missing or hidden.' }
+    $stableContractState = if ($latestStable.PSObject.Properties['releaseState']) { [string]$latestStable.releaseState } elseif ([string]$latestStable.readiness -eq 'META_STABLE') { 'STABLE' } else { '' }
+    if ($stableContractState -ne 'STABLE') { throw 'latestStableVersionId must reference a STABLE or legacy META_STABLE version.' }
+    if ([int]$index.freshnessPolicy.warningAfterSeconds -ne 21600 -or [int]$index.freshnessPolicy.criticalAfterSeconds -ne 86400) { throw 'Freshness policy must be 6h warning / 24h critical.' }
+}
 
 $allowedExtensions = @('.json', '.md', '.png', '.jpg', '.jpeg', '.webp')
 $checkedFiles = 0
@@ -71,6 +87,16 @@ foreach ($version in $versions) {
         $manifestValue = if ($manifest.PSObject.Properties[$field]) { [string]$manifest.$field } else { '' }
         $indexValue = if ($version.PSObject.Properties[$field]) { [string]$version.$field } else { '' }
         if ($manifestValue -ne $indexValue) { throw "Manifest/index $field mismatch: $($version.id)" }
+    }
+    if ($version.PSObject.Properties['releaseState'] -or $manifest.PSObject.Properties['releaseState']) {
+        foreach ($field in @('releaseState','validationStatus','sourceAlignment','validatedAtUtc')) {
+            if (-not $version.PSObject.Properties[$field] -or -not $manifest.PSObject.Properties[$field] -or [string]$version.$field -ne [string]$manifest.$field) { throw "Manifest/index contract field mismatch: $($version.id)/$field" }
+        }
+        foreach ($field in @('featureReadiness','levelBoardReadiness')) {
+            if (-not $version.PSObject.Properties[$field] -or -not $manifest.PSObject.Properties[$field]) { throw "Manifest/index contract field missing: $($version.id)/$field" }
+            if (($version.$field | ConvertTo-Json -Depth 10 -Compress) -cne ($manifest.$field | ConvertTo-Json -Depth 10 -Compress)) { throw "Manifest/index contract object mismatch: $($version.id)/$field" }
+        }
+        if ([string]$version.releaseState -eq 'STABLE' -and ([string]$version.validationStatus -ne 'PASS' -or [string]$version.sourceAlignment -ne 'VERIFIED')) { throw "Stable version lacks verified validation/source alignment: $($version.id)" }
     }
     $files = @($manifest.files)
     if ($files.Count -lt 5 -or $files.Count -gt 1500) { throw "Manifest file count outside 5..1500: $($version.id)" }
@@ -107,14 +133,35 @@ foreach ($version in $versions) {
 
     $catalogEntry = @($files | Where-Object { [string]$_.path -eq 'tft/tft_catalog.json' })[0]
     $metaEntry = @($files | Where-Object { [string]$_.path -eq 'tft_static_snapshot.json' })[0]
+    $sourceManifestEntry = @($files | Where-Object { [string]$_.path -eq 'metadata/DATA_SOURCE_MANIFEST.json' })[0]
     $catalogPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$catalogEntry.url)))
     $metaPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$metaEntry.url)))
+    $sourceManifestPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$sourceManifestEntry.url)))
     $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath | ConvertFrom-Json
     $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaPath | ConvertFrom-Json
     if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -notin @(4,5)) { throw "Unsupported content schema: $($version.id)" }
     if ([string]$catalog.set.id -ne [string]$version.setId -or [string]$meta.setId -ne [string]$version.setId) { throw "Set mismatch: $($version.id)" }
     if ([string]$catalog.set.tftPatch -ne [string]$version.patch) { throw "Patch mismatch: $($version.id)" }
     if ([string]$meta.clusterId -ne [string]$version.revision) { throw "Revision mismatch: $($version.id)" }
+    $versionReleaseState = if ($version.PSObject.Properties['releaseState']) { [string]$version.releaseState } else { '' }
+    if ($versionReleaseState) {
+        $sourceManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $sourceManifestPath | ConvertFrom-Json
+        $derivedContract = Resolve-TftReleaseContract -Catalog $catalog -Snapshot $meta -SourceManifest $sourceManifest
+        foreach ($field in @('releaseState','validationStatus','sourceAlignment')) {
+            if ([string]$version.$field -ne [string]$derivedContract.$field) {
+                throw "Derived release contract mismatch: $($version.id)/$field"
+            }
+        }
+        foreach ($field in @('featureReadiness','levelBoardReadiness')) {
+            if (($version.$field | ConvertTo-Json -Depth 10 -Compress) -cne ($derivedContract.$field | ConvertTo-Json -Depth 10 -Compress)) {
+                throw "Derived release contract object mismatch: $($version.id)/$field"
+            }
+        }
+    }
+    if ($versionReleaseState -eq 'STABLE') {
+        $syntheticBoards = @($meta.compositions | ForEach-Object { @($_.levelBoards) } | Where-Object { [string]$_.source -notin @('MetaTFT early_options','MetaTFT options') })
+        if ($syntheticBoards.Count -gt 0) { throw "Stable version contains synthetic or unknown level boards: $($version.id)" }
+    }
     $groups = @($catalog.champions), @($catalog.traits), @($catalog.items), @($catalog.augments)
     $versionReadiness = if ($version.PSObject.Properties['readiness']) { [string]$version.readiness } else { 'META_STABLE' }
     if ($versionReadiness -eq 'META_STABLE') { $groups += ,@($meta.compositions) }
@@ -186,6 +233,31 @@ if ([int]$health.fileCount -ne $allFiles.Count) { throw "health file count misma
 if ([string]$health.latestMetaFingerprint -ne [string]$latest.metaFingerprint) { throw "health meta fingerprint mismatch" }
 if ([string]$health.latestManifestSha256 -ne [string]$latest.manifestSha256) { throw "health manifest SHA mismatch" }
 if ([string]$health.sourceQueryHash -ne [string]$latest.sourceQueryHash) { throw "health source query hash mismatch" }
+if ($hasDualPointers) {
+    foreach ($field in @(
+        'freshnessWarningAfterSeconds','freshnessCriticalAfterSeconds',
+        'latestStableVersionId','latestAvailableVersionId',
+        'latestAvailableSetId','latestAvailablePatch','latestAvailableRevision',
+        'latestAvailableMetaFingerprint','latestAvailableManifestSha256','latestAvailableSourceQueryHash'
+    )) {
+        if (-not $health.PSObject.Properties[$field]) { throw "health.json missing ideal-contract field $field" }
+    }
+    if ([int]$health.freshnessWarningAfterSeconds -ne 21600 -or [int]$health.freshnessCriticalAfterSeconds -ne 86400) { throw 'health freshness thresholds do not match the 6h/24h policy.' }
+    if ([string]$health.latestStableVersionId -ne [string]$index.latestStableVersionId -or [string]$health.latestAvailableVersionId -ne [string]$index.latestAvailableVersionId) { throw 'health stable/available pointers do not match data-index.' }
+    if ([string]$health.latestAvailableSetId -ne [string]$latestAvailable.setId -or [string]$health.latestAvailablePatch -ne [string]$latestAvailable.patch -or [string]$health.latestAvailableRevision -ne [string]$latestAvailable.revision) { throw 'health available identity mismatch.' }
+    if ([string]$health.latestAvailableMetaFingerprint -ne [string]$latestAvailable.metaFingerprint -or [string]$health.latestAvailableManifestSha256 -ne [string]$latestAvailable.manifestSha256 -or [string]$health.latestAvailableSourceQueryHash -ne [string]$latestAvailable.sourceQueryHash) { throw 'health available content identity mismatch.' }
+}
+
+$qualityPath = Join-Path $root 'data-quality.json'
+if (Test-Path -LiteralPath $qualityPath) {
+    $quality = Get-Content -Raw -Encoding UTF8 -LiteralPath $qualityPath | ConvertFrom-Json
+    $expectedQualityVersion = if ($hasDualPointers) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
+    if ([string]$quality.versionId -ne $expectedQualityVersion) { throw 'data-quality.json must describe latestAvailableVersionId.' }
+    if ($hasDualPointers -and [int]$quality.schemaVersion -eq 2) {
+        if ([string]$quality.latestStableVersionId -ne [string]$index.latestStableVersionId -or [string]$quality.latestAvailableVersionId -ne [string]$index.latestAvailableVersionId) { throw 'data-quality pointer contract mismatch.' }
+        if ($latestAvailable.PSObject.Properties['featureReadiness'] -and ($quality.features | ConvertTo-Json -Depth 10 -Compress) -cne ($latestAvailable.featureReadiness | ConvertTo-Json -Depth 10 -Compress)) { throw 'data-quality/index feature readiness mismatch.' }
+    }
+}
 
 Write-Output "Site validation passed"
 Write-Output "Versions=$($versions.Count) CheckedManifestFiles=$checkedFiles SiteFiles=$($allFiles.Count) Bytes=$siteBytes UsagePercent=$usagePercent Capacity=$capacityWarning Latest=$($index.latestVersionId)"

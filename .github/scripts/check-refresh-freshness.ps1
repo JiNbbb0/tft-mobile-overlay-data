@@ -47,7 +47,7 @@ try {
     $index = Get-Json $indexUri
     $quality = Get-Json $qualityUri
 
-    $latestVersionId = [string]$index.latestVersionId
+    $latestVersionId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
     if (-not $latestVersionId) { throw 'data-index latestVersionId is empty.' }
 
     $qualityVersionId = if ($quality.PSObject.Properties['releaseId']) {

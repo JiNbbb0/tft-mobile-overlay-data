@@ -60,7 +60,7 @@ Assert-Equal 5000 $fallbackAdaptive.minimumSamples 'Limited coverage should reta
 Assert-Equal $false $fallbackAdaptive.useFallback 'Limited coverage must not use fallback data.'
 
 if ($Live) {
-    $url = 'https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=true'
+    $url = 'https://api-hc.metatft.com/tft-comps-api/comps_stats?queue=1100&patch=current&days=3&rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM&permit_filter_adjustment=false'
     $stats = Invoke-RestMethod -Uri $url -Headers @{ 'User-Agent' = 'TFT-Mobile-Overlay-Data/1.0' }
     $decision = Resolve-CompositionCoveragePolicy `
         -PreferredStats $stats `

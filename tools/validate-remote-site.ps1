@@ -55,7 +55,8 @@ try {
     if (-not $indexUri.AbsolutePath.EndsWith('/data-index.json', [StringComparison]::Ordinal)) { throw "URL must end with data-index.json" }
     $index = Get-Json $indexUri $MaximumIndexBytes
     if ([int]$index.schemaVersion -ne 1 -or -not $index.latestVersionId -or @($index.versions).Count -lt 1 -or @($index.versions).Count -gt 100) { throw "Invalid data-index structure" }
-    $latest = @($index.versions | Where-Object { [string]$_.id -eq [string]$index.latestVersionId }) | Select-Object -First 1
+    $availableId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
+    $latest = @($index.versions | Where-Object { [string]$_.id -eq $availableId }) | Select-Object -First 1
     if (-not $latest) { throw "Latest version is missing" }
     $manifestUri = [uri]::new($indexUri, [string]$latest.manifestUrl)
     $manifestBytes = Get-RemoteBytes $manifestUri $MaximumIndexBytes @('application/json','text/json','text/plain','application/octet-stream')

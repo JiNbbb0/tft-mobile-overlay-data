@@ -44,10 +44,16 @@ function Assert-NotEqual($Expected, $Actual, [string]$Message) { if ($Expected -
 Write-Fixture
 $baseline = Fingerprint
 $catalog.fetchedAtUtc='2026-01-01T01:00:00Z'; $snapshot.fetchedAtUtc='2026-01-01T01:00:00Z'; $snapshot.statsUpdatedEpochMs=2
+Write-Fixture
+Assert-Equal $baseline (Fingerprint) 'Observation timestamp-only change altered the material fingerprint.'
 $snapshot.compositions[0].sampleCount=101
 $snapshot.compositions[0].units[0].itemStats[0].sampleCount=51
 Write-Fixture
-Assert-Equal $baseline (Fingerprint) 'Observation time or sample-count-only change altered the material fingerprint.'
+Assert-NotEqual $baseline (Fingerprint) 'A sample-count change was not versioned.'
+$snapshot.compositions[0].sampleCount=100; $snapshot.compositions[0].units[0].itemStats[0].sampleCount=50
+$snapshot.compositions[0].averagePlacement=4.000001; Write-Fixture
+Assert-NotEqual $baseline (Fingerprint) 'A small placement change was rounded out of the version identity.'
+$snapshot.compositions[0].averagePlacement=4.0
 
 $snapshot.compositions[0].displayNameJa='Changed Comp'; Write-Fixture
 Assert-NotEqual $baseline (Fingerprint) 'Composition title change was not detected.'

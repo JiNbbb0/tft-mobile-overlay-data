@@ -1,54 +1,77 @@
 {
   "schemaVersion": 1,
-  "id": "tftset18-18.1-r422-m43cca4dd55",
+  "id": "tftset18-18.1-r422-m8ab218fe9a",
   "setId": "TFTSet18",
   "setNumber": 18,
-  "setName": "Set10",
+  "setName": "Enchanted Wilds",
   "patch": "18.1",
   "revision": "422",
   "updateKind": "META_UPDATE",
-  "generatedAtUtc": "2026-09-04T14:11:22Z",
-  "sourceTimestampUtc": "2026-09-04T14:09:44Z",
-  "metaFingerprint": "43cca4dd558d9b618fdc49ec9f0d117435e85d4ca90cd3912e3f5026e04356ce",
-  "sourceQueryHash": "2ed32d21410253afee2f858169bd99b6523492d384c0781af752a350662fc68d",
+  "generatedAtUtc": "2026-09-04T19:56:38Z",
+  "sourceTimestampUtc": "2026-09-04T19:56:03Z",
+  "metaFingerprint": "8ab218fe9a17cfb0e88730ab9ba63973b60a1e4e143f5fcc8e8de6ecae66f886",
+  "sourceQueryHash": "f958e9dd40f6c651b5d265656ff2ace4111c757fb1df69dc84330b8a5e336407",
   "readiness": "META_COLLECTING",
+  "releaseState": "STABLE",
+  "validationStatus": "PASS",
+  "sourceAlignment": "VERIFIED",
+  "validatedAtUtc": "2026-09-04T19:56:46Z",
+  "featureReadiness": {
+    "catalog": "READY",
+    "champions": "READY",
+    "traits": "READY",
+    "items": "READY",
+    "augments": "READY",
+    "compositions": "READY",
+    "boards": "READY",
+    "recommendedItems": "READY",
+    "compositionAugments": "COLLECTING"
+  },
+  "levelBoardReadiness": {
+    "lv4": "READY",
+    "lv5": "READY",
+    "lv6": "READY",
+    "lv7": "READY",
+    "lv8": "READY",
+    "lv9": "READY"
+  },
   "minimumAppVersionCode": 24,
   "files": [
     {
       "path": "tft/tft_catalog.json",
       "url": "files/catalog/tft_catalog.json",
-      "sha256": "419a0dec4b3810391c4fd82e98f2915e9646b21bbcd7a02ebe052258dabb1121",
-      "bytes": 885204
+      "sha256": "ba99918bc2a612fb57c9f154bd9cacf3a4ff49a748f3cceab237434f826bc4cd",
+      "bytes": 969461
     },
     {
       "path": "tft_static_snapshot.json",
       "url": "files/comps/tft_static_snapshot.json",
-      "sha256": "3fc8d8e43d71a693db2787c29c4114afc676c2985bdfd3a60d4e28544b2b7507",
-      "bytes": 1067371
+      "sha256": "871ddd4501b3b1655f8135132292afb639bc687434fdf0b5bae96d3a91d5984b",
+      "bytes": 1180212
     },
     {
       "path": "metadata/DATA_SOURCE_MANIFEST.json",
       "url": "files/metadata/DATA_SOURCE_MANIFEST.json",
-      "sha256": "5876d7b80a903c123a44e4bf46b31e07b7855004981720535ccc65e3c240b08e",
-      "bytes": 5894
+      "sha256": "19d796f5835b9568c8acf1003b3047407b03ac3f758deaa5fd7e68272dcc6c40",
+      "bytes": 14008
     },
     {
       "path": "metadata/CHANGE_SUMMARY.json",
       "url": "files/metadata/CHANGE_SUMMARY.json",
-      "sha256": "073fa28b82d71f80e2850e04e64b7be027df5729772317bc1a173e8e7b8a0715",
-      "bytes": 2749
+      "sha256": "d54e1650e1ba872ceb59f40c334f44b15dcfff500a026c30a62f645149646565",
+      "bytes": 3367
     },
     {
       "path": "metadata/CHANGE_SUMMARY.md",
       "url": "files/metadata/CHANGE_SUMMARY.md",
-      "sha256": "9f59c978a53d79b831dbede5558b93bcdd2ff12107574d9316d7496059b47156",
+      "sha256": "796c5f7593f4819af04a593b097167e57e7e7fd1edfd673f71bc2d240fb23066",
       "bytes": 547
     },
     {
       "path": "metadata/STATS_BASIS.json",
       "url": "files/stats/STATS_BASIS.json",
-      "sha256": "4538f22dec38f9b865737294ba497122f9ee3bc3806993e24c761e55ea6a0fa1",
-      "bytes": 792
+      "sha256": "5549bcbc09f98f72ec6e6afd2e306b80b345ab8d417e2f8ee91b6355c663b2f9",
+      "bytes": 791
     },
     {
       "path": "tft/images/00ad2b1e69b94a04299c2585.png",
@@ -183,12 +206,6 @@
       "bytes": 14074
     },
     {
-      "path": "tft/images/09cdb7d454c411351fb7b889.png",
-      "url": "../../blobs/3b525fd28c582b87ed1168d312af55e036fd8c7ecc80c4ee70a23ee920c413c6.png",
-      "sha256": "3b525fd28c582b87ed1168d312af55e036fd8c7ecc80c4ee70a23ee920c413c6",
-      "bytes": 61914
-    },
-    {
       "path": "tft/images/09dd5eb7484362a007ead9e9.png",
       "url": "../../blobs/64fa24637e6844f164a490ebc367e154f6ec2e6e44cbf19a8d745aa90e4c138c.png",
       "sha256": "64fa24637e6844f164a490ebc367e154f6ec2e6e44cbf19a8d745aa90e4c138c",
@@ -231,6 +248,12 @@
       "bytes": 323
     },
     {
+      "path": "tft/images/0c31c31b295c2f3d9771d3c3.png",
+      "url": "../../blobs/4875902e4279fa7da1a79886420f2cbf361bf1778a3a327fb8cfd4f6c54bc172.png",
+      "sha256": "4875902e4279fa7da1a79886420f2cbf361bf1778a3a327fb8cfd4f6c54bc172",
+      "bytes": 21069
+    },
+    {
       "path": "tft/images/0d219c81a4c3087fd02e35b4.png",
       "url": "../../blobs/ec245f544a8b2e585de77447dd844d73977d75d67e40e9e5b6511fa55feb3ad5.png",
       "sha256": "ec245f544a8b2e585de77447dd844d73977d75d67e40e9e5b6511fa55feb3ad5",
@@ -238,9 +261,9 @@
     },
     {
       "path": "tft/images/0d51968adfee97c5c36d11d4.png",
-      "url": "../../blobs/fdc22e3e67c2fb4e12c0437438042ccab9f3f5b3a27d153bf6a39138924bb656.png",
-      "sha256": "fdc22e3e67c2fb4e12c0437438042ccab9f3f5b3a27d153bf6a39138924bb656",
-      "bytes": 9209
+      "url": "../../blobs/6e4bb18581525d64de006766ebe6c87dd0f2ea451698c066b23df1d6c0d63eef.png",
+      "sha256": "6e4bb18581525d64de006766ebe6c87dd0f2ea451698c066b23df1d6c0d63eef",
+      "bytes": 6693
     },
     {
       "path": "tft/images/0e1eb6cd0e3d9f1df0555d5f.png",
@@ -334,9 +357,9 @@
     },
     {
       "path": "tft/images/12f18ad73d8f8c5d8b6b7c55.png",
-      "url": "../../blobs/ab13d2beb3dc662c5752809c3892972a9414a162d98439776378f4babf254fbc.png",
-      "sha256": "ab13d2beb3dc662c5752809c3892972a9414a162d98439776378f4babf254fbc",
-      "bytes": 6097
+      "url": "../../blobs/03195156252298ab048eedecc74ae19e45ade103b5ea15a855910a4b8b477f0a.png",
+      "sha256": "03195156252298ab048eedecc74ae19e45ade103b5ea15a855910a4b8b477f0a",
+      "bytes": 4117
     },
     {
       "path": "tft/images/12f91f20f2d9d04ba4ae17e7.png",
@@ -358,9 +381,9 @@
     },
     {
       "path": "tft/images/143a2ae902cca502b5569890.png",
-      "url": "../../blobs/b828b1d9e3f1e18ae30d879761bc833f8a3b8fdf2200fc3e16e5873d51d1c213.png",
-      "sha256": "b828b1d9e3f1e18ae30d879761bc833f8a3b8fdf2200fc3e16e5873d51d1c213",
-      "bytes": 9250
+      "url": "../../blobs/fd8529894d884d456c89fe319a6dfb99015e65b4590aadd0e38f9b4af4b6c3f5.png",
+      "sha256": "fd8529894d884d456c89fe319a6dfb99015e65b4590aadd0e38f9b4af4b6c3f5",
+      "bytes": 6423
     },
     {
       "path": "tft/images/149174cdf8b1eac54e704530.png",
@@ -388,9 +411,9 @@
     },
     {
       "path": "tft/images/14f4f0feff43070a2b31266d.png",
-      "url": "../../blobs/ac661cddf247cb69303bd781dd6d6cc0843d73424f5df7fdde715864bfb4963f.png",
-      "sha256": "ac661cddf247cb69303bd781dd6d6cc0843d73424f5df7fdde715864bfb4963f",
-      "bytes": 8007
+      "url": "../../blobs/2a52a1f767804955e9b996dba6dff7e1781865e777c533c3101963cebb5ff581.png",
+      "sha256": "2a52a1f767804955e9b996dba6dff7e1781865e777c533c3101963cebb5ff581",
+      "bytes": 5940
     },
     {
       "path": "tft/images/15435c36b40826627fc2487b.png",
@@ -418,9 +441,9 @@
     },
     {
       "path": "tft/images/1764099213fe4dfcaa3595f5.png",
-      "url": "../../blobs/717723c869f3f65bd41ab13e6b2c7f4de6ae47e72641b096d30c501e6f9c75d9.png",
-      "sha256": "717723c869f3f65bd41ab13e6b2c7f4de6ae47e72641b096d30c501e6f9c75d9",
-      "bytes": 21186
+      "url": "../../blobs/ea8f9af6addf3cf706336fc934376c456abc26c032f146a501ce0f407c0749fe.png",
+      "sha256": "ea8f9af6addf3cf706336fc934376c456abc26c032f146a501ce0f407c0749fe",
+      "bytes": 16186
     },
     {
       "path": "tft/images/176ef2163ca4ac3ab1c4dff7.png",
@@ -442,9 +465,9 @@
     },
     {
       "path": "tft/images/1a4006fb2b09462e5cd7aa2a.png",
-      "url": "../../blobs/425da1b8a8d48c1605b3d8733bd408229299b5b8acb876c9951008a6a63ef589.png",
-      "sha256": "425da1b8a8d48c1605b3d8733bd408229299b5b8acb876c9951008a6a63ef589",
-      "bytes": 9632
+      "url": "../../blobs/dfff23692d2470f7db57f0ddd2885a89472e2ee6598421d20c312d8250e45a04.png",
+      "sha256": "dfff23692d2470f7db57f0ddd2885a89472e2ee6598421d20c312d8250e45a04",
+      "bytes": 7171
     },
     {
       "path": "tft/images/1a4a43034ca021b4609a6fe3.png",
@@ -466,9 +489,9 @@
     },
     {
       "path": "tft/images/1b6a09f41f5590dbb1283d21.png",
-      "url": "../../blobs/955061d92d80f087cce03ded1f46a19ac4b61735592774288c21e01161843ea8.png",
-      "sha256": "955061d92d80f087cce03ded1f46a19ac4b61735592774288c21e01161843ea8",
-      "bytes": 10543
+      "url": "../../blobs/36155bc252c9fe888e7205566c0afb7e384a6c85287ede1c089a86ec3de6c5d6.png",
+      "sha256": "36155bc252c9fe888e7205566c0afb7e384a6c85287ede1c089a86ec3de6c5d6",
+      "bytes": 7793
     },
     {
       "path": "tft/images/1b988b3749040b92d8d88dbd.png",
@@ -495,12 +518,6 @@
       "bytes": 16097
     },
     {
-      "path": "tft/images/1d5c32827412098766822abd.png",
-      "url": "../../blobs/caaf65e583d82c65242d58ff3b0b9c004a3b40b00426445dee3ef4d5bd6edfff.png",
-      "sha256": "caaf65e583d82c65242d58ff3b0b9c004a3b40b00426445dee3ef4d5bd6edfff",
-      "bytes": 59737
-    },
-    {
       "path": "tft/images/1ec45ba18f8ee63db42783f8.png",
       "url": "../../blobs/631c34085918566394e888077dfbce817e6a259fbdf513a7c2674d6eaaa8d748.png",
       "sha256": "631c34085918566394e888077dfbce817e6a259fbdf513a7c2674d6eaaa8d748",
@@ -514,9 +531,9 @@
     },
     {
       "path": "tft/images/1f6a9d3a4a39a924ba98a6f1.png",
-      "url": "../../blobs/6ef6ebd0dc957bc88b00559b9da0a8a3a89a5bd20b72ab28c05885f8ad3802f4.png",
-      "sha256": "6ef6ebd0dc957bc88b00559b9da0a8a3a89a5bd20b72ab28c05885f8ad3802f4",
-      "bytes": 6130
+      "url": "../../blobs/de1615246cc2d1e8e13364740543fe52e634c21c90341fb766b0a6eac34a7702.png",
+      "sha256": "de1615246cc2d1e8e13364740543fe52e634c21c90341fb766b0a6eac34a7702",
+      "bytes": 3935
     },
     {
       "path": "tft/images/1fbe84bbaadcf699a485e147.png",
@@ -586,9 +603,9 @@
     },
     {
       "path": "tft/images/25fb70adc64e3bc4ea2dbd8c.png",
-      "url": "../../blobs/1c2273b7263c3becd8ada93aed43a7647872e5c7926b1d94d38a4ab4ade0057d.png",
-      "sha256": "1c2273b7263c3becd8ada93aed43a7647872e5c7926b1d94d38a4ab4ade0057d",
-      "bytes": 9542
+      "url": "../../blobs/477087b2243c14f664387a3cd5af37898384db43b3a74c6b9f9800190986d5f8.png",
+      "sha256": "477087b2243c14f664387a3cd5af37898384db43b3a74c6b9f9800190986d5f8",
+      "bytes": 6801
     },
     {
       "path": "tft/images/26057f8ec0f9973489912928.png",
@@ -610,9 +627,9 @@
     },
     {
       "path": "tft/images/27167c51a4d597d25c1ee301.png",
-      "url": "../../blobs/99ce9ee4f8607b8017a16b4d57a9be313e0e56763b52bfbef96c8700d6e93ff2.png",
-      "sha256": "99ce9ee4f8607b8017a16b4d57a9be313e0e56763b52bfbef96c8700d6e93ff2",
-      "bytes": 8930
+      "url": "../../blobs/fdb454b4ecb05c255477613433ffdd5d545f1d4f0bd7ad801f2846247da133be.png",
+      "sha256": "fdb454b4ecb05c255477613433ffdd5d545f1d4f0bd7ad801f2846247da133be",
+      "bytes": 6170
     },
     {
       "path": "tft/images/2727517a874ed1e13b197e6a.png",
@@ -676,9 +693,9 @@
     },
     {
       "path": "tft/images/2961c0bfe51820ddae7cfc83.png",
-      "url": "../../blobs/45a64df7a10573f6fc00254cf3f8cd28a0d1f7fc5861f16200292604cb2f681f.png",
-      "sha256": "45a64df7a10573f6fc00254cf3f8cd28a0d1f7fc5861f16200292604cb2f681f",
-      "bytes": 9563
+      "url": "../../blobs/a8c502075792074f955f9981729179ca4f4f863c1091fed85150ff98e3ebbf99.png",
+      "sha256": "a8c502075792074f955f9981729179ca4f4f863c1091fed85150ff98e3ebbf99",
+      "bytes": 6963
     },
     {
       "path": "tft/images/29830060c4f186f31ac62e83.png",
@@ -856,9 +873,9 @@
     },
     {
       "path": "tft/images/33a736e800eb860e403b20ea.png",
-      "url": "../../blobs/f50e272bb4559c483a974433d6c81197ed0771b563b8c397e5fd06ecc793e17d.png",
-      "sha256": "f50e272bb4559c483a974433d6c81197ed0771b563b8c397e5fd06ecc793e17d",
-      "bytes": 6895
+      "url": "../../blobs/9c0d88f830efc0a1a41f392b41d8476ad18961f0ef36ed025ab03d4dcc4a17a3.png",
+      "sha256": "9c0d88f830efc0a1a41f392b41d8476ad18961f0ef36ed025ab03d4dcc4a17a3",
+      "bytes": 4377
     },
     {
       "path": "tft/images/33b72e6cf0f70e3b0379b16b.png",
@@ -915,16 +932,10 @@
       "bytes": 16314
     },
     {
-      "path": "tft/images/363936116680b4694400bea1.png",
-      "url": "../../blobs/ba06715b541e29c71e3104a73a38dbc1e86e83518780e4d762c157fad9b6f726.png",
-      "sha256": "ba06715b541e29c71e3104a73a38dbc1e86e83518780e4d762c157fad9b6f726",
-      "bytes": 68462
-    },
-    {
       "path": "tft/images/3695720139fe341edacb24bb.png",
-      "url": "../../blobs/73aec1184768d22703d241c6711966bd51f85100d3a17be7ed9b9df4b0c6289f.png",
-      "sha256": "73aec1184768d22703d241c6711966bd51f85100d3a17be7ed9b9df4b0c6289f",
-      "bytes": 8987
+      "url": "../../blobs/50f3e33e22d3ccb2b2a273843ce4c25f6af70d550ae2ac9b97554a8f1de2c1f4.png",
+      "sha256": "50f3e33e22d3ccb2b2a273843ce4c25f6af70d550ae2ac9b97554a8f1de2c1f4",
+      "bytes": 6426
     },
     {
       "path": "tft/images/36ef14598513f4a88a9b1b70.png",
@@ -964,9 +975,9 @@
     },
     {
       "path": "tft/images/39e21c8cf981d9b6a7e4abe0.png",
-      "url": "../../blobs/d0e80980d70c9a0e2b7009370a4316810ffe38eb9053874a62fa581bba3c46a2.png",
-      "sha256": "d0e80980d70c9a0e2b7009370a4316810ffe38eb9053874a62fa581bba3c46a2",
-      "bytes": 11474
+      "url": "../../blobs/411d434a54cd86ecc0a1768b55df98402e210b974437429e2df7aa2b638db04e.png",
+      "sha256": "411d434a54cd86ecc0a1768b55df98402e210b974437429e2df7aa2b638db04e",
+      "bytes": 8832
     },
     {
       "path": "tft/images/3a76c4c8e90120901dddaca6.png",
@@ -988,9 +999,9 @@
     },
     {
       "path": "tft/images/3c3acc161f00dc2192b96169.png",
-      "url": "../../blobs/86fb6f30a096846e01be0adeef2451c2f85ccbd357602f21dd4a0acce7e29578.png",
-      "sha256": "86fb6f30a096846e01be0adeef2451c2f85ccbd357602f21dd4a0acce7e29578",
-      "bytes": 9213
+      "url": "../../blobs/e7a4f6aa349830d1c5037362d292742c2353cea3193ac7d748e907ca6bdc1c8d.png",
+      "sha256": "e7a4f6aa349830d1c5037362d292742c2353cea3193ac7d748e907ca6bdc1c8d",
+      "bytes": 6734
     },
     {
       "path": "tft/images/3d8eccb7a63b89951e71493d.png",
@@ -1012,9 +1023,9 @@
     },
     {
       "path": "tft/images/3e31d7bf9c7ad8a5adc4ead8.png",
-      "url": "../../blobs/1d52b67a55e0699b7d8a2c04dd7e365b188f37522971de1a693f2e32aa4778d9.png",
-      "sha256": "1d52b67a55e0699b7d8a2c04dd7e365b188f37522971de1a693f2e32aa4778d9",
-      "bytes": 10640
+      "url": "../../blobs/32ea4469aa033ff86c548ce1563dd5bd57f9f6389a46c43cb0bf15cebad97583.png",
+      "sha256": "32ea4469aa033ff86c548ce1563dd5bd57f9f6389a46c43cb0bf15cebad97583",
+      "bytes": 7488
     },
     {
       "path": "tft/images/3e3ef24a16695b3b75283c3b.png",
@@ -1036,9 +1047,9 @@
     },
     {
       "path": "tft/images/401cdea43dbb36e8cfb4332f.png",
-      "url": "../../blobs/eaac50667e384b8d56bf5851852cac6664b2c9e5bf2b15f20c6844b9bdb62049.png",
-      "sha256": "eaac50667e384b8d56bf5851852cac6664b2c9e5bf2b15f20c6844b9bdb62049",
-      "bytes": 7362
+      "url": "../../blobs/f7fe94fbfd138ce6af68cde0fab1930508c09b8e082699ba8ef8d1d533c86d3e.png",
+      "sha256": "f7fe94fbfd138ce6af68cde0fab1930508c09b8e082699ba8ef8d1d533c86d3e",
+      "bytes": 4510
     },
     {
       "path": "tft/images/403d8f920df7da519b3c983a.png",
@@ -1054,21 +1065,15 @@
     },
     {
       "path": "tft/images/41e57b622f0d74af48d007e9.png",
-      "url": "../../blobs/3e68c0eec96240dd8438ba70d035b0ba86a2865bf5d4688146165fabcd296f50.png",
-      "sha256": "3e68c0eec96240dd8438ba70d035b0ba86a2865bf5d4688146165fabcd296f50",
-      "bytes": 7199
+      "url": "../../blobs/055b9847811bc7f4bf5de9c8aa4675150b0893e8cad8b23df1f3c4f88a124c88.png",
+      "sha256": "055b9847811bc7f4bf5de9c8aa4675150b0893e8cad8b23df1f3c4f88a124c88",
+      "bytes": 4557
     },
     {
       "path": "tft/images/42244ce228f932cdf9455561.png",
       "url": "../../blobs/b44e628aa92c72aaec00b6e31e7a0f7a03fa0a3ea094bd1690513ccde6413c6a.png",
       "sha256": "b44e628aa92c72aaec00b6e31e7a0f7a03fa0a3ea094bd1690513ccde6413c6a",
       "bytes": 5187
-    },
-    {
-      "path": "tft/images/425c394d0d22dfc9d2bff259.png",
-      "url": "../../blobs/6208e38e8085764e597971124b2e6a280083d700d70b28dd84800d4584a4e236.png",
-      "sha256": "6208e38e8085764e597971124b2e6a280083d700d70b28dd84800d4584a4e236",
-      "bytes": 57167
     },
     {
       "path": "tft/images/434e5ac9a51214548cb4c4d2.png",
@@ -1114,15 +1119,15 @@
     },
     {
       "path": "tft/images/4537e89cd88ca889f7e61eb1.png",
-      "url": "../../blobs/d4f4a269adc1686f9985623fe083262d9de4dddb4a9b52fedd819e2d972660d4.png",
-      "sha256": "d4f4a269adc1686f9985623fe083262d9de4dddb4a9b52fedd819e2d972660d4",
-      "bytes": 10031
+      "url": "../../blobs/98642cf9e3d25552b7091033a481f6021b466bdc8148e61f80799ca2d1b60a20.png",
+      "sha256": "98642cf9e3d25552b7091033a481f6021b466bdc8148e61f80799ca2d1b60a20",
+      "bytes": 7279
     },
     {
       "path": "tft/images/4641998bd6723882086f1042.png",
-      "url": "../../blobs/99b079ec70d3b321e07d6ef92dd42924f2f6381c2a295a24c7f65ce55cb0c944.png",
-      "sha256": "99b079ec70d3b321e07d6ef92dd42924f2f6381c2a295a24c7f65ce55cb0c944",
-      "bytes": 17126
+      "url": "../../blobs/17f644dfa099cf2d01b644ebe8dcf395508fe02533498e547b3999866d73d3b5.png",
+      "sha256": "17f644dfa099cf2d01b644ebe8dcf395508fe02533498e547b3999866d73d3b5",
+      "bytes": 14649
     },
     {
       "path": "tft/images/46bfca48b9eae9f63824fb9e.png",
@@ -1144,9 +1149,9 @@
     },
     {
       "path": "tft/images/4766fa5f73779fd49d16e8c4.png",
-      "url": "../../blobs/888ec30497506ae68b77a35bf434b26bf9b7ad78b2b60dca661661cd855b0d69.png",
-      "sha256": "888ec30497506ae68b77a35bf434b26bf9b7ad78b2b60dca661661cd855b0d69",
-      "bytes": 7408
+      "url": "../../blobs/394f56d37c5e29ae4d133cce90240e639083c72e8e74fc84e18411cf7a48e9bf.png",
+      "sha256": "394f56d37c5e29ae4d133cce90240e639083c72e8e74fc84e18411cf7a48e9bf",
+      "bytes": 5207
     },
     {
       "path": "tft/images/47b6c74423afd8ce3093fd03.png",
@@ -1210,9 +1215,9 @@
     },
     {
       "path": "tft/images/4af5461c0b12cd8978fa5a4f.png",
-      "url": "../../blobs/f6f786b6a3319414b32a81a260c4c8c4ae569eed5cd268e4637482a06917fe2e.png",
-      "sha256": "f6f786b6a3319414b32a81a260c4c8c4ae569eed5cd268e4637482a06917fe2e",
-      "bytes": 6478
+      "url": "../../blobs/060db0d4afa89658eaf518fc92f9bd86256954d863774b3568e76f9c45b49cf1.png",
+      "sha256": "060db0d4afa89658eaf518fc92f9bd86256954d863774b3568e76f9c45b49cf1",
+      "bytes": 4390
     },
     {
       "path": "tft/images/4b6405e504a49e24cde4963b.png",
@@ -1240,9 +1245,9 @@
     },
     {
       "path": "tft/images/4c322ee6bf2dd7ff59a02212.png",
-      "url": "../../blobs/37bae87fc0106a32d49d425b9634979e0dcebdaa1f59884ae3ecb28d80c05f68.png",
-      "sha256": "37bae87fc0106a32d49d425b9634979e0dcebdaa1f59884ae3ecb28d80c05f68",
-      "bytes": 19473
+      "url": "../../blobs/61693ef4e957634f8f9ba6de094ad4095c9eb66914d444c5a443baf54b5bc35a.png",
+      "sha256": "61693ef4e957634f8f9ba6de094ad4095c9eb66914d444c5a443baf54b5bc35a",
+      "bytes": 16230
     },
     {
       "path": "tft/images/4c4c776f02d2031ec5a6a4f5.png",
@@ -1281,6 +1286,12 @@
       "bytes": 10349
     },
     {
+      "path": "tft/images/4d91c208fb0cca256ef93f14.png",
+      "url": "../../blobs/679545944ae66ff2e13d148d98a0dd0791bd223b78b6da026ddd57f14a00ca3b.png",
+      "sha256": "679545944ae66ff2e13d148d98a0dd0791bd223b78b6da026ddd57f14a00ca3b",
+      "bytes": 11697
+    },
+    {
       "path": "tft/images/4d995959b6e82e5e54803a24.png",
       "url": "../../blobs/91f85c21eac25bb117fe3245f889dcfd6149c19f7f3b417339221adf35cb9c72.png",
       "sha256": "91f85c21eac25bb117fe3245f889dcfd6149c19f7f3b417339221adf35cb9c72",
@@ -1306,21 +1317,21 @@
     },
     {
       "path": "tft/images/4eeb912d486da89504e6aa79.png",
-      "url": "../../blobs/ba2e02a40af3e2f50284d8414d31170275ac72ab1db39ddf0c9a9182a4a32d7e.png",
-      "sha256": "ba2e02a40af3e2f50284d8414d31170275ac72ab1db39ddf0c9a9182a4a32d7e",
-      "bytes": 11092
+      "url": "../../blobs/781d8068e019e9310f0927b23e792216a7207bf0be78fae61ef61f92547f6bb0.png",
+      "sha256": "781d8068e019e9310f0927b23e792216a7207bf0be78fae61ef61f92547f6bb0",
+      "bytes": 8095
     },
     {
       "path": "tft/images/4f0d5786d31bef6a1a1d4207.png",
-      "url": "../../blobs/2480127c970f7b428c1f29df536a01b812b6494152740ee6a39efbd080e7532d.png",
-      "sha256": "2480127c970f7b428c1f29df536a01b812b6494152740ee6a39efbd080e7532d",
-      "bytes": 11338
+      "url": "../../blobs/cee4969c49568779b5edcb0ead2848895091a4d2dfc5a74e9aabcd0fc98ab33a.png",
+      "sha256": "cee4969c49568779b5edcb0ead2848895091a4d2dfc5a74e9aabcd0fc98ab33a",
+      "bytes": 8444
     },
     {
       "path": "tft/images/5003d1c7f75a5cd29700dec3.png",
-      "url": "../../blobs/8f97bd17159805805281df7b33783e1f9a27a59e2d9a15c93ed28cad9a64ddc2.png",
-      "sha256": "8f97bd17159805805281df7b33783e1f9a27a59e2d9a15c93ed28cad9a64ddc2",
-      "bytes": 16135
+      "url": "../../blobs/494edad10a7bdd07b39385d0751ad091b65ef0a7c29de495486d7dbe1ca21313.png",
+      "sha256": "494edad10a7bdd07b39385d0751ad091b65ef0a7c29de495486d7dbe1ca21313",
+      "bytes": 13799
     },
     {
       "path": "tft/images/503ffaa72fabc6933f824c5c.png",
@@ -1333,12 +1344,6 @@
       "url": "../../blobs/12a953809f6a2c8899868506524eea585bdbddcabefa2172c52f6caaa8b8dfbc.png",
       "sha256": "12a953809f6a2c8899868506524eea585bdbddcabefa2172c52f6caaa8b8dfbc",
       "bytes": 6237
-    },
-    {
-      "path": "tft/images/5106a25363b1fed7fbbf2ad4.png",
-      "url": "../../blobs/f05f7b05bd5ba5f5484bd1022edb7e75c86348e4b1b55acd4ddcec1e3f42a618.png",
-      "sha256": "f05f7b05bd5ba5f5484bd1022edb7e75c86348e4b1b55acd4ddcec1e3f42a618",
-      "bytes": 66945
     },
     {
       "path": "tft/images/5115a14a6ed3850791242702.png",
@@ -1354,9 +1359,9 @@
     },
     {
       "path": "tft/images/5218f18192a0a20406aed566.png",
-      "url": "../../blobs/c388e767f31852b2c0f84b0b4ed757527f2e2028f970a2ecf6416272d09b8299.png",
-      "sha256": "c388e767f31852b2c0f84b0b4ed757527f2e2028f970a2ecf6416272d09b8299",
-      "bytes": 8991
+      "url": "../../blobs/b648379666026367d33d0be302c448675a193d2575f96797a93b72fa586c2933.png",
+      "sha256": "b648379666026367d33d0be302c448675a193d2575f96797a93b72fa586c2933",
+      "bytes": 6374
     },
     {
       "path": "tft/images/53e495f9dfa01dde3c8d6dcc.png",
@@ -1390,15 +1395,9 @@
     },
     {
       "path": "tft/images/54b4ea10742964398d849425.png",
-      "url": "../../blobs/5c442cc7d3d1b27ac89be2d685415bc7f41162d1c9bbff8242f1e039abed2934.png",
-      "sha256": "5c442cc7d3d1b27ac89be2d685415bc7f41162d1c9bbff8242f1e039abed2934",
-      "bytes": 19336
-    },
-    {
-      "path": "tft/images/54d589f0cc720a0aa6765692.png",
-      "url": "../../blobs/fd169047457e7f0c9045f0ed3e8bb4a1010b855652b7bbb68e4f68afdcf3a72f.png",
-      "sha256": "fd169047457e7f0c9045f0ed3e8bb4a1010b855652b7bbb68e4f68afdcf3a72f",
-      "bytes": 60621
+      "url": "../../blobs/b0ea38dda818c70b8830601b80d3269bd5b816a24c864e93443526512b14a746.png",
+      "sha256": "b0ea38dda818c70b8830601b80d3269bd5b816a24c864e93443526512b14a746",
+      "bytes": 15582
     },
     {
       "path": "tft/images/550e44082b36f12ddfe6c1af.png",
@@ -1480,9 +1479,9 @@
     },
     {
       "path": "tft/images/5a89bca1fb5e4a1cd2973f00.png",
-      "url": "../../blobs/7440b9a2170f28cc9611b22b48b107868d67bab7b6e25f1a3baeffff62ad8817.png",
-      "sha256": "7440b9a2170f28cc9611b22b48b107868d67bab7b6e25f1a3baeffff62ad8817",
-      "bytes": 11242
+      "url": "../../blobs/e13451cfaf6cc772ad864c9e019b9aeedd0b5ba791d35e873371f1832bc089d7.png",
+      "sha256": "e13451cfaf6cc772ad864c9e019b9aeedd0b5ba791d35e873371f1832bc089d7",
+      "bytes": 8418
     },
     {
       "path": "tft/images/5ab8b9c61f8bf71c0da33a83.png",
@@ -1521,16 +1520,10 @@
       "bytes": 15260
     },
     {
-      "path": "tft/images/5cd6c4621f4eaa3870ae61e9.png",
-      "url": "../../blobs/0b1aac44b0e928402a97a5d038773453762e91cdeddb5c2b3047f9990265e73c.png",
-      "sha256": "0b1aac44b0e928402a97a5d038773453762e91cdeddb5c2b3047f9990265e73c",
-      "bytes": 66093
-    },
-    {
       "path": "tft/images/5d241143b5dc26a918869c38.png",
-      "url": "../../blobs/633760dc2151d2d04d8ee1da34c2ecfc07a3ef89ba473bdb7e47bce07b0143cf.png",
-      "sha256": "633760dc2151d2d04d8ee1da34c2ecfc07a3ef89ba473bdb7e47bce07b0143cf",
-      "bytes": 7985
+      "url": "../../blobs/369e5e5aa577e65035cdec96352ba95c1ed5f765d4b50fcae75dbdd0641c5d63.png",
+      "sha256": "369e5e5aa577e65035cdec96352ba95c1ed5f765d4b50fcae75dbdd0641c5d63",
+      "bytes": 5317
     },
     {
       "path": "tft/images/5dc1effc14aaafa493699b5c.png",
@@ -1588,9 +1581,9 @@
     },
     {
       "path": "tft/images/5fdc236df6de9fef454d1375.png",
-      "url": "../../blobs/fb8bbfecd2d16807c900375f8fe6597a7f22f4cafc9601ab017ba06019e82429.png",
-      "sha256": "fb8bbfecd2d16807c900375f8fe6597a7f22f4cafc9601ab017ba06019e82429",
-      "bytes": 19291
+      "url": "../../blobs/e93d58487edc9b31a8b541a90f3a96a46cf6fe7d82813c8220a9774e0b014cba.png",
+      "sha256": "e93d58487edc9b31a8b541a90f3a96a46cf6fe7d82813c8220a9774e0b014cba",
+      "bytes": 16236
     },
     {
       "path": "tft/images/5ff5fc0f974876802d0cfdae.png",
@@ -1600,9 +1593,9 @@
     },
     {
       "path": "tft/images/606ef023aaea3077ececa803.png",
-      "url": "../../blobs/d0c8e66ff8e1b8e80bba7f621825e83177ce5b818685958a544c2a49d9b7b28e.png",
-      "sha256": "d0c8e66ff8e1b8e80bba7f621825e83177ce5b818685958a544c2a49d9b7b28e",
-      "bytes": 10089
+      "url": "../../blobs/b9fa346f74f55e6e7587c278395b27066efd278d0b54e30fe7f72b2c13805a93.png",
+      "sha256": "b9fa346f74f55e6e7587c278395b27066efd278d0b54e30fe7f72b2c13805a93",
+      "bytes": 7321
     },
     {
       "path": "tft/images/608e3e5fa4ff2717bdb0cb0e.png",
@@ -1612,9 +1605,9 @@
     },
     {
       "path": "tft/images/60cb4b2e361845dd729e09b4.png",
-      "url": "../../blobs/53470cbc36790a4fed0b9be548f2f953b83f6794f3b9d06827a344b77cff287d.png",
-      "sha256": "53470cbc36790a4fed0b9be548f2f953b83f6794f3b9d06827a344b77cff287d",
-      "bytes": 11532
+      "url": "../../blobs/fd6ccadbfe93c2406431aafda82fbd4148b9d036470a23f6943b8f73ea7db54a.png",
+      "sha256": "fd6ccadbfe93c2406431aafda82fbd4148b9d036470a23f6943b8f73ea7db54a",
+      "bytes": 7839
     },
     {
       "path": "tft/images/60ee4c8ba9997fa927d20a1e.png",
@@ -1636,9 +1629,9 @@
     },
     {
       "path": "tft/images/620415245e86428062abb982.png",
-      "url": "../../blobs/0c1c63eb2c4cafef5579ddfed66f51965b4780d3e4cc5004186615faf1d7e89c.png",
-      "sha256": "0c1c63eb2c4cafef5579ddfed66f51965b4780d3e4cc5004186615faf1d7e89c",
-      "bytes": 8418
+      "url": "../../blobs/5180d9a021f3f588fa352892e8de2b2c9beaf229c077c98c256233296f1dc09b.png",
+      "sha256": "5180d9a021f3f588fa352892e8de2b2c9beaf229c077c98c256233296f1dc09b",
+      "bytes": 6025
     },
     {
       "path": "tft/images/62634d9169684a9cdee08ffb.png",
@@ -1702,9 +1695,9 @@
     },
     {
       "path": "tft/images/65c81ab59fb108564e14369b.png",
-      "url": "../../blobs/a54474294e7012a53e8edb4df92e28b69240613405333f0a40c319e68c1c24cd.png",
-      "sha256": "a54474294e7012a53e8edb4df92e28b69240613405333f0a40c319e68c1c24cd",
-      "bytes": 6114
+      "url": "../../blobs/6c98d5477c3e317b24b5ff8b50d12015546b466eb2cd888cadaf522904130c21.png",
+      "sha256": "6c98d5477c3e317b24b5ff8b50d12015546b466eb2cd888cadaf522904130c21",
+      "bytes": 4030
     },
     {
       "path": "tft/images/6636f96bf957d3c22efacfcc.png",
@@ -1744,9 +1737,9 @@
     },
     {
       "path": "tft/images/68e80290244f475677e6b301.png",
-      "url": "../../blobs/5fe6174fc98cbb6f2ce70b2769ff7e2d676e87d0cb929e77ac1f795fdb4b6508.png",
-      "sha256": "5fe6174fc98cbb6f2ce70b2769ff7e2d676e87d0cb929e77ac1f795fdb4b6508",
-      "bytes": 7508
+      "url": "../../blobs/5869151920a40fb82b415bb5c3baa062873860805cd96f1271b71993fe51f785.png",
+      "sha256": "5869151920a40fb82b415bb5c3baa062873860805cd96f1271b71993fe51f785",
+      "bytes": 5084
     },
     {
       "path": "tft/images/69330491d20dc3d958e816a9.png",
@@ -1845,6 +1838,12 @@
       "bytes": 15669
     },
     {
+      "path": "tft/images/6fb28ca1630ef68848d6439a.png",
+      "url": "../../blobs/b1c851d1aeaa3f36b85714ef4ee9a2357daae51ab44761d96c6d4546e986f1fb.png",
+      "sha256": "b1c851d1aeaa3f36b85714ef4ee9a2357daae51ab44761d96c6d4546e986f1fb",
+      "bytes": 11655
+    },
+    {
       "path": "tft/images/6fcb6559685167aeaac5d0a0.png",
       "url": "../../blobs/669fedc1ea896379033f828a54958d1635fd60a22850b4273a3e38aeb702282a.png",
       "sha256": "669fedc1ea896379033f828a54958d1635fd60a22850b4273a3e38aeb702282a",
@@ -1894,9 +1893,9 @@
     },
     {
       "path": "tft/images/719b4268ffd8e50bda11c5d1.png",
-      "url": "../../blobs/978a4966493a4ea71d19b5c15d5f9eb005b9f6a4e79eea886c90a4f34740c206.png",
-      "sha256": "978a4966493a4ea71d19b5c15d5f9eb005b9f6a4e79eea886c90a4f34740c206",
-      "bytes": 55308
+      "url": "../../blobs/b8a74d0ef6a5e18157b35c94af65050444ec5ea6234bdcbaf906e2eb3733fc21.png",
+      "sha256": "b8a74d0ef6a5e18157b35c94af65050444ec5ea6234bdcbaf906e2eb3733fc21",
+      "bytes": 66495
     },
     {
       "path": "tft/images/71d322b3d0fed9fcc342e801.png",
@@ -1978,9 +1977,9 @@
     },
     {
       "path": "tft/images/79a94bb485a412a2086fb7ff.png",
-      "url": "../../blobs/61c6054c3d40a4f3a5d197035c4732af3ff156f7751fce1aaff280348c51efa4.png",
-      "sha256": "61c6054c3d40a4f3a5d197035c4732af3ff156f7751fce1aaff280348c51efa4",
-      "bytes": 10146
+      "url": "../../blobs/f7e4adc26d3fd08f955d5e46f463f8f3d046a752760cbb059a24dd8ab8c064bc.png",
+      "sha256": "f7e4adc26d3fd08f955d5e46f463f8f3d046a752760cbb059a24dd8ab8c064bc",
+      "bytes": 7044
     },
     {
       "path": "tft/images/7a0657d81f46c1de3b30691c.png",
@@ -2014,9 +2013,9 @@
     },
     {
       "path": "tft/images/7e423c1f12054857109f95e1.png",
-      "url": "../../blobs/6479501251dd29a1d12dce8bcfaf61d21509858916d5563dc60fe056f1cf4223.png",
-      "sha256": "6479501251dd29a1d12dce8bcfaf61d21509858916d5563dc60fe056f1cf4223",
-      "bytes": 11859
+      "url": "../../blobs/2db4625d8a17369fc4550e9777c758c76eda46c01942463ab98d582b6d119f2c.png",
+      "sha256": "2db4625d8a17369fc4550e9777c758c76eda46c01942463ab98d582b6d119f2c",
+      "bytes": 8016
     },
     {
       "path": "tft/images/7eee4dd81648bfc1dc45d34b.png",
@@ -2044,9 +2043,9 @@
     },
     {
       "path": "tft/images/80455d98da0e011d99df63be.png",
-      "url": "../../blobs/3cd832875fdceb3fcd3b2d445a087ec4193798c4de1746491b41cd8fd0291396.png",
-      "sha256": "3cd832875fdceb3fcd3b2d445a087ec4193798c4de1746491b41cd8fd0291396",
-      "bytes": 7920
+      "url": "../../blobs/3e334bd02f6524eaf63f10c72d9a1c9ac4da67751aee8783cdc00dd9b13ab09b.png",
+      "sha256": "3e334bd02f6524eaf63f10c72d9a1c9ac4da67751aee8783cdc00dd9b13ab09b",
+      "bytes": 5407
     },
     {
       "path": "tft/images/80b5c946223ec789faa23917.png",
@@ -2146,9 +2145,9 @@
     },
     {
       "path": "tft/images/866cc4dcb035cad5f40c4f13.png",
-      "url": "../../blobs/0662f66b7060850f0d2f4c472a3f6b46c9f141ff6aba5856755409c28e27ca52.png",
-      "sha256": "0662f66b7060850f0d2f4c472a3f6b46c9f141ff6aba5856755409c28e27ca52",
-      "bytes": 11428
+      "url": "../../blobs/6d29d4d01ac4943044e0175d72df11d1aa3f570ee0e38f1a7a3b2e29181809f7.png",
+      "sha256": "6d29d4d01ac4943044e0175d72df11d1aa3f570ee0e38f1a7a3b2e29181809f7",
+      "bytes": 7730
     },
     {
       "path": "tft/images/86b35cf48da402300cad845a.png",
@@ -2176,9 +2175,9 @@
     },
     {
       "path": "tft/images/879a77265a6ca1e8478d7bdd.png",
-      "url": "../../blobs/f27b3fa6484ca4c2faceac1cad705dbe7cb3dad717cbacabe85aea609b691048.png",
-      "sha256": "f27b3fa6484ca4c2faceac1cad705dbe7cb3dad717cbacabe85aea609b691048",
-      "bytes": 31217
+      "url": "../../blobs/4436c07453acd7c76cc6cf982149ab551bbb7595dbd23b0bd946f68604fcdc56.png",
+      "sha256": "4436c07453acd7c76cc6cf982149ab551bbb7595dbd23b0bd946f68604fcdc56",
+      "bytes": 27224
     },
     {
       "path": "tft/images/87e6793fbc81cc136aff0809.png",
@@ -2194,9 +2193,9 @@
     },
     {
       "path": "tft/images/88251e130b785ad4aafcaa5c.png",
-      "url": "../../blobs/300674d1844947ea02deea240c16514cb3945f21609b989b940cc5bb72438a27.png",
-      "sha256": "300674d1844947ea02deea240c16514cb3945f21609b989b940cc5bb72438a27",
-      "bytes": 15143
+      "url": "../../blobs/b80a3cb9abbb6e5447739e6d1a448816df8c5dc6fb316da2b2440248326272d1.png",
+      "sha256": "b80a3cb9abbb6e5447739e6d1a448816df8c5dc6fb316da2b2440248326272d1",
+      "bytes": 17268
     },
     {
       "path": "tft/images/898d4533b814e839a9476e16.png",
@@ -2218,9 +2217,9 @@
     },
     {
       "path": "tft/images/8b1c1e30d1beae6acb967b74.png",
-      "url": "../../blobs/bfd3ac3af74ed80b6bd6b74e9d850244883872346c20dabca086c70b68b39f53.png",
-      "sha256": "bfd3ac3af74ed80b6bd6b74e9d850244883872346c20dabca086c70b68b39f53",
-      "bytes": 13775
+      "url": "../../blobs/2fe9a91c23a1cbaa4fe955c9790562c4ad71b13707b11a989a2cdff117d75df2.png",
+      "sha256": "2fe9a91c23a1cbaa4fe955c9790562c4ad71b13707b11a989a2cdff117d75df2",
+      "bytes": 16794
     },
     {
       "path": "tft/images/8b4f0365ef22e7828f9d18c0.png",
@@ -2230,15 +2229,21 @@
     },
     {
       "path": "tft/images/8b5efcddc9033bca5e8c89a8.png",
-      "url": "../../blobs/7a207fce5baa819829a00fd7c57880a700c935bb7637ec95f720fe7172a0a5ab.png",
-      "sha256": "7a207fce5baa819829a00fd7c57880a700c935bb7637ec95f720fe7172a0a5ab",
-      "bytes": 9887
+      "url": "../../blobs/ca8124f5c5bf371485334b7a9914a429b604fe014789ec42792397219744ba0d.png",
+      "sha256": "ca8124f5c5bf371485334b7a9914a429b604fe014789ec42792397219744ba0d",
+      "bytes": 7032
     },
     {
       "path": "tft/images/8c9763d16d1c9b22e7554e62.png",
       "url": "../../blobs/f387ef8a3afbd4e197080e9ede0b65052fa85a9f1835d3a114029a28d0ca7fc6.png",
       "sha256": "f387ef8a3afbd4e197080e9ede0b65052fa85a9f1835d3a114029a28d0ca7fc6",
       "bytes": 6174
+    },
+    {
+      "path": "tft/images/8c99e87f093f31590487eb5c.png",
+      "url": "../../blobs/d4d056ce8622da75a725f5324a96eec5647a87122a8933dc3f6ad4a7f156fc7b.png",
+      "sha256": "d4d056ce8622da75a725f5324a96eec5647a87122a8933dc3f6ad4a7f156fc7b",
+      "bytes": 14329
     },
     {
       "path": "tft/images/8d819851a2258554c2a6faf4.png",
@@ -2272,9 +2277,9 @@
     },
     {
       "path": "tft/images/8fa3953d04971410bc6527cb.png",
-      "url": "../../blobs/b74dffa6c235f317d751b09c42ac5482032441aab45511584ca82fb5112fa485.png",
-      "sha256": "b74dffa6c235f317d751b09c42ac5482032441aab45511584ca82fb5112fa485",
-      "bytes": 7944
+      "url": "../../blobs/ae6598f268604fa0e719edd4c634f976899089065baf6d3e05a3445b5aba4e9e.png",
+      "sha256": "ae6598f268604fa0e719edd4c634f976899089065baf6d3e05a3445b5aba4e9e",
+      "bytes": 5883
     },
     {
       "path": "tft/images/900f39d0c2399961178ff426.png",
@@ -2446,9 +2451,9 @@
     },
     {
       "path": "tft/images/9da33c8ede2d29ac9847583c.png",
-      "url": "../../blobs/428bfa3d5815e9833cbfe50010d0ee41116e511e55bdfcaabe971083b8510c49.png",
-      "sha256": "428bfa3d5815e9833cbfe50010d0ee41116e511e55bdfcaabe971083b8510c49",
-      "bytes": 19882
+      "url": "../../blobs/3fd2e66e3b39c3ad8de7581c73a5cefea9b3b1f3c8165c7ef15688b9f3202962.png",
+      "sha256": "3fd2e66e3b39c3ad8de7581c73a5cefea9b3b1f3c8165c7ef15688b9f3202962",
+      "bytes": 16155
     },
     {
       "path": "tft/images/9e92c614e8c072e3548f2dc5.png",
@@ -2488,9 +2493,9 @@
     },
     {
       "path": "tft/images/a10320175edbdccc5dcf82b8.png",
-      "url": "../../blobs/c0713ba650fcb4857658a0f13578d12b40f11fb66392feb4a1e6c831a34e9437.png",
-      "sha256": "c0713ba650fcb4857658a0f13578d12b40f11fb66392feb4a1e6c831a34e9437",
-      "bytes": 19939
+      "url": "../../blobs/5525b28f15a87ac2a21512152437db72999b7d7bbe2da7b6aa81f5b8b194e810.png",
+      "sha256": "5525b28f15a87ac2a21512152437db72999b7d7bbe2da7b6aa81f5b8b194e810",
+      "bytes": 15559
     },
     {
       "path": "tft/images/a1a0c9d99fe806e84b340725.png",
@@ -2530,9 +2535,9 @@
     },
     {
       "path": "tft/images/a3771264c44e3452f576498f.png",
-      "url": "../../blobs/651256cdd56d34012f9fe0bce26f801921a2c2d1bde87d84b1c3b83767f1d0e6.png",
-      "sha256": "651256cdd56d34012f9fe0bce26f801921a2c2d1bde87d84b1c3b83767f1d0e6",
-      "bytes": 6133
+      "url": "../../blobs/26ea03aa9fb68a2397c6cd003becf55806d20a32a2ed8e9c639c99f05ba7e6f9.png",
+      "sha256": "26ea03aa9fb68a2397c6cd003becf55806d20a32a2ed8e9c639c99f05ba7e6f9",
+      "bytes": 4434
     },
     {
       "path": "tft/images/a3771bbc9d61977463229a78.png",
@@ -2553,12 +2558,6 @@
       "bytes": 13034
     },
     {
-      "path": "tft/images/a68609397d7fe74a07673df1.png",
-      "url": "../../blobs/947175e4b5e20ac963a6d08d1779e72f47c0e79f6d2688a6d4f8f086d34b2a7f.png",
-      "sha256": "947175e4b5e20ac963a6d08d1779e72f47c0e79f6d2688a6d4f8f086d34b2a7f",
-      "bytes": 67174
-    },
-    {
       "path": "tft/images/a6e916174be39b478d7afdfa.png",
       "url": "../../blobs/cd4ee2c05bca275ad8d4fd4ddf5c91e2d27d11321e3cd150bbac810ce6ec3b11.png",
       "sha256": "cd4ee2c05bca275ad8d4fd4ddf5c91e2d27d11321e3cd150bbac810ce6ec3b11",
@@ -2566,9 +2565,9 @@
     },
     {
       "path": "tft/images/a786118ffc96e97f4cef6655.png",
-      "url": "../../blobs/16f9cbd023ddcded6220f56824c0a65c792ac5120cc5ce0251e9124cfc8389c2.png",
-      "sha256": "16f9cbd023ddcded6220f56824c0a65c792ac5120cc5ce0251e9124cfc8389c2",
-      "bytes": 16681
+      "url": "../../blobs/57d399fed5029715a066a93abf21743edb1520bd3737c6a93ade4663d9c480b2.png",
+      "sha256": "57d399fed5029715a066a93abf21743edb1520bd3737c6a93ade4663d9c480b2",
+      "bytes": 14377
     },
     {
       "path": "tft/images/a7ae8ee222a7b3fbd3b31fb5.png",
@@ -2662,9 +2661,9 @@
     },
     {
       "path": "tft/images/aea2a9c1c240085d87aef9d1.png",
-      "url": "../../blobs/87660d0ba605072fcb354daa850fd0fcbb4b19c32a521e3507e8d6c3d5013dad.png",
-      "sha256": "87660d0ba605072fcb354daa850fd0fcbb4b19c32a521e3507e8d6c3d5013dad",
-      "bytes": 19892
+      "url": "../../blobs/ae2d98c685d2862823ecc9a1774ae3031986f61db44d5d2e5a859145797b2f35.png",
+      "sha256": "ae2d98c685d2862823ecc9a1774ae3031986f61db44d5d2e5a859145797b2f35",
+      "bytes": 16348
     },
     {
       "path": "tft/images/aee1957eb7a348997d69fcfe.png",
@@ -2698,9 +2697,9 @@
     },
     {
       "path": "tft/images/b1311adc855f9318a6393b1f.png",
-      "url": "../../blobs/e6ec7a88e6c2ccb719cc9e6f0e9498b77b147a5bbe711e06cfa48b2cc07f66a0.png",
-      "sha256": "e6ec7a88e6c2ccb719cc9e6f0e9498b77b147a5bbe711e06cfa48b2cc07f66a0",
-      "bytes": 7482
+      "url": "../../blobs/8acce7a4afdd3b755ec04d6d160d5e35e1c22f6455e4214ee6756f32199066da.png",
+      "sha256": "8acce7a4afdd3b755ec04d6d160d5e35e1c22f6455e4214ee6756f32199066da",
+      "bytes": 5531
     },
     {
       "path": "tft/images/b159d010bfd264d2f910e95f.png",
@@ -2776,9 +2775,9 @@
     },
     {
       "path": "tft/images/b5d37f46c50f45b5af6f178e.png",
-      "url": "../../blobs/7690489f658491cd5fb620a520aa569a435e76f659d5b9dad6cfd91a5b60b731.png",
-      "sha256": "7690489f658491cd5fb620a520aa569a435e76f659d5b9dad6cfd91a5b60b731",
-      "bytes": 9113
+      "url": "../../blobs/578d719cb4016309f2bfe114bba06533f819b18a0062896da3649583f486c12b.png",
+      "sha256": "578d719cb4016309f2bfe114bba06533f819b18a0062896da3649583f486c12b",
+      "bytes": 6531
     },
     {
       "path": "tft/images/b6a90f7f8cf51520bc5514af.png",
@@ -2800,9 +2799,9 @@
     },
     {
       "path": "tft/images/b7492d060466c200b90680eb.png",
-      "url": "../../blobs/f843421be4fca1161b51aa1f2478d222b58014d4e4abe37d4669303c3dbb5342.png",
-      "sha256": "f843421be4fca1161b51aa1f2478d222b58014d4e4abe37d4669303c3dbb5342",
-      "bytes": 6140
+      "url": "../../blobs/41b2733f0e18df5e0345362499ac71ca60410af8b56f0609ee27ec21b3c385e4.png",
+      "sha256": "41b2733f0e18df5e0345362499ac71ca60410af8b56f0609ee27ec21b3c385e4",
+      "bytes": 4162
     },
     {
       "path": "tft/images/b80611b0bd60dcde474b5877.png",
@@ -2842,9 +2841,9 @@
     },
     {
       "path": "tft/images/b99e33f8b9992425e13518ab.png",
-      "url": "../../blobs/a58d6c91e9cfd4de9e1201b5ab9709713c60dbad8dddfdbd35ad45dad10884ec.png",
-      "sha256": "a58d6c91e9cfd4de9e1201b5ab9709713c60dbad8dddfdbd35ad45dad10884ec",
-      "bytes": 6653
+      "url": "../../blobs/97ce866bd8555a39dc0167c69514b29ed5b27e6f87c9763a179a79e6b4c2c1c7.png",
+      "sha256": "97ce866bd8555a39dc0167c69514b29ed5b27e6f87c9763a179a79e6b4c2c1c7",
+      "bytes": 4298
     },
     {
       "path": "tft/images/b9f596390f0a6204b493cf92.png",
@@ -2938,9 +2937,9 @@
     },
     {
       "path": "tft/images/c1d5217f49a643a37c317b81.png",
-      "url": "../../blobs/a08e815367c9f1eb670a884d52204c15ca2b235a3b75be60991aa36ac4813bde.png",
-      "sha256": "a08e815367c9f1eb670a884d52204c15ca2b235a3b75be60991aa36ac4813bde",
-      "bytes": 7656
+      "url": "../../blobs/37b99f9becf1bceedee62efcf9f2b3006842d8ca546a1c66d49d1de4db45b2d9.png",
+      "sha256": "37b99f9becf1bceedee62efcf9f2b3006842d8ca546a1c66d49d1de4db45b2d9",
+      "bytes": 5508
     },
     {
       "path": "tft/images/c272a7af490157f0f3b09644.png",
@@ -2962,9 +2961,9 @@
     },
     {
       "path": "tft/images/c340a8af5c70660bba701e29.png",
-      "url": "../../blobs/2dba1971aee0e9e2c794a85b4e4c415c58e100e4165bda233babb9b12577465d.png",
-      "sha256": "2dba1971aee0e9e2c794a85b4e4c415c58e100e4165bda233babb9b12577465d",
-      "bytes": 6495
+      "url": "../../blobs/ca7c2d375dabe6b96a59dc320740e404bb7699fd1a63f64d9f8ab0fc3b1fc45a.png",
+      "sha256": "ca7c2d375dabe6b96a59dc320740e404bb7699fd1a63f64d9f8ab0fc3b1fc45a",
+      "bytes": 4236
     },
     {
       "path": "tft/images/c594460964e5ab52faea9d82.png",
@@ -3040,9 +3039,9 @@
     },
     {
       "path": "tft/images/c99235ca72aa814ffd1f5e04.png",
-      "url": "../../blobs/b3b5b3012fc51f5de89e89d72650ab4eedbea9edfc7b4775e106b63ed14b6e5a.png",
-      "sha256": "b3b5b3012fc51f5de89e89d72650ab4eedbea9edfc7b4775e106b63ed14b6e5a",
-      "bytes": 8863
+      "url": "../../blobs/73d84021dddbdde9d5c73d57efb0fa1a41382f5f78937101abc4e9d8d6be5afd.png",
+      "sha256": "73d84021dddbdde9d5c73d57efb0fa1a41382f5f78937101abc4e9d8d6be5afd",
+      "bytes": 5892
     },
     {
       "path": "tft/images/c9f54c21e14331b3c77ae5de.png",
@@ -3076,9 +3075,9 @@
     },
     {
       "path": "tft/images/cbe5f45a6f74edf0ccac8f8c.png",
-      "url": "../../blobs/ce9f80c3e2f463fd632454ce32065ee12f2e41478523ab51a05ecd9cc762e848.png",
-      "sha256": "ce9f80c3e2f463fd632454ce32065ee12f2e41478523ab51a05ecd9cc762e848",
-      "bytes": 10810
+      "url": "../../blobs/1195817aa277e23510c479ccac71125e8fcfac9640c86e038e61cdbcfe58d8a0.png",
+      "sha256": "1195817aa277e23510c479ccac71125e8fcfac9640c86e038e61cdbcfe58d8a0",
+      "bytes": 7830
     },
     {
       "path": "tft/images/cc23dc09aed9515950ef14b8.png",
@@ -3100,9 +3099,9 @@
     },
     {
       "path": "tft/images/ccbc12163dd430dce97203d3.png",
-      "url": "../../blobs/3d72f8147dc28a3745f22f2b17779f5cdaa45d6353f39498c5e3facecdf64cf3.png",
-      "sha256": "3d72f8147dc28a3745f22f2b17779f5cdaa45d6353f39498c5e3facecdf64cf3",
-      "bytes": 10420
+      "url": "../../blobs/b31fd394dbc1e42993b52bdcc27915f18b42e562824ef544f900c8737c0e4d56.png",
+      "sha256": "b31fd394dbc1e42993b52bdcc27915f18b42e562824ef544f900c8737c0e4d56",
+      "bytes": 6936
     },
     {
       "path": "tft/images/ce103f1f1c9a3dca13eb35dd.png",
@@ -3148,9 +3147,9 @@
     },
     {
       "path": "tft/images/d31c5db23d3ce86dffc54341.png",
-      "url": "../../blobs/29a96a31889b2dc6d8de0e32b4bd133e317f291a87ad71a1b75322804362ae10.png",
-      "sha256": "29a96a31889b2dc6d8de0e32b4bd133e317f291a87ad71a1b75322804362ae10",
-      "bytes": 6126
+      "url": "../../blobs/0c33bbc6e1d841ac67649d789adfdc0b95725b205b7055bef062a76d8fa35cfb.png",
+      "sha256": "0c33bbc6e1d841ac67649d789adfdc0b95725b205b7055bef062a76d8fa35cfb",
+      "bytes": 3976
     },
     {
       "path": "tft/images/d3433333c488880090f4b2e5.png",
@@ -3220,9 +3219,9 @@
     },
     {
       "path": "tft/images/d80c603c3c1efb966f676bf2.png",
-      "url": "../../blobs/372a2953f261590d94ec6339fa94bfe525425aae05cd2066c3149adcba6ed3a5.png",
-      "sha256": "372a2953f261590d94ec6339fa94bfe525425aae05cd2066c3149adcba6ed3a5",
-      "bytes": 14593
+      "url": "../../blobs/7436db1f639ab6062c4eafb60ca2c0a257ead4a479fb2fd58a741aba22905df9.png",
+      "sha256": "7436db1f639ab6062c4eafb60ca2c0a257ead4a479fb2fd58a741aba22905df9",
+      "bytes": 14743
     },
     {
       "path": "tft/images/d88345cc0d26103ccc66e8b3.png",
@@ -3238,9 +3237,9 @@
     },
     {
       "path": "tft/images/da799de5cfacf20e395ea93e.png",
-      "url": "../../blobs/07710cad2ad33b1bc84f9349049b7fbdbef1d8005ace502231477c8241afaad4.png",
-      "sha256": "07710cad2ad33b1bc84f9349049b7fbdbef1d8005ace502231477c8241afaad4",
-      "bytes": 7758
+      "url": "../../blobs/7e85a134e65c433bbed402fcf78e4ce85315381365a004f2f2cbb7a06a3afc98.png",
+      "sha256": "7e85a134e65c433bbed402fcf78e4ce85315381365a004f2f2cbb7a06a3afc98",
+      "bytes": 5377
     },
     {
       "path": "tft/images/dbf46e63826c0b567b4197cb.png",
@@ -3274,9 +3273,9 @@
     },
     {
       "path": "tft/images/def7a0bca4ead810fc66d2c1.png",
-      "url": "../../blobs/ba37ca714ab3b4cad96ecebaf7e59d21fa6d66a7a73872bda96529b1bb703e0a.png",
-      "sha256": "ba37ca714ab3b4cad96ecebaf7e59d21fa6d66a7a73872bda96529b1bb703e0a",
-      "bytes": 8587
+      "url": "../../blobs/65923319cdb35ecc74bec4c26a51960df871eaa74e518d2785f8ff459d97e1d9.png",
+      "sha256": "65923319cdb35ecc74bec4c26a51960df871eaa74e518d2785f8ff459d97e1d9",
+      "bytes": 6269
     },
     {
       "path": "tft/images/e0a60e0e99aa9539d8e4097a.png",
@@ -3346,9 +3345,9 @@
     },
     {
       "path": "tft/images/e4041c4fcbca620b64846001.png",
-      "url": "../../blobs/d4f53b755de27cb68f3536e1191b70ad66ef8bd20a65870570e9d8e820c41749.png",
-      "sha256": "d4f53b755de27cb68f3536e1191b70ad66ef8bd20a65870570e9d8e820c41749",
-      "bytes": 9073
+      "url": "../../blobs/5a85b3c2291bcb9ea3acc4759c02ca6241bd8ef79f3f5ca74c2cf40db6aa2fe0.png",
+      "sha256": "5a85b3c2291bcb9ea3acc4759c02ca6241bd8ef79f3f5ca74c2cf40db6aa2fe0",
+      "bytes": 6547
     },
     {
       "path": "tft/images/e4450480cc649286f63cad21.png",
@@ -3478,15 +3477,15 @@
     },
     {
       "path": "tft/images/ee4a44161efe18d97a83b446.png",
-      "url": "../../blobs/107fbf544af9113c8bea26ac6afbc4cb654ae59510f63e6d8104ab85bc3acd88.png",
-      "sha256": "107fbf544af9113c8bea26ac6afbc4cb654ae59510f63e6d8104ab85bc3acd88",
-      "bytes": 8919
+      "url": "../../blobs/d575fc86e9ce6e871ceb5d1f6fca1d603c03a9d9e987c5db4afa7d64a0041196.png",
+      "sha256": "d575fc86e9ce6e871ceb5d1f6fca1d603c03a9d9e987c5db4afa7d64a0041196",
+      "bytes": 6407
     },
     {
       "path": "tft/images/ee66a629cb0a09213b38977f.png",
-      "url": "../../blobs/3cd8588abb57d0b9e360e1c7e09867b095a4713af61899ad3256e0a175bff0ad.png",
-      "sha256": "3cd8588abb57d0b9e360e1c7e09867b095a4713af61899ad3256e0a175bff0ad",
-      "bytes": 20201
+      "url": "../../blobs/8884b256a041523f298f8fce0a09dffd50f12343343382c7120f7492840fd739.png",
+      "sha256": "8884b256a041523f298f8fce0a09dffd50f12343343382c7120f7492840fd739",
+      "bytes": 14541
     },
     {
       "path": "tft/images/eeabcedde2efbf00e0a4b366.png",
@@ -3574,21 +3573,21 @@
     },
     {
       "path": "tft/images/f1cb60f99a598bd23ca4844c.png",
-      "url": "../../blobs/6fcf1ebb624f6d4576880739a0a8d1fdcecb069c711b03ed052a3d5391edeee1.png",
-      "sha256": "6fcf1ebb624f6d4576880739a0a8d1fdcecb069c711b03ed052a3d5391edeee1",
-      "bytes": 9934
+      "url": "../../blobs/175ae483624d86dac003b28ff518182bb564280ed6a81e3440023821e685b494.png",
+      "sha256": "175ae483624d86dac003b28ff518182bb564280ed6a81e3440023821e685b494",
+      "bytes": 6603
     },
     {
       "path": "tft/images/f254637ee62669b49afc1b3d.png",
-      "url": "../../blobs/5834e755337323fe9cf4e5bad81a3d1a41d8e55dfa052db17cd2eef7cd4467db.png",
-      "sha256": "5834e755337323fe9cf4e5bad81a3d1a41d8e55dfa052db17cd2eef7cd4467db",
-      "bytes": 17908
+      "url": "../../blobs/e7c2220523e7f9269e504fafae046468bc939f98174f70b7bb002b47a4e59ef8.png",
+      "sha256": "e7c2220523e7f9269e504fafae046468bc939f98174f70b7bb002b47a4e59ef8",
+      "bytes": 14283
     },
     {
       "path": "tft/images/f284011a67da62c4eb0ed597.png",
-      "url": "../../blobs/f2f5adb406b3cf7db240d64692862a33913e4c3e564938caad1941690eecd434.png",
-      "sha256": "f2f5adb406b3cf7db240d64692862a33913e4c3e564938caad1941690eecd434",
-      "bytes": 9017
+      "url": "../../blobs/3d18dba52dc41c07af27f1bdf953d32b7eff6e73e458db012237182e5567a1fa.png",
+      "sha256": "3d18dba52dc41c07af27f1bdf953d32b7eff6e73e458db012237182e5567a1fa",
+      "bytes": 6448
     },
     {
       "path": "tft/images/f2fed3ba985cf6af9564f3ab.png",
@@ -3604,9 +3603,9 @@
     },
     {
       "path": "tft/images/f360f5cd2d779fc4dc7a232c.png",
-      "url": "../../blobs/a87ecb25d204dc1799d872b81344733be97017bc58201a79d4b32272f3ddf5ad.png",
-      "sha256": "a87ecb25d204dc1799d872b81344733be97017bc58201a79d4b32272f3ddf5ad",
-      "bytes": 7902
+      "url": "../../blobs/6787fc448f435050cb55806a80d88aacd37e862377c2b8015305685c5f5f3a3d.png",
+      "sha256": "6787fc448f435050cb55806a80d88aacd37e862377c2b8015305685c5f5f3a3d",
+      "bytes": 4983
     },
     {
       "path": "tft/images/f39a0c8e3ec1dfe28cf00665.png",
@@ -3622,15 +3621,15 @@
     },
     {
       "path": "tft/images/f49c24a51aee2c0ec2ea0d9c.png",
-      "url": "../../blobs/8ac45fec002599ec86c88552441ce40c5138f1a70ef5b8850a58f45cfb3ae5eb.png",
-      "sha256": "8ac45fec002599ec86c88552441ce40c5138f1a70ef5b8850a58f45cfb3ae5eb",
-      "bytes": 8941
+      "url": "../../blobs/49856404ff9c82f523003f5143dddd6b7ec364bbee5b7376e2ba680e73db6fc6.png",
+      "sha256": "49856404ff9c82f523003f5143dddd6b7ec364bbee5b7376e2ba680e73db6fc6",
+      "bytes": 6563
     },
     {
       "path": "tft/images/f577a6dc8ff7b4b4ee5cbfef.png",
-      "url": "../../blobs/690987106f257016866a0cd0f293d285ae222f5034579cadda12dc24ef1983f5.png",
-      "sha256": "690987106f257016866a0cd0f293d285ae222f5034579cadda12dc24ef1983f5",
-      "bytes": 8573
+      "url": "../../blobs/eb4a3409b2ed0edb76f4f378895070878df5db4b8ebfd23e8499da7f586aa8f1.png",
+      "sha256": "eb4a3409b2ed0edb76f4f378895070878df5db4b8ebfd23e8499da7f586aa8f1",
+      "bytes": 6082
     },
     {
       "path": "tft/images/f60b443854598ec75e97c1e8.png",
@@ -3682,9 +3681,9 @@
     },
     {
       "path": "tft/images/f9c42892a98c5a9a5c4a40a6.png",
-      "url": "../../blobs/0f40466b00548eac5e9091a0177da6be337519962ac5af3575524bc8c27854c5.png",
-      "sha256": "0f40466b00548eac5e9091a0177da6be337519962ac5af3575524bc8c27854c5",
-      "bytes": 18112
+      "url": "../../blobs/43761f2ce0707d95aaade76cb3545994a20712b0d96cf96841bcbe37eec619d8.png",
+      "sha256": "43761f2ce0707d95aaade76cb3545994a20712b0d96cf96841bcbe37eec619d8",
+      "bytes": 15667
     },
     {
       "path": "tft/images/fa29bf4fb36a439128d96808.png",
@@ -3730,9 +3729,9 @@
     },
     {
       "path": "tft/images/fbdf6d28db7c42e4a3e0dc21.png",
-      "url": "../../blobs/cea2cf6ce99dd02ab93f185b22e660453227a9f936c9cfc992bb185ef63266da.png",
-      "sha256": "cea2cf6ce99dd02ab93f185b22e660453227a9f936c9cfc992bb185ef63266da",
-      "bytes": 15626
+      "url": "../../blobs/e8fcb44220d435bf74a114bacc6409f86dea201b61e44f7f3332941ccb7cddfa.png",
+      "sha256": "e8fcb44220d435bf74a114bacc6409f86dea201b61e44f7f3332941ccb7cddfa",
+      "bytes": 20146
     },
     {
       "path": "tft/images/fc1d6a32c2ee0eb40aceaee9.png",
@@ -3747,16 +3746,10 @@
       "bytes": 66183
     },
     {
-      "path": "tft/images/fc96b7b6027e95116d4c7b12.png",
-      "url": "../../blobs/c2b2148b59d7c777ff14ccef0b7b45728987bdea84ca8aebdd16b25b256b7e29.png",
-      "sha256": "c2b2148b59d7c777ff14ccef0b7b45728987bdea84ca8aebdd16b25b256b7e29",
-      "bytes": 65897
-    },
-    {
       "path": "tft/images/fcaf985e7ef88b18747af202.png",
-      "url": "../../blobs/b7e0e0f162cd24a420da5d20c0e0f757dd8f420240888e20c5c345b8c6ff4eb4.png",
-      "sha256": "b7e0e0f162cd24a420da5d20c0e0f757dd8f420240888e20c5c345b8c6ff4eb4",
-      "bytes": 16626
+      "url": "../../blobs/94b43b4e70f9845a4fb3feb3e323524d86f9abe3edaf2d0af4520de6ce3d589f.png",
+      "sha256": "94b43b4e70f9845a4fb3feb3e323524d86f9abe3edaf2d0af4520de6ce3d589f",
+      "bytes": 14425
     },
     {
       "path": "tft/images/fcb756d3d4dcbec567d3a607.png",
@@ -3784,15 +3777,15 @@
     },
     {
       "path": "tft/images/fee49a58c123cb086d337ead.png",
-      "url": "../../blobs/ddbc04ed51957e7904944dad3bb68d1f8d184e867ea8de37dc9641cab8e8f33f.png",
-      "sha256": "ddbc04ed51957e7904944dad3bb68d1f8d184e867ea8de37dc9641cab8e8f33f",
-      "bytes": 9314
+      "url": "../../blobs/13a9ba22037e4f70963b49613536281031391324aa8d55723f087b2f54889567.png",
+      "sha256": "13a9ba22037e4f70963b49613536281031391324aa8d55723f087b2f54889567",
+      "bytes": 7157
     },
     {
       "path": "tft/images/ff45abf2607ad05b0a197898.png",
-      "url": "../../blobs/f1fd9d71ff362332c9197064a37f08802ebcf05e88a6745202e259aa1fcfb530.png",
-      "sha256": "f1fd9d71ff362332c9197064a37f08802ebcf05e88a6745202e259aa1fcfb530",
-      "bytes": 9369
+      "url": "../../blobs/f0bebe1ca47bd107448630cd15cd0dbe4ed6970fd7006c1a6716771691e6d1ee.png",
+      "sha256": "f0bebe1ca47bd107448630cd15cd0dbe4ed6970fd7006c1a6716771691e6d1ee",
+      "bytes": 6882
     },
     {
       "path": "tft/images/ff6a691a647c2bc84bad5856.png",

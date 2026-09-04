@@ -26,7 +26,7 @@ $composition = [pscustomobject][ordered]@{
 }
 $snapshot = [pscustomobject][ordered]@{
     setId='TFTSet99'; clusterId='999'
-    statisticsScope=[pscustomobject]@{ effective='PLATINUM_PLUS'; candidatePoolTarget=1; qualifiedEffectiveCompositions=1 }
+    statisticsScope=[pscustomobject]@{ effective='DIAMOND_PLUS'; candidatePoolTarget=1; qualifiedEffectiveCompositions=1 }
     compositions=@($composition)
 }
 $requiredSources = @(
@@ -53,7 +53,7 @@ $sources = @($requiredSources | ForEach-Object {
         'MetaTFT composition statistics' {
             $native.setId='TFTSet99'; $native.revisionId='999'
             $query.patchMode='current'; $query.permitFilterAdjustment='false'
-            $query.rank='CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+            $query.rank='CHALLENGER,DIAMOND,GRANDMASTER,MASTER'
         }
         'MetaTFT Japanese lookup' { $url='https://fixture.invalid/lookups/TFTSet99_latest_ja_jp.json' }
         'MetaTFT composition item builds' { $query.revisionId='999' }
@@ -81,14 +81,14 @@ Assert-Equal 'PASS' $stable.validationStatus 'Stable validation did not pass.'
 Assert-Equal 'COLLECTING' $stable.featureReadiness.compositionAugments 'Optional augment collection state was lost.'
 
 $limitedSnapshot = $snapshot | ConvertTo-Json -Depth 20 | ConvertFrom-Json
-$limitedSnapshot.statisticsScope.effective = 'PLATINUM_PLUS_LIMITED'
+$limitedSnapshot.statisticsScope.effective = 'DIAMOND_PLUS_LIMITED'
 $limitedSnapshot.statisticsScope.candidatePoolTarget = 2
 $limited = Resolve-TftReleaseContract -Catalog $catalog -Snapshot $limitedSnapshot -SourceManifest $sourceManifest
-Assert-Equal 'PARTIAL' $limited.releaseState 'Limited Platinum+ coverage was incorrectly certified stable.'
-Assert-Equal 'PARTIAL' $limited.featureReadiness.compositions 'Limited Platinum+ coverage was not exposed as partial.'
+Assert-Equal 'PARTIAL' $limited.releaseState 'Limited Diamond+ coverage was incorrectly certified stable.'
+Assert-Equal 'PARTIAL' $limited.featureReadiness.compositions 'Limited Diamond+ coverage was not exposed as partial.'
 
 $collectingSnapshot = $snapshot | ConvertTo-Json -Depth 20 | ConvertFrom-Json
-$collectingSnapshot.statisticsScope.effective = 'PLATINUM_PLUS_LIMITED'
+$collectingSnapshot.statisticsScope.effective = 'DIAMOND_PLUS_LIMITED'
 $collectingSnapshot.compositions = @()
 $collecting = Resolve-TftReleaseContract -Catalog $catalog -Snapshot $collectingSnapshot -SourceManifest $sourceManifest
 Assert-Equal 'PARTIAL' $collecting.releaseState 'Catalog-first new set was incorrectly certified stable.'
@@ -105,5 +105,12 @@ $unverifiedManifest.sources[0].hashBasis = 'generated-output-fallback'
 $blocked = $false
 try { Resolve-TftReleaseContract -Catalog $catalog -Snapshot $snapshot -SourceManifest $unverifiedManifest | Out-Null } catch { $blocked = $true }
 Assert-Equal $true $blocked 'Missing source-response evidence was not rejected.'
+
+$platinumManifest = $sourceManifest | ConvertTo-Json -Depth 20 | ConvertFrom-Json
+$platinumSource = @($platinumManifest.sources | Where-Object sourceName -eq 'MetaTFT composition statistics' | Select-Object -First 1)
+$platinumSource.queryClaims.rank = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+$blocked = $false
+try { Resolve-TftReleaseContract -Catalog $catalog -Snapshot $snapshot -SourceManifest $platinumManifest | Out-Null } catch { $blocked = $true }
+Assert-Equal $true $blocked 'Legacy Platinum+ evidence was accepted as Diamond+ data.'
 
 Write-Output 'Release contract policy fixtures passed.'

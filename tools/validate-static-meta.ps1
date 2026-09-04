@@ -5,6 +5,7 @@
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedSnapshot = if ([IO.Path]::IsPathRooted($SnapshotPath)) {
@@ -49,9 +50,10 @@ if ([int]$snapshot.itemStatBasis.excludedUnresolvableRecommendationRows -lt 0) {
 }
 if ($snapshot.PSObject.Properties['statisticsScope']) {
     $scope = $snapshot.statisticsScope
-    if ([string]$scope.preferred -ne 'PLATINUM_PLUS') { throw "Unexpected preferred rank scope" }
+    $rankContract = Get-TftStatisticsScopeContract
+    if ([string]$scope.preferred -ne [string]$rankContract.preferredScope) { throw "Unexpected preferred rank scope" }
     if ([string]$scope.effective -eq 'ALL_RANKS_FALLBACK') { throw "MetaTFT comps page parity forbids the legacy all-rank fallback" }
-    if ([string]$scope.effective -notin @('PLATINUM_PLUS', 'ALL_RANKS_FALLBACK', 'PLATINUM_PLUS_LIMITED')) {
+    if (-not (Test-TftStatisticsScopeName ([string]$scope.effective))) {
         throw "Unexpected effective rank scope"
     }
     if ([int]$scope.minimumCompositionSamples -lt 1 -or [int]$scope.minimumPreferredCompositions -lt 1) {
@@ -66,7 +68,7 @@ if ($snapshot.PSObject.Properties['statisticsScope']) {
         throw "MetaTFT comps page visibility thresholds do not match the public page"
     }
     $statsUrl = [string]$snapshot.sources.compositionStats
-    if ($statsUrl -notmatch 'rank=CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM' -or
+    if ($statsUrl -notmatch ([Regex]::Escape("rank=$($rankContract.preferredRankFilter)")) -or
         $statsUrl -notmatch 'permit_filter_adjustment=false' -or
         $statsUrl -notmatch 'cluster_id=') {
         throw "MetaTFT composition statistics URL does not match the public comps page"

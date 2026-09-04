@@ -14,6 +14,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'metatft-page-parity-policy.ps1')
 . (Join-Path $PSScriptRoot 'metatft-item-ranking-policy.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -424,7 +425,8 @@ if (-not $compsData.results.data.cluster_details -or
 }
 
 Start-Sleep -Milliseconds 350
-$preferredRankFilter = 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+$statisticsScopeContract = Get-TftStatisticsScopeContract
+$preferredRankFilter = [string]$statisticsScopeContract.preferredRankFilter
 $preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=false&cluster_id=$($clusterInfo.cluster_id)"
 $compsStatsUrl = $preferredCompsStatsUrl
 $compsStats = Get-Json -Url $preferredCompsStatsUrl
@@ -432,7 +434,7 @@ Assert-MetaTftStatsContract -Stats $compsStats `
     -ExpectedSetId ([string]$clusterInfo.tft_set) `
     -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
     -ExpectedRankFilter $preferredRankFilter `
-    -Context 'MetaTFT Platinum+ comps_stats'
+    -Context "MetaTFT $($statisticsScopeContract.displayName) comps_stats"
 $requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
 $gameRow = @($compsStats.results | Where-Object { [string]$_.cluster -eq '' } | Select-Object -First 1)
 if ($gameRow.Count -eq 0 -or @($gameRow[0].places).Count -lt 1 -or [double]$gameRow[0].places[0] -le 0) {
@@ -448,7 +450,7 @@ $effectiveMinimumCompSamples = Get-MetaTftPageMinimumSamples `
 $candidatePoolTarget = $CompositionLimit
 $fallbackAttempted = $false
 $rankScopeDecision = [pscustomobject][ordered]@{
-    effectiveScope = 'PLATINUM_PLUS'
+    effectiveScope = [string]$statisticsScopeContract.preferredScope
     useFallback = $false
     minimumSamples = $effectiveMinimumCompSamples
     qualified = 0
@@ -651,7 +653,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
 $effectiveQualifiedCompositions = @($compositionCandidates).Count
 $preferredQualifiedCompositions = $effectiveQualifiedCompositions
 $rankScopeDecision.qualified = $effectiveQualifiedCompositions
-$rankScopeDecision.effectiveScope = if ($effectiveQualifiedCompositions -lt $requiredPreferredCompositions) { 'PLATINUM_PLUS_LIMITED' } else { 'PLATINUM_PLUS' }
+$rankScopeDecision.effectiveScope = if ($effectiveQualifiedCompositions -lt $requiredPreferredCompositions) { [string]$statisticsScopeContract.limitedScope } else { [string]$statisticsScopeContract.preferredScope }
 Write-Output "Composition page parity: Scope=$($rankScopeDecision.effectiveScope) Games=$([int]$gameCount) MinimumSamples=$effectiveMinimumCompSamples Visible=$effectiveQualifiedCompositions Display=$requiredPreferredCompositions"
 $compositionCandidates = @(
     $compositionCandidates |
@@ -970,7 +972,7 @@ $snapshot = [pscustomobject][ordered]@{
     locale = $Locale
     sourceSummary = 'MetaTFT public comps page statistics and Japanese names + CommunityDragon canonical catalog'
     statisticsScope = [ordered]@{
-        preferred = 'PLATINUM_PLUS'
+        preferred = [string]$statisticsScopeContract.preferredScope
         effective = [string]$rankScopeDecision.effectiveScope
         minimumCompositionSamples = $effectiveMinimumCompSamples
         minimumPreferredCompositions = $requiredPreferredCompositions

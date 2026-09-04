@@ -1,4 +1,5 @@
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
 function Get-QualifiedCompositionCount {
     param(
@@ -26,17 +27,18 @@ function Resolve-RankScopeDecision {
         [Parameter(Mandatory = $true)][bool]$FallbackAttempted
     )
 
+    $contract = Get-TftStatisticsScopeContract
     if ($PreferredQualified -ge $RequiredCompositions) {
         return [pscustomobject][ordered]@{
-            effectiveScope = 'PLATINUM_PLUS'
+            effectiveScope = $contract.preferredScope
             useFallback = $false
-            reason = 'Preferred Platinum+ sample coverage is sufficient.'
+            reason = "Preferred $($contract.displayName) sample coverage is sufficient."
         }
     }
     return [pscustomobject][ordered]@{
-        effectiveScope = 'PLATINUM_PLUS_LIMITED'
+        effectiveScope = $contract.limitedScope
         useFallback = $false
-        reason = "Platinum+ coverage is limited to $PreferredQualified compositions; a different rank scope is not substituted."
+        reason = "$($contract.displayName) coverage is limited to $PreferredQualified compositions; a different rank scope is not substituted."
     }
 }
 
@@ -67,14 +69,15 @@ function Resolve-CompositionCoveragePolicy {
         [Parameter(Mandatory = $true)][int[]]$Thresholds
     )
 
+    $contract = Get-TftStatisticsScopeContract
     $preferred = Resolve-SampleCoverage -Stats $PreferredStats -RequiredCompositions $RequiredCompositions -Thresholds $Thresholds
     if ($preferred.qualified -ge $RequiredCompositions) {
         return [pscustomobject][ordered]@{
-            effectiveScope = 'PLATINUM_PLUS'
+            effectiveScope = $contract.preferredScope
             useFallback = $false
             minimumSamples = $preferred.minimumSamples
             qualified = $preferred.qualified
-            reason = "Platinum+ reached $($preferred.qualified) compositions at $($preferred.minimumSamples) samples."
+            reason = "$($contract.displayName) reached $($preferred.qualified) compositions at $($preferred.minimumSamples) samples."
         }
     }
 
@@ -82,10 +85,10 @@ function Resolve-CompositionCoveragePolicy {
         Resolve-SampleCoverage -Stats $FallbackStats -RequiredCompositions $RequiredCompositions -Thresholds $Thresholds
     } else { $null }
     return [pscustomobject][ordered]@{
-        effectiveScope = 'PLATINUM_PLUS_LIMITED'
+        effectiveScope = $contract.limitedScope
         useFallback = $false
         minimumSamples = $preferred.minimumSamples
         qualified = $preferred.qualified
-        reason = "Platinum+ coverage is limited to $($preferred.qualified); a different rank scope is not substituted."
+        reason = "$($contract.displayName) coverage is limited to $($preferred.qualified); a different rank scope is not substituted."
     }
 }

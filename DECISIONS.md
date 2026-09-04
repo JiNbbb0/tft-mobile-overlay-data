@@ -11,7 +11,7 @@
 ## 2026-08-09
 
 - 同一set/patch/MetaTFT clusterでも、正規化した構成タイトル、Tier、順位、sample count、盤面、装備順位、推奨オーグメントなど、ユーザーに見える値が変化した場合は `META_UPDATE` を作る。取得時刻やURLだけの変化はfingerprintから除外し、内容が同一の重複版は作らない。
-- 構成一覧はMetaTFT公開ページの現行条件（Ranked / current / 3 days / Platinum+ / Avg Placement）と表示閾値を正本にする。独自の全ランクfallbackを禁止し、構成名はMetaTFT日本語lookupを優先する。条件不一致やlookup欠損時は壊れた候補を公開せずLKGを維持する。
+- 構成一覧はじんさん指定の現行条件（Ranked / current / 3 days / Diamond+ / Avg Placement）を正本にする。独自の全ランクfallbackを禁止し、構成名はMetaTFT日本語lookupを優先する。Diamond+の母数不足時は別rankへ広げず、limited/collectingとして公開する。条件不一致やlookup欠損時は壊れた候補を公開せずLKGを維持する。
 - `META_UPDATE` はcluster revisionを保持しつつfingerprint先頭10文字をversion IDへ加える。旧来の無期限append-only方針は2026-08-17のbounded active historyへ置き換えた。
 - 新セットはCommunityDragonのカタログが検証できた時点で `META_COLLECTING` として配信できる。構成統計が不足するときは空の構成を新セット名で補わず、アプリに「構成データを集計中」と表示させる。dry-runは架空のSet 18だけを `build/` に生成し、公開siteを変更しない。
 - 正式最新版は `latestStableVersionId`、図鑑先行版を含む最新利用可能版は `latestAvailableVersionId` とする。旧APK向け `latestVersionId` は必ず正式最新版の別名にする。

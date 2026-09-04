@@ -1,4 +1,5 @@
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
 $script:TftFeatureStates = @('READY', 'PARTIAL', 'COLLECTING', 'NOT_PROVIDED', 'UNAVAILABLE')
 $script:TftStableRequiredFeatures = @(
@@ -77,7 +78,7 @@ function Test-TftSourceEntry {
                 [string](Get-TftObjectProperty $native 'revisionId' '') -ne $ExpectedRevision -or
                 [string](Get-TftObjectProperty $query 'patchMode' '') -ne 'current' -or
                 [string](Get-TftObjectProperty $query 'permitFilterAdjustment' '') -ne 'false' -or
-                [string](Get-TftObjectProperty $query 'rank' '') -ne 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM') { return $false }
+                -not (Test-TftStatisticsRankFilter ([string](Get-TftObjectProperty $query 'rank' '')))) { return $false }
         }
         'MetaTFT Japanese lookup' {
             if (-not ([string](Get-TftObjectProperty $entry 'sourceUrl' '')).Contains("/$ExpectedSetId`_latest_")) { return $false }
@@ -155,8 +156,9 @@ function Resolve-TftReleaseContract {
     $scope = Get-TftObjectProperty $Snapshot 'statisticsScope' $null
     if ($scope) {
         $effectiveScope = [string](Get-TftObjectProperty $scope 'effective' '')
-        if ($effectiveScope -notin @('PLATINUM_PLUS', 'PLATINUM_PLUS_LIMITED')) {
-            throw "DATA_QUALITY_FILTER_MISMATCH: effective scope must remain Platinum+ ($effectiveScope)"
+        if (-not (Test-TftStatisticsScopeName $effectiveScope)) {
+            $rankContract = Get-TftStatisticsScopeContract
+            throw "DATA_QUALITY_FILTER_MISMATCH: effective scope must remain $($rankContract.displayName) ($effectiveScope)"
         }
         $candidateTarget = [int](Get-TftObjectProperty $scope 'candidatePoolTarget' 0)
         if ($candidateTarget -gt 0) { $targetCompositionCount = $candidateTarget }
@@ -295,6 +297,10 @@ function Resolve-TftReleaseContract {
             $stableSourcesReady = $false
             $stableSourceFailures.Add($name)
         }
+    }
+    if ($compositionStatus -ne 'COLLECTING' -and $stableSourceFailures -contains 'MetaTFT composition statistics') {
+        $rankContract = Get-TftStatisticsScopeContract
+        throw "DATA_QUALITY_FILTER_MISMATCH: rendered compositions require verified $($rankContract.displayName) statistics evidence."
     }
     if (-not $catalogSourcesReady) {
         throw "Required Riot/CommunityDragon/MetaTFT catalog sources are missing, empty, or inconsistent: $($catalogSourceFailures -join ', ')"

@@ -10,7 +10,7 @@ TFT Mobile Overlay の個人利用版へ、検証済み戦術データと画像�
 
 ## 自動運用
 
-`refresh-tft-data.yml` が UTC の毎時 7・22・37・52分にMetaTFTの Platinum+・現行パッチ・直近3日を確認します。画面に出る構成名、順位、Tier、盤面、レベル別編成、装備、オーグメント、カタログ文面、参照画像のcontent fingerprintが同じなら不要な版を増やしません。新しい版だけを一時領域で生成し、全検証に合格した後にGitHub Pagesへ公開します。
+`refresh-tft-data.yml` が UTC の毎時 7・22・37・52分にMetaTFTの Diamond+・現行パッチ・直近3日を確認します。画面に出る構成名、順位、Tier、盤面、レベル別編成、装備、オーグメント、カタログ文面、参照画像のcontent fingerprintが同じなら不要な版を増やしません。新しい版だけを一時領域で生成し、全検証に合格した後にGitHub Pagesへ公開します。
 
 更新時と毎時11分のwatchdogは、GitHub mainの検証済みsiteと実際のPagesをlatest ID・manifest SHAで照合します。Pagesだけ失敗、404、旧版、同一IDの内容不一致が起きても、取得処理とは独立して正常siteを再デプロイします。一時障害で直らない場合だけ重複しないIssueを作り、回復時に自動で閉じます。
 

@@ -5,6 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 . (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
@@ -146,7 +147,7 @@ if ($readiness -eq 'META_STABLE') {
 }
 
 if ($snapshot.PSObject.Properties['statisticsScope']) {
-    if ([string]$snapshot.statisticsScope.effective -notin @('PLATINUM_PLUS','PLATINUM_PLUS_LIMITED')) { throw 'ALL_RANKS or unknown rank scope is forbidden.' }
+    if (-not (Test-TftStatisticsScopeName ([string]$snapshot.statisticsScope.effective))) { throw 'ALL_RANKS or unknown rank scope is forbidden.' }
     if ([bool]$snapshot.statisticsScope.implicitFilterAdjustmentAllowed) { throw 'MetaTFT implicit filter adjustment must remain disabled.' }
 }
 

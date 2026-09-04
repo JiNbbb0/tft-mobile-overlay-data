@@ -6,6 +6,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 function Resolve-RepoPath([string]$Path) { if ([IO.Path]::IsPathRooted($Path)) { return [IO.Path]::GetFullPath($Path) }; return [IO.Path]::GetFullPath((Join-Path $repositoryRoot $Path)) }
 function Get-Field($Object, [string]$Name, $Default = $null) { if ($null -ne $Object -and $Object.PSObject.Properties[$Name]) { return $Object.PSObject.Properties[$Name].Value }; return $Default }
@@ -36,7 +37,8 @@ $sourceAlignment = [string](Get-Field $available 'sourceAlignment' 'PARTIAL')
 $qualityState = if ($releaseState -eq 'STABLE' -and [string]$features.compositionAugments -eq 'READY') { 'READY' } elseif ($releaseState -eq 'STABLE') { 'DEGRADED_OPTIONAL' } elseif ([string]$features.compositions -eq 'COLLECTING') { 'CATALOG_ONLY' } else { 'DEGRADED_CORE' }
 $warnings = [Collections.Generic.List[string]]::new()
 if ([string]$features.compositions -eq 'COLLECTING') { $warnings.Add('COMPOSITIONS_COLLECTING') }
-if ([string]$features.compositions -eq 'PARTIAL') { $warnings.Add('PLATINUM_PLUS_COVERAGE_LIMITED') }
+$rankContract = Get-TftStatisticsScopeContract
+if ([string]$features.compositions -eq 'PARTIAL') { $warnings.Add([string]$rankContract.limitedWarningCode) }
 if ([string]$features.compositionAugments -ne 'READY') { $warnings.Add('COMPOSITION_AUGMENTS_COLLECTING') }
 if ($sourceAlignment -ne 'VERIFIED') { $warnings.Add('SOURCE_ALIGNMENT_PARTIAL') }
 
@@ -49,8 +51,8 @@ $scope = Get-Field $snapshot 'statisticsScope' $null
 $target = [int](Get-Field $scope 'candidatePoolTarget' $compositions.Count); if ($target -lt 1) { $target = [Math]::Max(1, $compositions.Count) }
 $qualified = [int](Get-Field $scope 'qualifiedEffectiveCompositions' 0)
 $missingAugments = @($compositions | Where-Object { @($_.recommendedAugments).Count -eq 0 }).Count
-$messageJa = switch ($qualityState) { 'CATALOG_ONLY' { '図鑑は利用できます。構成統計は収集中です。' }; 'DEGRADED_CORE' { 'Platinum+の構成統計が十分に集まっていないため、一部のみ利用できます。' }; 'DEGRADED_OPTIONAL' { '主要データは利用できます。一部のおすすめ情報は収集中です。' }; default { '' } }
-$messageEn = switch ($qualityState) { 'CATALOG_ONLY' { 'The catalog is available. Composition statistics are still being collected.' }; 'DEGRADED_CORE' { 'Some Platinum+ composition statistics are still being collected.' }; 'DEGRADED_OPTIONAL' { 'Core data is ready. Some optional recommendations are still being collected.' }; default { '' } }
+$messageJa = switch ($qualityState) { 'CATALOG_ONLY' { '図鑑は利用できます。構成統計は収集中です。' }; 'DEGRADED_CORE' { "$($rankContract.displayName)の構成統計が十分に集まっていないため、一部のみ利用できます。" }; 'DEGRADED_OPTIONAL' { '主要データは利用できます。一部のおすすめ情報は収集中です。' }; default { '' } }
+$messageEn = switch ($qualityState) { 'CATALOG_ONLY' { 'The catalog is available. Composition statistics are still being collected.' }; 'DEGRADED_CORE' { "Some $($rankContract.displayName) composition statistics are still being collected." }; 'DEGRADED_OPTIONAL' { 'Core data is ready. Some optional recommendations are still being collected.' }; default { '' } }
 
 $status = [pscustomobject][ordered]@{
     schemaVersion=2; generatedAtUtc=[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'); sourceUpdatedAtUtc=$sourceUpdatedAt

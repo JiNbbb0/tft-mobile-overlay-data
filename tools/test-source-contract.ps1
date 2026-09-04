@@ -33,7 +33,7 @@ $implicitOverride = [pscustomobject]@{
     filter_adjustment = [pscustomobject]@{ override_applied = $true; rank_filter = 'ALL' }
 }
 Expect-Throws { Assert-MetaTftStatsContract -Stats $implicitOverride -ExpectedSetId 'TFTSet18' `
-    -ExpectedClusterId 501 -ExpectedRankFilter 'PLATINUM' -Context 'override fixture' } 'implicit adjustment'
+    -ExpectedClusterId 501 -ExpectedRankFilter 'DIAMOND' -Context 'override fixture' } 'implicit adjustment'
 
 $mixedCluster = [pscustomobject]@{ results=@(); tft_set='TFTSet17'; cluster_id=409; filter_adjustment=$null }
 Expect-Throws { Assert-MetaTftStatsContract -Stats $mixedCluster -ExpectedSetId 'TFTSet18' `

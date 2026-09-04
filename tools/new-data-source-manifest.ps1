@@ -4,6 +4,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $catalogPath = Join-Path $repositoryRoot "source/current/tft/tft_catalog.json"
@@ -117,7 +118,7 @@ $sourceRecords = foreach ($definition in $definitions) {
             [string]$nativeClaims.revisionId -eq [string]$meta.clusterId -and
             [string]$queryClaims.patchMode -eq 'current' -and
             [string]$queryClaims.permitFilterAdjustment -eq 'false' -and
-            [string]$queryClaims.rank -eq 'CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+            (Test-TftStatisticsRankFilter ([string]$queryClaims.rank))
         }
         'LOCALIZATION' { ([string]$definition.sourceUrl).Contains("/$($meta.setId)_latest_") }
         'RECOMMENDED_ITEMS' { [string]$queryClaims.revisionId -eq [string]$meta.clusterId }

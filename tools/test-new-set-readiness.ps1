@@ -58,7 +58,7 @@ function Set-VerifiedFixtureManifest {
             'MetaTFT composition statistics' {
                 $native.setId=$SetId; $native.revisionId=$Revision
                 $query.patchMode='current'; $query.permitFilterAdjustment='false'
-                $query.rank='CHALLENGER,DIAMOND,EMERALD,GRANDMASTER,MASTER,PLATINUM'
+                $query.rank='CHALLENGER,DIAMOND,GRANDMASTER,MASTER'
             }
             'MetaTFT Japanese lookup' { $source.sourceUrl="https://fixture.invalid/lookups/$($SetId)_latest_ja_jp.json" }
             'MetaTFT composition item builds' { $query.revisionId=$Revision }
@@ -83,7 +83,9 @@ $catalog | Add-Member -NotePropertyName sourceUniverse -NotePropertyValue ([pscu
     augmentIds = @($catalog.augments.id)
 }) -Force
 $meta | Add-Member -NotePropertyName readiness -NotePropertyValue 'META_STABLE' -Force
-$meta.statisticsScope.effective = 'PLATINUM_PLUS'
+$meta.statisticsScope.preferred = 'DIAMOND_PLUS'
+$meta.statisticsScope.effective = 'DIAMOND_PLUS'
+$meta.statisticsScope.preferredRankFilter = 'CHALLENGER,DIAMOND,GRANDMASTER,MASTER'
 $meta.statisticsScope.candidatePoolTarget = @($meta.compositions).Count
 foreach ($composition in @($meta.compositions)) {
     $composition.levelBoards = @($composition.levelBoards | Where-Object {

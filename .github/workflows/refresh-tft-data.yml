@@ -123,6 +123,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-publication-state.ps1
 
+      - name: Test autonomous recovery and source observation policy
+        shell: pwsh
+        run: ./tools/test-autonomous-recovery.ps1
+
       - name: Test workflow concurrency isolation policy
         shell: pwsh
         run: ./tools/test-workflow-concurrency-policy.ps1
@@ -215,6 +219,31 @@ jobs:
           path: build/failure-report
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Record source verification without a no-change data commit
+        if: success()
+        shell: pwsh
+        env:
+          OBSERVATION_RESULT: ${{ steps.refresh.outputs.result }}
+          OBSERVATION_VERSION: ${{ steps.refresh.outputs.detected_version }}
+        run: |
+          New-Item -ItemType Directory -Force build/refresh-observation | Out-Null
+          $observation = [ordered]@{
+            schemaVersion = 1
+            runId = [string]'${{ github.run_id }}'
+            versionId = $env:OBSERVATION_VERSION
+            result = $env:OBSERVATION_RESULT
+            checkedAtUtc = [DateTimeOffset]::UtcNow.ToString('o')
+          }
+          $observation | ConvertTo-Json | Set-Content build/refresh-observation/refresh-observation.json -Encoding UTF8
+
+      - name: Preserve bounded source verification evidence
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: refresh-observation-${{ github.run_id }}
+          path: build/refresh-observation/refresh-observation.json
+          retention-days: 7
 
       - name: Write Actions summary
         if: always()

@@ -1,0 +1,83 @@
+# 7ランク無人配信監査 — 2026-09-05
+
+## 結論と公開境界
+
+通常の取得・7ランク生成・検証・Pages公開はGitHubのrunnerだけで動作し、PC/Codexの起動は不要。ただし「新しい情報が永久に必ず配信される」保証はない。上流障害時の正常版維持と、新版配信の継続は別の性質である。
+
+今回、監視の見逃し・復旧時の競合・再実行の重複をローカル修正した。本報告作成時点ではpush/PR作成/デプロイしていない。Android/APKも変更していない。Canonical v2 PR #427は対象外。公開承認後の実CI・実デプロイ確認が必要。
+
+作業基点: main `9d4e6b6`。ローカルbranch: `codex/seven-rank-autonomy`。
+
+## 確認した本番状態
+
+- 7ランク: Gold+, Platinum+, Emerald+, Diamond+, Master+, Grandmaster+, Challenger。各18構成。
+- latest: `tftset18-18.1-r422-mc213c493d3`、TFTSet18 / 18.1 / revision 422。
+- metaFingerprint: `c213c493d3ef2a0c7f4ed1d2983c64a60c055ee78ab98f3fa838ceaf3bfe8be9`。
+- manifest SHA-256: `bd32bea2a2ef93dcc47f3ade8277c8577ab246d185525357884084d2e7e0f648`。
+- snapshot SHA-256: `754056afb3c2308b9f2feb16a193c78a1552678fd13494ba43e7f14adbce1f50`、8,110,289 bytes。
+- 公開index: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+- main/Pages照合: IN_SYNC。今回のremote検証は628 manifest entries中、catalog/snapshot/代表画像の3ファイルを実取得してPASS。今回全628ファイルを再取得したという意味ではない。
+- refresh run `33968410853`: push起動、2026-09-05 13:16:16–13:24:32 UTC、success。
+- watchdog `33968811184`: workflow_run、success。`33969495988`: schedule、13:38–13:39 UTC、success。
+- 最終照会14:23:55 UTC時点で、7ランク変更後のschedule起動refresh成功はまだ観測できていない。観測済みの直近scheduled refresh `33964757474` は変更前の11:58:54–12:03:08 UTC。設定済みと定期実行実証済みを混同しない。
+- workflowはactive。refresh cron UTC 7/22/37/52分、watchdog 13/33/53分。実際の起動には間隔の空きがあり、原因をGitHub API結果だけで断定しない。
+
+## 通常の流れと安全境界
+
+1. GitHub schedule、承認された手動実行またはmain変更で起動。
+2. `refresh-live-data-gated.ps1` が公開cluster/current-setの準備状況を確認。
+3. `refresh-live-data.ps1` がセット/パッチを検出し、Riot/CommunityDragonカタログとMetaTFTを取得。
+4. `refresh-ranked-compositions.ps1` がランクregistryを使って7条件を生成。取得成功レスポンスを同一run内で共有し、アプリの操作回数でMetaTFTアクセスを増やさない。
+5. 同一Set/Patch/revisionの7条件とID/参照/ファイル/hashを検証。別ランク・旧セットで穴埋めしない。
+6. 全条件成功後にだけ候補を採用。内容不変なら新規版・データcommit・不要な再公開を作らない。
+7. publication lock内で検証済みsiteをPages artifactへまとめ、公開後にremote検証。
+8. アプリは配信済みbundleから選択ランクを表示。既存の保存版・同梱fallbackを維持。
+
+ランク統計が実際に少ない場合のPARTIAL/空データと、取得失敗・不正JSON・混在clusterは別。後者は全体の新版を止めてLKGを維持する。非default rankの正当な少数標本は既存契約に従って扱う。新セットは既存のcatalog-first/統計収集中契約を維持する。現在正常な版がある限り、更新失敗だけで公開中の版を消す処理にはしない。
+
+## 発見事項と今回のローカル修正
+
+| 発見事項 | 修正 |
+|---|---|
+| SOURCE_NOT_READYがexit 0になるため、実データが古くても直近run成功で健康判定され得た | 公開/取得確認の経過時間とrun成否を分離。6時間/24時間、検査不能をhealth判定へ追加 |
+| 内容不変は意図的にcommitしないため、bundleの古い時刻だけでは確認停止と区別不能 | 成功runの小さな検証Artifactを7日保持。版ID/run ID一致・NO_CHANGE/PUBLISHED・正常完了main runのみ確認時刻として採用。SOURCE_NOT_READYは採用しない |
+| watchdogがロック取得前に作った古いartifactで新しい公開を巻き戻し得た | 修復jobがpublication lockを取得した後にmain再checkout・再照合・検証・artifact生成・deploy |
+| remote payload検証失敗でもindex照合だけでalertを閉じ得た | verify-repairの失敗も健康判定へ伝播 |
+| stale監視が稼働中のrefreshと重複して再実行を要求 | queued/in_progress等があれば要求しない。直近起動から30分cooldown。有限の再試行を維持 |
+| timeout/cancel等がfailure連続回数に入らない | timed_out/cancelled/action_requiredも対象化 |
+| 容量警告がlogだけに留まる | 250MiBの70/85/95%、または100版の70/85/95版で単一health issueの対象にする |
+| 新しいGitHub側scriptが構文検査から漏れる | toolsだけでなく.github/scriptsもPS syntax gate対象化。watchdog変更をrank CI対象へ追加 |
+
+観測時刻は「同じ内容であることを取り直して確認した時刻」であり、MetaTFT自体の情報発生時刻ではない。immutable bundleの取得日時・統計値を書き換えず、verification basisを別出力する。上流が古い内容を正常応答する場合の真の鮮度までは、この確認時刻だけでは保証できない。
+
+## 容量は未解決の構造的制約
+
+現在siteは55,249,674 bytes、1,270物理ファイル、8版。250MiBまで206,894,326 bytes。
+
+7ランクsnapshot 8,110,289 bytesを新版ごとに保持すると、残容量/snapshotだけで切り捨て25版。新catalog・manifest・画像等を無視した楽観的な概算であり、正確な残り版数/日数ではない。内容変更の頻度次第で消費時期は変わる。
+
+古い版を削除せず、全履歴を同じ有限領域に増やし続ける現在の条件では、いつか新版公開が止まる。警告の追加では解消しない。100版上限も同様。今回は履歴削除、上限引き上げ、別サービスへの移転をしていない。
+
+推奨する次段階は「最近の配信領域」と「不変な過去版保管」の分離。移転前に、既存manifest/blob URLの後方互換、SHA、保存版選択/rollback、Androidのサイズ・100版制限、保管先の無料枠・停止条件を契約化する必要がある。外部保存先追加や既存URL変更は別途承認・E2Eが必要。圧縮や共有データ構造の強化は補助策であり、有限領域に無限履歴を保存する解決にはならない。
+
+## テスト
+
+- production workflow掲載の回帰22スクリプト: PASS。7rank、未来セット/カタログ先行、混在Set拒否、rollback等を含む。
+- `test-autonomous-recovery.ps1`: PASS。green-but-stale、6h/24h、容量、有限復旧、run/version違い、未来時刻、SOURCE_NOT_READY拒否、UTC往復、修復lock構造。
+- `test-watchdog-runtime.ps1`: PASS。HTTPをfixtureに置換して実watch scriptを実行。成功run＋古いデータで単一alert、正常時は無通知。出力のissue #1はmockでありGitHubへの実投稿ではない。
+- tools/.github/scripts全PowerShell syntax: PASS。
+- `git diff --check`: PASS。source/currentとsiteに差分なし。
+- 公開URLのindex/manifest/代表3payload検証: PASS。
+- 未実施: 今回変更の実GitHub CI、認証付きArtifact取得の実運用、修復jobの実deploy、変更後のscheduled refresh実証。YAML専用parserはローカル環境になく、追加依存は導入していない。PS構文/差分/構造regressionをYAMLサーバー検証の代替成功とは扱わない。
+
+## 完全無人の限界と次の順序
+
+外部の統計がまだ存在しない、429/5xxや形式変更、GitHub/Pages障害、容量不足の場合、正しい新版は作れない。その際は「不正データを配る」ではなく「LKGを残して、利用可能範囲と停止理由を知らせる」が採用方針。
+
+GitHub scheduleは遅延・dropの可能性があり、public repositoryは活動停止60日でschedule無効化の対象になる。同じGitHub上のwatchdogはGitHub全体停止から独立ではない。15～30分以内の常時保証や人間の保守ゼロを宣言しない。[GitHub公式 schedule仕様](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
+
+1. 承認後に今回の修正を公開し、CI→手動run→NO_CHANGE Artifact採用→watchdog→scheduled runを実確認する。
+2. 容量分離設計を決め、旧URL/保存版/Android互換テスト後に導入する。単に上限を緩めて保護を失わせない。
+3. 実Set/Patch移行時にも契約試験を継続。source形式変更時は失敗閉鎖とLKGを維持してadapterを修正する。
+
+今回の変更ファイル: `.github/scripts/check-refresh-freshness.ps1`、新規`request-refresh-recovery.ps1`、refresh/watchdog/rank-validationの3workflow、`tools/automation-health-policy.ps1`、`tools/watch-automation-health.ps1`、新規回帰2本、本報告書。

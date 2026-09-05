@@ -11,7 +11,12 @@ Set-StrictMode -Version Latest
         if ($Method -eq 'Get' -and $Uri -like '*runs?*') {
             return [pscustomobject]@{workflow_runs=@([pscustomobject]@{conclusion='success';updated_at=[DateTimeOffset]::UtcNow.ToString('o');html_url='https://github.com/fixture/repo/actions/runs/1'})}
         }
-        if ($Method -eq 'Get' -and $Uri -like '*issues?*') { return @($fixtureIssues) }
+        if ($Method -eq 'Get' -and $Uri -like '*issues?*') {
+            # Match Invoke-RestMethod's real behavior for a top-level JSON
+            # array: emit the whole array as one pipeline object.
+            Write-Output -NoEnumerate @($fixtureIssues)
+            return
+        }
         if ($Method -eq 'Post' -and $Uri -like '*/labels') { return [pscustomobject]@{} }
         if ($Method -eq 'Post' -and $Uri -like '*/issues') {
             $capture.Add(($Body | ConvertFrom-Json))

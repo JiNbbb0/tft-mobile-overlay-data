@@ -70,7 +70,11 @@ $combinedReason = if ($DataQualityRequiresAttention) {
     [string]$health.reason
 }
 
-$openIssues = @(Invoke-GitHubApi -Method Get -Uri "$apiRoot/issues?state=open&per_page=100")
+# Invoke-RestMethod intentionally preserves a top-level JSON array as one
+# pipeline object. Flatten the response explicitly so Where-Object evaluates
+# each issue instead of the array wrapper. This is observable with GitHub's
+# real /issues endpoint even though simple PowerShell mocks often enumerate it.
+$openIssues = @(Invoke-GitHubApi -Method Get -Uri "$apiRoot/issues?state=open&labels=$issueLabel&per_page=100" | ForEach-Object { $_ })
 $matchingIssues = @($openIssues | Where-Object {
     $_ -and $_.PSObject.Properties['title'] -and [string]$_.title -eq $issueTitle
 })

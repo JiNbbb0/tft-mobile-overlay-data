@@ -58,15 +58,15 @@
 
 観測時刻は「同じ内容であることを取り直して確認した時刻」であり、MetaTFT自体の情報発生時刻ではない。immutable bundleの取得日時・統計値を書き換えず、verification basisを別出力する。上流が古い内容を正常応答する場合の真の鮮度までは、この確認時刻だけでは保証できない。
 
-## 容量は未解決の構造的制約
+## 容量評価の訂正と採用した対策
 
 現在siteは55,249,674 bytes、1,270物理ファイル、8版。250MiBまで206,894,326 bytes。
 
-7ランクsnapshot 8,110,289 bytesを新版ごとに保持すると、残容量/snapshotだけで切り捨て25版。新catalog・manifest・画像等を無視した楽観的な概算であり、正確な残り版数/日数ではない。内容変更の頻度次第で消費時期は変わる。
+前報告の「約25版」は整理がないと仮定した計算で、既存の最大20版への整理を見落としていた。本番の残り配信回数ではない。この評価は撤回する。
 
-古い版を削除せず、全履歴を同じ有限領域に増やし続ける現在の条件では、いつか新版公開が止まる。警告の追加では解消しない。100版上限も同様。今回は履歴削除、上限引き上げ、別サービスへの移転をしていない。
+新方針は最大5版への整理。隔離publisher試験では35,491,211 bytesへ減少し、保持manifestのSHA不変、不要bundle/blob除去、最終検証失敗時の現行サイト全ファイル維持を確認した。この数値はfixture結果であり、本番サイズは公開後に測定する。
 
-推奨する次段階は「最近の配信領域」と「不変な過去版保管」の分離。移転前に、既存manifest/blob URLの後方互換、SHA、保存版選択/rollback、Androidのサイズ・100版制限、保管先の無料枠・停止条件を契約化する必要がある。外部保存先追加や既存URL変更は別途承認・E2Eが必要。圧縮や共有データ構造の強化は補助策であり、有限領域に無限履歴を保存する解決にはならない。
+長期保管の優先度は低いため、新しい外部保管サービスは不要と判断した。5版でも将来の1版サイズ次第で250MiBに達し得るため、容量警告・上限検証は残す。Git履歴の容量増加はPages容量とは別の長期監視対象。
 
 ## テスト
 
@@ -85,7 +85,7 @@
 GitHub scheduleは遅延・dropの可能性があり、public repositoryは活動停止60日でschedule無効化の対象になる。同じGitHub上のwatchdogはGitHub全体停止から独立ではない。15～30分以内の常時保証や人間の保守ゼロを宣言しない。[GitHub公式 schedule仕様](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule)
 
 1. 承認後に今回の修正を公開し、CI→手動run→NO_CHANGE Artifact採用→watchdog→scheduled runを実確認する。
-2. 容量分離設計を決め、旧URL/保存版/Android互換テスト後に導入する。単に上限を緩めて保護を失わせない。
+2. 5版整理後の実容量を測定し、将来のセットで単一版が大きくなった場合は警告を確認する。過去版用の外部保管は追加しない。
 3. 実Set/Patch移行時にも契約試験を継続。source形式変更時は失敗閉鎖とLKGを維持してadapterを修正する。
 
 今回の変更ファイル: `.github/scripts/check-refresh-freshness.ps1`、新規`request-refresh-recovery.ps1`、refresh/watchdog/rank-validationの3workflow、`tools/automation-health-policy.ps1`、`tools/watch-automation-health.ps1`、新規回帰2本、本報告書。

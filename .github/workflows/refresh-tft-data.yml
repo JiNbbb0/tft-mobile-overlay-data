@@ -120,6 +120,7 @@ jobs:
         run: |
           ./tools/test-data-history-policy.ps1
           ./tools/test-publication-retention.ps1
+          ./tools/test-composition-report.ps1
 
       - name: Test unattended publication reconciliation policy
         shell: pwsh

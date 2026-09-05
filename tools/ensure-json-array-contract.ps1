@@ -320,7 +320,8 @@ $newPolicy = @'
         & (Join-Path $PSScriptRoot "refresh-static-meta.ps1")
     }
 '@
-if ($liveText.Contains($newPolicy)) {
+$rankedPolicy = $newPolicy.Replace('refresh-static-meta.ps1', 'refresh-ranked-compositions.ps1')
+if ($liveText.Contains($newPolicy) -or $liveText.Contains($rankedPolicy)) {
     Write-Output "Catalog-first continuation policy already patched."
 } elseif ($liveText.Contains($oldPolicy)) {
     $liveText = $liveText.Replace($oldPolicy, $newPolicy)

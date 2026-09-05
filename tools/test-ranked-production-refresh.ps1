@@ -11,6 +11,10 @@ New-Item -ItemType Directory -Path $workspace -Force | Out-Null
 foreach ($directory in @('tools', 'schema', 'config', 'source', 'site')) {
     Copy-Item -LiteralPath (Join-Path $root $directory) -Destination (Join-Path $workspace $directory) -Recurse
 }
+foreach ($preflight in @('ensure-json-array-contract.ps1', 'verify-runtime-hardening.ps1')) {
+    & pwsh -NoProfile -File (Join-Path $workspace ('tools/' + $preflight))
+    if ($LASTEXITCODE -ne 0) { throw "Isolated production preflight failed: $preflight" }
+}
 & pwsh -NoProfile -File (Join-Path $workspace 'tools/refresh-live-data.ps1') -Force
 if ($LASTEXITCODE -ne 0) { throw 'Isolated production refresh failed; public data is unchanged' }
 $snapshot = Get-Content -Raw -LiteralPath (Join-Path $workspace 'source/current/tft_static_snapshot.json') | ConvertFrom-Json

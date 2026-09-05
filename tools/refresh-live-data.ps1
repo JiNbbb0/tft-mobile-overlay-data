@@ -197,9 +197,9 @@ try {
     }
     $allowPartial = $isNewSet -or $existingSetReadiness -in @('CATALOG_READY', 'META_COLLECTING')
     if ($allowPartial) {
-        & (Join-Path $PSScriptRoot "refresh-static-meta.ps1") -AllowPartial
+        & (Join-Path $PSScriptRoot "refresh-ranked-compositions.ps1") -AllowPartial
     } else {
-        & (Join-Path $PSScriptRoot "refresh-static-meta.ps1")
+        & (Join-Path $PSScriptRoot "refresh-ranked-compositions.ps1")
     }
     $currentMetaPath = Join-Path $sourceRoot "tft_static_snapshot.json"
     # Publication identity covers every user-visible catalog/meta field and the

@@ -1,19 +1,23 @@
 Set-StrictMode -Version Latest
 
 function Get-TftStatisticsScopeContract {
+    param([string]$RankId = 'DIAMOND_PLUS')
+    $registry = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot '../config/composition-ranks.json') | ConvertFrom-Json
+    $rank = @($registry.ranks | Where-Object id -CEQ $RankId)
+    if ($rank.Count -ne 1) { throw "Unknown composition rank: $RankId" }
     return [pscustomobject][ordered]@{
-        preferredScope = 'DIAMOND_PLUS'
-        limitedScope = 'DIAMOND_PLUS_LIMITED'
-        preferredRankFilter = 'CHALLENGER,DIAMOND,GRANDMASTER,MASTER'
-        displayName = 'Diamond+'
-        limitedWarningCode = 'DIAMOND_PLUS_COVERAGE_LIMITED'
+        preferredScope = $RankId
+        limitedScope = "${RankId}_LIMITED"
+        preferredRankFilter = [string]$rank[0].rankFilter
+        displayName = [string]$rank[0].label
+        limitedWarningCode = "${RankId}_COVERAGE_LIMITED"
     }
 }
 
 function Test-TftStatisticsScopeName {
-    param([AllowEmptyString()][string]$Scope)
+    param([AllowEmptyString()][string]$Scope, [string]$RankId = 'DIAMOND_PLUS')
 
-    $contract = Get-TftStatisticsScopeContract
+    $contract = Get-TftStatisticsScopeContract -RankId $RankId
     return $Scope -in @($contract.preferredScope, $contract.limitedScope)
 }
 

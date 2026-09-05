@@ -1,11 +1,15 @@
 ﻿param(
     [string]$SnapshotPath = "source/current/tft_static_snapshot.json",
-    [string]$CatalogPath = "source/current/tft/tft_catalog.json"
+    [string]$CatalogPath = "source/current/tft/tft_catalog.json",
+    [string]$RankId = 'DIAMOND_PLUS',
+    [AllowNull()]$SnapshotObject = $null,
+    [hashtable]$AssetFileMap = @{}
 )
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
+. (Join-Path $PSScriptRoot 'composition-rank-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedSnapshot = if ([IO.Path]::IsPathRooted($SnapshotPath)) {
@@ -19,16 +23,30 @@ $resolvedCatalog = if ([IO.Path]::IsPathRooted($CatalogPath)) {
     Join-Path $repositoryRoot $CatalogPath
 }
 
-if (-not (Test-Path -LiteralPath $resolvedSnapshot)) {
+if ($null -eq $SnapshotObject -and -not (Test-Path -LiteralPath $resolvedSnapshot)) {
     throw "Snapshot not found: $resolvedSnapshot"
 }
 if (-not (Test-Path -LiteralPath $resolvedCatalog)) {
     throw "Catalog not found: $resolvedCatalog"
 }
 
-$snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedSnapshot | ConvertFrom-Json
+$snapshot = if ($null -ne $SnapshotObject) { $SnapshotObject } else { Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedSnapshot | ConvertFrom-Json }
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedCatalog | ConvertFrom-Json
+if ([string]$snapshot.setId -cne [string]$catalog.set.id) { throw 'Snapshot/catalog set mismatch' }
+Assert-CompositionRanks -Snapshot $snapshot -Patch ([string]$catalog.set.tftPatch)
+if ($snapshot.PSObject.Properties['compositionRanks']) {
+    foreach ($rankDataset in @($snapshot.compositionRanks.datasets)) {
+        & $PSCommandPath -SnapshotObject $rankDataset.snapshot -CatalogPath $resolvedCatalog -RankId ([string]$rankDataset.rankId) -AssetFileMap $AssetFileMap
+    }
+}
 $assetRoot = Split-Path -Parent (Split-Path -Parent $resolvedCatalog)
+function Test-CatalogImage([string]$RelativePath) {
+    if (-not $RelativePath) { return $false }
+    if ($AssetFileMap.Count -gt 0) {
+        return $AssetFileMap.ContainsKey($RelativePath) -and (Test-Path -LiteralPath $AssetFileMap[$RelativePath] -PathType Leaf)
+    }
+    return Test-Path -LiteralPath (Join-Path $assetRoot $RelativePath) -PathType Leaf
+}
 $catalogEntries = @{}
 foreach ($entry in @($catalog.champions) + @($catalog.traits) + @($catalog.items) + @($catalog.augments)) {
     $catalogEntries[$entry.id] = $entry
@@ -50,10 +68,10 @@ if ([int]$snapshot.itemStatBasis.excludedUnresolvableRecommendationRows -lt 0) {
 }
 if ($snapshot.PSObject.Properties['statisticsScope']) {
     $scope = $snapshot.statisticsScope
-    $rankContract = Get-TftStatisticsScopeContract
+    $rankContract = Get-TftStatisticsScopeContract -RankId $RankId
     if ([string]$scope.preferred -ne [string]$rankContract.preferredScope) { throw "Unexpected preferred rank scope" }
     if ([string]$scope.effective -eq 'ALL_RANKS_FALLBACK') { throw "MetaTFT comps page parity forbids the legacy all-rank fallback" }
-    if (-not (Test-TftStatisticsScopeName ([string]$scope.effective))) {
+    if (-not (Test-TftStatisticsScopeName ([string]$scope.effective) -RankId $RankId)) {
         throw "Unexpected effective rank scope"
     }
     if ([int]$scope.minimumCompositionSamples -lt 1 -or [int]$scope.minimumPreferredCompositions -lt 1) {
@@ -122,7 +140,7 @@ if (-not $isPartial -and $compositions.Count -lt 18) { throw "Expected at least 
 if ($isPartial -and $compositions.Count -eq 0) {
     Write-Output "Static meta catalog-only snapshot valid"
     Write-Output "Set=$($snapshot.setId) Readiness=$readiness"
-    exit 0
+    return
 }
 
 $allItemStats = @()
@@ -191,7 +209,7 @@ foreach ($composition in $compositions) {
             throw "Composition item recommendation sample count missing: $($composition.id)/$recommendationId"
         }
         $recommendationCatalogEntry = $catalogEntries[$recommendationId]
-        if (-not $recommendationCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $recommendationCatalogEntry.image))) {
+        if (-not (Test-CatalogImage ([string]$recommendationCatalogEntry.image))) {
             throw "Composition item recommendation image missing: $($composition.id)/$recommendationId"
         }
         $previousAdoptionRate = $adoptionRate
@@ -284,7 +302,7 @@ foreach ($composition in $compositions) {
             }
             $positions[[string]$position] = $true
             $boardCatalogEntry = $catalogEntries[$boardUnit.id]
-            if (-not $boardCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $boardCatalogEntry.image))) {
+            if (-not (Test-CatalogImage ([string]$boardCatalogEntry.image))) {
                 throw "Board unit image missing: $($composition.id)/Lv$($board.level)/$($boardUnit.id)"
             }
         }
@@ -295,7 +313,7 @@ foreach ($composition in $compositions) {
             throw "Composition unit missing from catalog: $($composition.id)/$($unit.id)"
         }
         $unitCatalogEntry = $catalogEntries[$unit.id]
-        if (-not $unitCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $unitCatalogEntry.image))) {
+        if (-not (Test-CatalogImage ([string]$unitCatalogEntry.image))) {
             throw "Composition unit image missing: $($composition.id)/$($unit.id)"
         }
         foreach ($recommendedItem in @($unit.recommendedBuild)) {
@@ -303,7 +321,7 @@ foreach ($composition in $compositions) {
                 throw "Recommended overview item missing from catalog: $($composition.id)/$($unit.id)/$($recommendedItem.itemId)"
             }
             $recommendedCatalogEntry = $catalogEntries[[string]$recommendedItem.itemId]
-            if (-not $recommendedCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $recommendedCatalogEntry.image))) {
+            if (-not (Test-CatalogImage ([string]$recommendedCatalogEntry.image))) {
                 throw "Recommended overview item image missing: $($composition.id)/$($unit.id)/$($recommendedItem.itemId)"
             }
         }
@@ -323,7 +341,7 @@ foreach ($composition in $compositions) {
                     throw "Best-build item missing from catalog: $($composition.id)/$($unit.id)/$($buildItem.itemId)"
                 }
                 $itemCatalogEntry = $catalogEntries[$buildItem.itemId]
-                if (-not $itemCatalogEntry.image -or -not (Test-Path -LiteralPath (Join-Path $assetRoot $itemCatalogEntry.image))) {
+                if (-not (Test-CatalogImage ([string]$itemCatalogEntry.image))) {
                     throw "Best-build item image missing: $($composition.id)/$($unit.id)/$($stat.itemId)"
                 }
             }

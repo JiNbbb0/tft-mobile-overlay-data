@@ -36,6 +36,9 @@ if (-not (Test-Path -LiteralPath $imageSourceRoot -PathType Container)) { throw 
 
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogSource | ConvertFrom-Json
 $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaSource | ConvertFrom-Json
+if ($meta.PSObject.Properties['compositionRanks']) {
+    & (Join-Path $PSScriptRoot 'validate-static-meta.ps1') -SnapshotPath $metaSource -CatalogPath $catalogSource
+}
 $sourceManifestDocument = Get-Content -Raw -Encoding UTF8 -LiteralPath $sourceManifest | ConvertFrom-Json
 if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -notin @(4,5)) { throw "Unsupported source schema" }
 if ([string]$catalog.set.id -ne [string]$meta.setId) { throw "Catalog and composition set do not match" }

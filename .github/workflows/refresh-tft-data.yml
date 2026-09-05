@@ -8,6 +8,7 @@ on:
     paths:
       - "tools/**"
       - "schema/**"
+      - "config/**"
       - ".github/workflows/refresh-tft-data.yml"
   schedule:
     - cron: "7,22,37,52 * * * *"
@@ -93,6 +94,10 @@ jobs:
       - name: Test strict MetaTFT page rank scope policy
         shell: pwsh
         run: ./tools/test-rank-scope-policy.ps1
+
+      - name: Test ranked composition isolation and fingerprint
+        shell: pwsh
+        run: ./tools/test-composition-ranks.ps1
 
       - name: Test MetaTFT comps page parity policy
         shell: pwsh

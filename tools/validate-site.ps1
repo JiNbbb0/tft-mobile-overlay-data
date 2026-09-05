@@ -106,6 +106,7 @@ foreach ($version in $versions) {
         if ($requiredPath -notin @($files.path)) { throw "Required bundle file missing: $($version.id)/$requiredPath" }
     }
     $totalBytes = [int64]0
+    $verifiedAssetMap = @{}
     foreach ($entry in $files) {
         $logicalPath = [string]$entry.path
         $relativeUrl = [string]$entry.url
@@ -125,6 +126,7 @@ foreach ($version in $versions) {
         if ([int64]$item.Length -ne [int64]$entry.bytes) { throw "Size mismatch: $logicalPath" }
         $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $target).Hash.ToLowerInvariant()
         if ($hash -ne [string]$entry.sha256) { throw "Hash mismatch: $logicalPath" }
+        $verifiedAssetMap[$logicalPath] = $target
         if ($targetRelative -match '^blobs/([0-9a-f]{64})\.[a-z0-9]+$' -and $Matches[1] -ne $hash) { throw "Blob filename hash mismatch: $targetRelative" }
         $totalBytes += [int64]$entry.bytes
         $checkedFiles++
@@ -139,6 +141,9 @@ foreach ($version in $versions) {
     $sourceManifestPath = [IO.Path]::GetFullPath((Join-Path (Split-Path -Parent $manifestPath) ([string]$sourceManifestEntry.url)))
     $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath | ConvertFrom-Json
     $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaPath | ConvertFrom-Json
+    if ($meta.PSObject.Properties['compositionRanks']) {
+        & (Join-Path $PSScriptRoot 'validate-static-meta.ps1') -SnapshotPath $metaPath -CatalogPath $catalogPath -AssetFileMap $verifiedAssetMap
+    }
     if ([int]$catalog.schemaVersion -ne 1 -or [int]$meta.schemaVersion -notin @(4,5)) { throw "Unsupported content schema: $($version.id)" }
     if ([string]$catalog.set.id -ne [string]$version.setId -or [string]$meta.setId -ne [string]$version.setId) { throw "Set mismatch: $($version.id)" }
     if ([string]$catalog.set.tftPatch -ne [string]$version.patch) { throw "Patch mismatch: $($version.id)" }

@@ -22,6 +22,7 @@ This extends the existing schema-5 snapshot and production refresh path. It does
 ./tools/refresh-ranked-compositions.ps1 -OutputPath build/rank-live/tft_static_snapshot.json
 ./tools/validate-static-meta.ps1 -SnapshotPath build/rank-live/tft_static_snapshot.json
 ./tools/test-ranked-publication.ps1
+./tools/test-ranked-production-refresh.ps1
 ```
 
 The integration test writes an isolated local site beneath `build/`; it never deploys GitHub Pages. Synthetic regression fixtures must never be promoted to production.
@@ -29,5 +30,7 @@ The integration test writes an isolated local site beneath `build/`; it never de
 PowerShell 7 with `Test-Json` is required, matching the workflow's `pwsh` runtime. The workflow remains at UTC minutes 7,22,37,52 with existing concurrency/timeouts. Config changes are now included in push path filters.
 
 `validate-ranked-compositions.yml` is a read-only PR/manual pre-publication gate: syntax, rank/source/fingerprint regression, live seven-rank generation, isolated publisher/site verification, and invalid-child last-known-good preservation. It never changes `source/current`, tracked `site`, or public Pages. The existing refresh workflow performs publication only after its production gates pass.
+
+The production dry-run copies only tools, schemas, rank config, source and site into a fresh build workspace, then runs the real refresh pipeline. This acquires current Riot/CommunityDragon/MetaTFT identity evidence rather than relying on a developer machine's prior observation files. No validation condition is relaxed for CI.
 
 2026-09-05: live generation passed for 7 x 18 compositions, 54 unique requests, 8,088,818-byte snapshot. Local publisher/site/hash validation and invalid-child LKG preservation passed. GitHub Actions/Pages and Android device E2E are not yet verified for this change. Do not claim production enablement from local tests.

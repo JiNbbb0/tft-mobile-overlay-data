@@ -41,12 +41,9 @@ jobs:
           ./tools/test-source-contract.ps1
           ./tools/test-content-fingerprint.ps1
           ./tools/test-metatft-page-parity-policy.ps1
-      - name: Generate all ranks without changing tracked data
+      - name: Run isolated production acquisition, publication, and LKG checks
         shell: pwsh
-        run: ./tools/refresh-ranked-compositions.ps1 -OutputPath build/rank-live/tft_static_snapshot.json -AllowPartial
-      - name: Verify local publication and last-known-good preservation
-        shell: pwsh
-        run: ./tools/test-ranked-publication.ps1
+        run: ./tools/test-ranked-production-refresh.ps1
       - name: Confirm no production content was modified
         shell: pwsh
         run: |

@@ -1,6 +1,7 @@
 param(
     [string]$SiteDirectory = "site",
-    [string]$OutputDirectory = "source/current/metadata"
+    [string]$OutputDirectory = "source/current/metadata",
+    [string]$SourceRoot = 'source/current'
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,8 +10,9 @@ Set-StrictMode -Version Latest
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
 $outputRoot = if ([IO.Path]::IsPathRooted($OutputDirectory)) { [IO.Path]::GetFullPath($OutputDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputDirectory)) }
-$catalogPath = Join-Path $repositoryRoot "source/current/tft/tft_catalog.json"
-$metaPath = Join-Path $repositoryRoot "source/current/tft_static_snapshot.json"
+$sourceRootResolved = if ([IO.Path]::IsPathRooted($SourceRoot)) { $SourceRoot } else { Join-Path $repositoryRoot $SourceRoot }
+$catalogPath = Join-Path $sourceRootResolved "tft/tft_catalog.json"
+$metaPath = Join-Path $sourceRootResolved "tft_static_snapshot.json"
 $currentCatalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath | ConvertFrom-Json
 $currentMeta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaPath | ConvertFrom-Json
 
@@ -75,6 +77,25 @@ $items = Compare-Records $currentCatalog.items $previousCatalogSafe.items
 $augments = Compare-Records $currentCatalog.augments $previousCatalogSafe.augments
 $compositions = Compare-Records $currentCompositions $previousCompositionRecords
 
+function Get-RankCompositionMap($Snapshot) {
+    $map = @{}
+    if ($null -eq $Snapshot) { return $map }
+    if ($Snapshot.PSObject.Properties['statisticsScope']) { $map[[string]$Snapshot.statisticsScope.preferred] = @($Snapshot.compositions) }
+    if ($Snapshot.PSObject.Properties['compositionRanks']) {
+        foreach ($dataset in @($Snapshot.compositionRanks.datasets)) { $map[[string]$dataset.rankId] = @($dataset.snapshot.compositions) }
+    }
+    return $map
+}
+$currentRanks = Get-RankCompositionMap $currentMeta
+$previousRanks = Get-RankCompositionMap $previousMeta
+$rankChanges = @(
+    @(@($currentRanks.Keys) + @($previousRanks.Keys) | Sort-Object -Unique) | ForEach-Object {
+        $currentRows = @(Get-ValidIdRecords $currentRanks[$_])
+        $previousRows = @(Get-ValidIdRecords $previousRanks[$_])
+        [ordered]@{ rankId=[string]$_; previous=$previousRows.Count; current=$currentRows.Count; changes=(Compare-Records $currentRows $previousRows) }
+    }
+)
+
 $previousCompositions = @{}
 foreach ($composition in $previousCompositionRecords) { $previousCompositions[[string]$composition.id] = $composition }
 $tierChanges = @()
@@ -123,7 +144,7 @@ $counts = [ordered]@{
     items = [ordered]@{ previous=@($previousCatalogSafe.items).Count; current=@($currentCatalog.items).Count }
     augments = [ordered]@{ previous=@($previousCatalogSafe.augments).Count; current=@($currentCatalog.augments).Count }
     compositions = [ordered]@{ previous=$previousCompositionRecords.Count; current=$currentCompositions.Count }
-    images = [ordered]@{ previous=$(if ($previousManifest) { @($previousManifest.files | Where-Object { [string]$_.path -match '^tft/images/' }).Count } else { 0 }); current=@(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "source/current/tft/images") -File).Count }
+    images = [ordered]@{ previous=$(if ($previousManifest) { @($previousManifest.files | Where-Object { [string]$_.path -match '^tft/images/' }).Count } else { 0 }); current=@(Get-ChildItem -LiteralPath (Join-Path $sourceRootResolved "tft/images") -File).Count }
 }
 
 $summary = [pscustomobject][ordered]@{
@@ -138,6 +159,7 @@ $summary = [pscustomobject][ordered]@{
     items = $items
     augments = $augments
     compositions = $compositions
+    compositionRankChanges = $rankChanges
     tierChanges = @($tierChanges)
     averagePlacementChanges = @($placementChanges)
     imageChanges = [ordered]@{ previous=$counts.images.previous; current=$counts.images.current; delta=([int]$counts.images.current-[int]$counts.images.previous) }
@@ -168,5 +190,7 @@ $markdown = @"
 - Average-placement changes: $(@($placementChanges).Count)
 - Missing names/descriptions/images: $($currentMissing.names) / $($currentMissing.descriptions) / $($currentMissing.images)
 "@
+$markdown += "`n## Composition ranks`n`n| Rank | Previous | Current | Added | Removed | Changed |`n|---|---:|---:|---:|---:|---:|`n"
+foreach ($row in $rankChanges) { $markdown += "| $($row.rankId) | $($row.previous) | $($row.current) | $(@($row.changes.added).Count) | $(@($row.changes.removed).Count) | $(@($row.changes.changed).Count) |`n" }
 [IO.File]::WriteAllText($mdPath, ($markdown.Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 Write-Output "Change summary: $jsonPath"

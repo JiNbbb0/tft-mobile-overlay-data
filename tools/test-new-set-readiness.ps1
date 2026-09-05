@@ -26,6 +26,9 @@ $metaPath = Join-Path $testSource 'tft_static_snapshot.json'
 $sourceManifestPath = Join-Path $testSource 'metadata/DATA_SOURCE_MANIFEST.json'
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogPath | ConvertFrom-Json
 $meta = Get-Content -Raw -Encoding UTF8 -LiteralPath $metaPath | ConvertFrom-Json
+# This fixture deliberately models a legacy single-rank baseline. Ranked
+# new-set identity/empty-population behavior has its own rank contract tests.
+$meta.PSObject.Properties.Remove('compositionRanks')
 $sourceManifest = Get-Content -Raw -Encoding UTF8 -LiteralPath $sourceManifestPath | ConvertFrom-Json
 
 function Set-VerifiedFixtureManifest {

@@ -5,7 +5,9 @@ param(
     [int]$MinimumItemSamples = 50,
     [int]$CompositionLimit = 18,
     [int]$MinimumPreferredCompositions = 18,
-    [switch]$AllowPartial
+    [switch]$AllowPartial,
+    [string]$RankId = 'DIAMOND_PLUS',
+    [hashtable]$ResponseCache = @{}
 )
 
 $ErrorActionPreference = "Stop"
@@ -60,12 +62,14 @@ function Write-SourceObservation {
 function Get-Text {
     param([Parameter(Mandatory = $true)][string]$Url)
 
+    if ($ResponseCache.ContainsKey($Url)) { return [string]$ResponseCache[$Url] }
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         $lines = & curl.exe -L --fail --silent --show-error --max-time 120 `
             -A $UserAgent $Url
         if ($LASTEXITCODE -eq 0) {
             $text = ($lines -join "`n")
             Write-SourceObservation -Url $Url -Text $text
+            $ResponseCache[$Url] = $text
             return $text
         }
         if ($attempt -lt 3) { Start-Sleep -Seconds ([Math]::Pow(2, $attempt - 1)) }
@@ -505,7 +509,7 @@ if (-not $compsData.results.data.cluster_details -or
 }
 
 Start-Sleep -Milliseconds 350
-$statisticsScopeContract = Get-TftStatisticsScopeContract
+$statisticsScopeContract = Get-TftStatisticsScopeContract -RankId $RankId
 $preferredRankFilter = [string]$statisticsScopeContract.preferredRankFilter
 $preferredCompsStatsUrl = "$CompsStatsBaseUrl`?queue=1100&patch=current&days=3&rank=$preferredRankFilter&permit_filter_adjustment=false&cluster_id=$($clusterInfo.cluster_id)"
 $compsStatsUrl = $preferredCompsStatsUrl
@@ -515,7 +519,8 @@ Assert-MetaTftStatsContract -Stats $compsStats `
     -ExpectedClusterId ([int]$clusterInfo.cluster_id) `
     -ExpectedRankFilter $preferredRankFilter `
     -Context "MetaTFT $($statisticsScopeContract.displayName) comps_stats"
-$catalogStatsQuery = "queue=1100&patch=current&days=3&rank=$preferredRankFilter"
+$catalogScopeContract = Get-TftStatisticsScopeContract
+$catalogStatsQuery = "queue=1100&patch=current&days=3&rank=$($catalogScopeContract.preferredRankFilter)"
 $unitStatsUrl = "$UnitStatsBaseUrl`?$catalogStatsQuery"
 $itemStatsUrl = "$ItemStatsBaseUrl`?$catalogStatsQuery"
 $traitStatsUrl = "$TraitStatsBaseUrl`?$catalogStatsQuery"
@@ -534,17 +539,13 @@ foreach ($response in @($unitStatsResponse, $itemStatsResponse, $traitStatsRespo
     }
 }
 $requiredPreferredCompositions = [Math]::Min($CompositionLimit, [Math]::Max(1, $MinimumPreferredCompositions))
-$gameRow = @($compsStats.results | Where-Object { [string]$_.cluster -eq '' } | Select-Object -First 1)
-if ($gameRow.Count -eq 0 -or @($gameRow[0].places).Count -lt 1 -or [double]$gameRow[0].places[0] -le 0) {
-    throw 'MetaTFT comps_stats is missing the aggregate game-count row used by the comps page.'
-}
-$gameCount = [double]$gameRow[0].places[0]
+$gameCount = Resolve-MetaTftCompositionGameCount -Stats $compsStats -AllowPartial:$AllowPartial
 $minimumPagePickRate = 0.01
 $playerSlotsPerGame = 8
-$effectiveMinimumCompSamples = Get-MetaTftPageMinimumSamples `
+$effectiveMinimumCompSamples = if ($gameCount -eq 0) { 1 } else { Get-MetaTftPageMinimumSamples `
     -GameCount $gameCount `
     -MinimumPickRate $minimumPagePickRate `
-    -PlayerSlotsPerGame $playerSlotsPerGame
+    -PlayerSlotsPerGame $playerSlotsPerGame }
 $candidatePoolTarget = $CompositionLimit
 $fallbackAttempted = $false
 $rankScopeDecision = [pscustomobject][ordered]@{
@@ -1347,8 +1348,8 @@ $snapshot = [pscustomobject][ordered]@{
             queue = '1100'
             patch = 'current'
             days = 3
-            rank = $preferredRankFilter
-            displayRank = [string]$statisticsScopeContract.displayName
+            rank = [string]$catalogScopeContract.preferredRankFilter
+            displayRank = [string]$catalogScopeContract.displayName
         }
         games = [ordered]@{
             units = [int64]$unitGameCount

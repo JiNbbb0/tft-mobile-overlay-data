@@ -1,5 +1,20 @@
 Set-StrictMode -Version Latest
 
+function Resolve-MetaTftCompositionGameCount {
+    param([Parameter(Mandatory)]$Stats, [switch]$AllowPartial)
+    $rows = @($Stats.results)
+    if ($rows.Count -eq 0 -and $AllowPartial) { return [double]0 }
+    $aggregate = @($rows | Where-Object { [string]$_.cluster -eq '' })
+    if ($aggregate.Count -ne 1 -or @($aggregate[0].places).Count -lt 1) { throw 'MetaTFT composition aggregate row is missing/ambiguous' }
+    $count = [double]$aggregate[0].places[0]
+    if ([double]::IsNaN($count) -or [double]::IsInfinity($count) -or $count -lt 0) { throw 'Invalid MetaTFT composition aggregate count' }
+    if ($count -eq 0) {
+        if (-not $AllowPartial) { throw 'Composition population is empty' }
+        if (@($rows | Where-Object { [string]$_.cluster -ne '' -and @($_.places).Count -gt 8 -and [double]$_.places[8] -gt 0 }).Count -gt 0) { throw 'Zero-game aggregate contradicts composition samples' }
+    }
+    return $count
+}
+
 function Test-RobotsSiteWideBlock {
     param(
         [Parameter(Mandatory = $true)][string]$RobotsText,

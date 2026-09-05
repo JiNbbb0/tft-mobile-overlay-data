@@ -1,5 +1,6 @@
 param(
-    [string]$OutputPath = "source/current/metadata/DATA_SOURCE_MANIFEST.json"
+    [string]$OutputPath = "source/current/metadata/DATA_SOURCE_MANIFEST.json",
+    [string]$SourceRoot = 'source/current'
 )
 
 $ErrorActionPreference = "Stop"
@@ -7,8 +8,9 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$catalogPath = Join-Path $repositoryRoot "source/current/tft/tft_catalog.json"
-$metaPath = Join-Path $repositoryRoot "source/current/tft_static_snapshot.json"
+$sourceRootResolved = if ([IO.Path]::IsPathRooted($SourceRoot)) { $SourceRoot } else { Join-Path $repositoryRoot $SourceRoot }
+$catalogPath = Join-Path $sourceRootResolved "tft/tft_catalog.json"
+$metaPath = Join-Path $sourceRootResolved "tft_static_snapshot.json"
 $observationRoot = Join-Path $repositoryRoot "build/source-observations"
 $identityEvidenceRoot = Join-Path $repositoryRoot "build/source-identity-evidence"
 $resolvedOutput = if ([IO.Path]::IsPathRooted($OutputPath)) { $OutputPath } else { Join-Path $repositoryRoot $OutputPath }
@@ -81,7 +83,7 @@ foreach ($composition in @($meta.compositions)) {
         $itemStatCount += @($unit.itemStats).Count
     }
 }
-$imageCount = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "source/current/tft/images") -File).Count
+$imageCount = @(Get-ChildItem -LiteralPath (Join-Path $sourceRootResolved "tft/images") -File).Count
 $definitions = @(
     [ordered]@{ sourceName = "Riot TFT patch notes"; role='PATCH_AUTHORITY'; sourceUrl = [string]$catalog.sources.riotPatch; terms = "Riot website terms and Riot Legal Notices"; count = 1; fallback = $catalogPath },
     [ordered]@{ sourceName = "CommunityDragon TFT Japanese data"; role='CURRENT_SET_CATALOG'; sourceUrl = [string]$catalog.sources.communityDragonJa; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot"; count = $catalogCount; fallback = $catalogPath },
@@ -100,6 +102,20 @@ $definitions = @(
     [ordered]@{ sourceName = "MetaTFT composition details"; role='BOARDS_AND_DETAILS'; sourceUrl = [string]$meta.sources.compositionDetails; terms = "Public endpoint; availability and terms must be monitored"; count = @($meta.compositions | Where-Object { $_ -is [pscustomobject] }).Count; fallback = $metaPath }
 )
 
+if ($meta.PSObject.Properties['compositionRanks']) {
+    foreach ($dataset in @($meta.compositionRanks.datasets)) {
+        $rank = Get-TftStatisticsScopeContract -RankId ([string]$dataset.rankId)
+        $definitions += [ordered]@{
+            sourceName = "MetaTFT composition statistics $($rank.displayName)"
+            role = 'RANK_COMPOSITION_STATISTICS'
+            rankFilter = [string]$rank.preferredRankFilter
+            sourceUrl = [string]$dataset.snapshot.sources.compositionStats
+            terms = 'Public endpoint; availability and terms must be monitored'
+            count = @($dataset.snapshot.compositions).Count
+            fallback = $metaPath
+        }
+    }
+}
 $sourceRecords = foreach ($definition in $definitions) {
     $observation = Get-ObservationAggregate -Url $definition.sourceUrl -FallbackPath $definition.fallback
     $matchedEvidence = @($identityEvidence | Where-Object {
@@ -129,6 +145,13 @@ $sourceRecords = foreach ($definition in $definitions) {
             [string](Get-OptionalField $queryClaims 'patchMode' '') -eq 'current' -and
             [string](Get-OptionalField $queryClaims 'permitFilterAdjustment' '') -eq 'false' -and
             (Test-TftStatisticsRankFilter ([string](Get-OptionalField $queryClaims 'rank' '')))
+        }
+        'RANK_COMPOSITION_STATISTICS' {
+            [string](Get-OptionalField $nativeClaims 'setId' '') -eq [string]$meta.setId -and
+            [string](Get-OptionalField $nativeClaims 'revisionId' '') -eq [string]$meta.clusterId -and
+            [string](Get-OptionalField $queryClaims 'patchMode' '') -eq 'current' -and
+            [string](Get-OptionalField $queryClaims 'permitFilterAdjustment' '') -eq 'false' -and
+            [string](Get-OptionalField $queryClaims 'rank' '') -ceq [string]$definition.rankFilter
         }
         'CATALOG_STATISTICS' {
             [string](Get-OptionalField $nativeClaims 'setId' '') -eq [string]$meta.setId -and
@@ -170,6 +193,9 @@ $sourceRecords = foreach ($definition in $definitions) {
 }
 
 $byName = @{}; foreach ($entry in $sourceRecords) { $byName[[string]$entry.sourceName] = $entry }
+if (@($sourceRecords | Where-Object { $_.role -eq 'RANK_COMPOSITION_STATISTICS' -and $_.verdict -ne 'VERIFIED' }).Count -gt 0) {
+    throw 'Rank composition source evidence failed; retaining last-known-good publication.'
+}
 $setVerified = [string](Get-OptionalField $byName['MetaTFT cluster information'].nativeClaims 'setId' '') -eq [string]$meta.setId -and
     [string](Get-OptionalField $byName['CommunityDragon TFT Japanese data'].nativeClaims 'setId' '') -eq [string]$meta.setId -and
     [string](Get-OptionalField $byName['CommunityDragon TFT English data'].nativeClaims 'setId' '') -eq [string]$meta.setId

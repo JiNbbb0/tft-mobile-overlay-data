@@ -1,0 +1,62 @@
+name: Validate ranked compositions
+
+on:
+  pull_request:
+    paths:
+      - "tools/**"
+      - "schema/**"
+      - "config/**"
+      - ".github/workflows/validate-ranked-compositions.yml"
+      - ".github/workflows/refresh-tft-data.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rank-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $failures = @()
+          Get-ChildItem tools -Filter *.ps1 -Recurse | ForEach-Object {
+            $tokens = $null; $parseErrors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors)
+            $failures += @($parseErrors)
+          }
+          if ($failures.Count) { throw ($failures | Out-String) }
+      - name: Verify rank isolation, source scope, and content identity
+        shell: pwsh
+        run: |
+          ./tools/test-composition-ranks.ps1
+          ./tools/test-rank-scope-policy.ps1
+          ./tools/test-source-contract.ps1
+          ./tools/test-content-fingerprint.ps1
+          ./tools/test-metatft-page-parity-policy.ps1
+      - name: Run isolated production acquisition, publication, and LKG checks
+        shell: pwsh
+        run: ./tools/test-ranked-production-refresh.ps1
+      - name: Confirm no production content was modified
+        shell: pwsh
+        run: |
+          git diff --exit-code -- source/current site
+          if ($LASTEXITCODE -ne 0) { throw 'Dry-run modified tracked production data' }
+      - name: Record validation boundary
+        if: always()
+        shell: pwsh
+        run: |
+          @"
+          ## Ranked composition validation
+          - Result: ${{ job.status }}
+          - Scope: generated rank data, local publisher, SHA/reference checks, invalid-child LKG protection.
+          - Production publication: NOT PERFORMED (read-only job permissions).
+          - Android device E2E: NOT PERFORMED.
+          "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8

@@ -31,6 +31,16 @@ $snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $SnapshotPath | Convert
 $scope = Optional $snapshot 'statisticsScope' $null
 $normalized = [ordered]@{
     schema = 2
+    # All rank-dependent numeric values and ordering affect META_UPDATE identity.
+    # Observation clocks are excluded, exactly as on the legacy root snapshot.
+    compositionRanks = if ($snapshot.PSObject.Properties['compositionRanks']) {
+        $ranked = $snapshot.compositionRanks | ConvertTo-Json -Depth 40 -Compress | ConvertFrom-Json
+        foreach ($dataset in @($ranked.datasets)) {
+            foreach ($field in @('fetchedAtUtc','statsUpdatedEpochMs','sources')) { $dataset.snapshot.PSObject.Properties.Remove($field) }
+            if ($dataset.snapshot.PSObject.Properties['catalogStatistics']) { $dataset.snapshot.catalogStatistics.PSObject.Properties.Remove('sourceUpdatedEpochMs') }
+        }
+        $ranked
+    } else { $null }
     setId = [string]$snapshot.setId
     readiness = [string](Optional $snapshot 'readiness' 'META_STABLE')
     locale = [string](Optional $snapshot 'locale' '')

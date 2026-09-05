@@ -71,7 +71,11 @@ $combinedReason = if ($DataQualityRequiresAttention) {
 }
 
 $openIssues = @(Invoke-GitHubApi -Method Get -Uri "$apiRoot/issues?state=open&per_page=100")
-$existingIssue = Select-AutomationHealthIssue -Issues $openIssues -Title $issueTitle
+$matchingIssues = @($openIssues | Where-Object {
+    $_ -and $_.PSObject.Properties['title'] -and [string]$_.title -eq $issueTitle
+})
+$existingIssue = $matchingIssues | Select-Object -First 1
+$duplicateIssues = @($matchingIssues | Select-Object -Skip 1)
 
 if ($requiresAttention) {
     if (-not $existingIssue) {
@@ -110,6 +114,9 @@ The tracked last-known-good bundle has not been replaced by an unvalidated bundl
         })
         Write-Output "Opened automation health issue #$($existingIssue.number)."
     } else {
+        foreach ($duplicate in $duplicateIssues) {
+            Invoke-GitHubApi -Method Patch -Uri "$apiRoot/issues/$($duplicate.number)" -Body ([ordered]@{ state='closed' }) | Out-Null
+        }
         if ([string]$existingIssue.body -notmatch [regex]::Escape("- Health reason: $combinedReason")) {
             $body = @"
 The GitHub-only watchdog still requires attention. This is a severity update, not a duplicate alert.
@@ -122,15 +129,17 @@ The GitHub-only watchdog still requires attention. This is a severity update, no
 - Public data quality reason: $DataQualityReason
 - Capacity warning (bytes or retained version count): $($health.capacityWarning)
 
-Only validated last-known-good data may be served. No history is automatically deleted. Review the Actions summary; no credentials, raw request logs or device identifiers are included here.
+Only validated last-known-good data may be served. The bounded live window must retain the current LKG. Review the Actions summary; no credentials, raw request logs or device identifiers are included here.
 "@
             Invoke-GitHubApi -Method Patch -Uri "$apiRoot/issues/$($existingIssue.number)" -Body ([ordered]@{ body=$body }) | Out-Null
         }
         Write-Output "Automation health issue #$($existingIssue.number) remains open; no duplicate was created."
     }
-} elseif ($existingIssue) {
-    Invoke-GitHubApi -Method Patch -Uri "$apiRoot/issues/$($existingIssue.number)" -Body ([ordered]@{ state = 'closed' }) | Out-Null
-    Write-Output "Closed recovered automation health issue #$($existingIssue.number)."
+} elseif ($matchingIssues.Count) {
+    foreach ($resolvedIssue in $matchingIssues) {
+        Invoke-GitHubApi -Method Patch -Uri "$apiRoot/issues/$($resolvedIssue.number)" -Body ([ordered]@{ state='closed' }) | Out-Null
+    }
+    Write-Output "Closed $($matchingIssues.Count) recovered automation health issue(s)."
 } else {
     Write-Output 'Automation is healthy; no issue action was needed.'
 }

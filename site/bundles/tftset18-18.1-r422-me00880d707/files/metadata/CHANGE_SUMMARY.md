@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-09-04T21:55:52Z
-- From: tftset18-18.1-r422-m8ab218fe9a
+- Generated: 2026-09-05T04:36:51Z
+- From: tftset18-18.1-r422-m4a57173331
 - To: TFTSet18 / patch 18.1 / revision 422
 
 | Category | Previous | Current | Added | Removed | Changed |

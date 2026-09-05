@@ -43,7 +43,10 @@ jobs:
 
       - name: Test watchdog and publication reconciliation policy
         shell: pwsh
-        run: ./tools/test-publication-state.ps1
+        run: |
+          ./tools/test-publication-state.ps1
+          ./tools/test-autonomous-recovery.ps1
+          ./tools/test-watchdog-runtime.ps1
 
       - name: Compare tracked publication with public Pages
         id: reconcile
@@ -62,9 +65,11 @@ jobs:
       - name: Check public source freshness
         id: freshness
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-freshness"
-          ./.github/scripts/check-refresh-freshness.ps1 -DataIndexUrl $checkUrl -MaxSourceAgeMinutes 45
+          ./.github/scripts/check-refresh-freshness.ps1 -DataIndexUrl $checkUrl -MaxSourceAgeMinutes 45 -Repository '${{ github.repository }}'
 
       - name: Queue self-healing refresh when source data is stale
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && steps.freshness.outputs.needs_refresh == 'true'
@@ -72,30 +77,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run refresh-tft-data.yml --ref main --repo "${{ github.repository }}"
-          if ($LASTEXITCODE -ne 0) { throw "Failed to dispatch stale-data refresh." }
-          Write-Output "Queued refresh because freshness check reported: ${{ steps.freshness.outputs.reason }} (age=${{ steps.freshness.outputs.age_minutes }} min)"
-
-      - name: Validate tracked last-known-good site before repair
-        if: steps.reconcile.outputs.publish_required == 'true'
-        shell: pwsh
-        run: ./tools/validate-site.ps1
-
-      - name: Configure Pages repair
-        if: steps.reconcile.outputs.publish_required == 'true'
-        uses: actions/configure-pages@v6
-
-      - name: Upload tracked site for repair
-        if: steps.reconcile.outputs.publish_required == 'true'
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: site
+          ./.github/scripts/request-refresh-recovery.ps1 -Repository '${{ github.repository }}'
 
   repair-publication:
     if: needs.inspect.result == 'success' && needs.inspect.outputs.publish_required == 'true'
     needs: inspect
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: windows-latest
+    timeout-minutes: 25
     concurrency:
       group: tft-data-publication
       cancel-in-progress: false
@@ -103,8 +91,28 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Acquire the publication lock BEFORE checkout/validation/artifact creation.
+      # Otherwise an artifact made by inspect may roll back a newer refresh.
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Reconcile again under the publication lock
+        id: locked-reconcile
+        shell: pwsh
+        run: ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
+      - name: Validate current last-known-good site
+        if: steps.locked-reconcile.outputs.publish_required == 'true'
+        shell: pwsh
+        run: ./tools/validate-site.ps1
+      - uses: actions/configure-pages@v6
+        if: steps.locked-reconcile.outputs.publish_required == 'true'
+      - uses: actions/upload-pages-artifact@v5
+        if: steps.locked-reconcile.outputs.publish_required == 'true'
+        with:
+          path: site
       - name: Atomically redeploy tracked last-known-good site
         id: deployment
+        if: steps.locked-reconcile.outputs.publish_required == 'true'
         uses: actions/deploy-pages@v5
 
   verify-repair:
@@ -160,20 +168,36 @@ jobs:
           $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-final-quality"
           ./tools/check-public-data-quality.ps1 -DataIndexUrl $checkUrl
 
+      - name: Recheck verification freshness after any repair
+        id: final-freshness
+        if: needs.inspect.result == 'success'
+        continue-on-error: true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./.github/scripts/check-refresh-freshness.ps1 -DataIndexUrl $env:DATA_INDEX_URL -Repository '${{ github.repository }}'
+
       - name: Upsert or close one sanitized automation health issue
         shell: pwsh
         env:
           GH_AUTOMATION_TOKEN: ${{ github.token }}
-          PUBLIC_OUT_OF_SYNC: ${{ needs.inspect.result != 'success' || steps.final-reconcile.outcome != 'success' || steps.final-reconcile.outputs.publish_required == 'true' }}
+          PUBLIC_OUT_OF_SYNC: ${{ needs.inspect.result != 'success' || needs.verify-repair.result != 'success' || steps.final-reconcile.outcome != 'success' || steps.final-reconcile.outputs.publish_required == 'true' }}
           DATA_QUALITY_REQUIRES_ATTENTION: ${{ needs.inspect.result != 'success' || steps.final-quality.outcome != 'success' || steps.final-quality.outputs.requires_attention == 'true' }}
           DATA_QUALITY_REASON: ${{ steps.final-quality.outputs.reason }}
+          SOURCE_CHECK_REASON: ${{ steps.final-freshness.outputs.reason }}
+          SOURCE_AGE_MINUTES: ${{ steps.final-freshness.outputs.age_minutes }}
         run: |
           $outOfSync = $env:PUBLIC_OUT_OF_SYNC -eq 'true'
           $qualityAttention = $env:DATA_QUALITY_REQUIRES_ATTENTION -eq 'true'
           $qualityReason = if ($env:DATA_QUALITY_REASON) { $env:DATA_QUALITY_REASON } else { 'CHECK_FAILED' }
+          $sourceAge = -1.0
+          $sourceAgeValid = [double]::TryParse($env:SOURCE_AGE_MINUTES, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$sourceAge)
+          $sourceFailed = -not $sourceAgeValid -or $env:SOURCE_CHECK_REASON -notin @('FRESH', 'SOURCE_STALE')
           ./tools/watch-automation-health.ps1 `
             -Repository '${{ github.repository }}' `
             -GitHubToken $env:GH_AUTOMATION_TOKEN `
             -PublicOutOfSync $outOfSync `
             -DataQualityRequiresAttention $qualityAttention `
-            -DataQualityReason $qualityReason
+            -DataQualityReason $qualityReason `
+            -SourceAgeMinutes $sourceAge `
+            -SourceCheckFailed $sourceFailed

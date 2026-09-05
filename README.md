@@ -14,7 +14,7 @@ TFT Mobile Overlay の個人利用版へ、検証済み戦術データと画像�
 
 更新時と毎時11分のwatchdogは、GitHub mainの検証済みsiteと実際のPagesをlatest ID・manifest SHAで照合します。Pagesだけ失敗、404、旧版、同一IDの内容不一致が起きても、取得処理とは独立して正常siteを再デプロイします。一時障害で直らない場合だけ重複しないIssueを作り、回復時に自動で閉じます。
 
-公開単位は不変の `bundles/<version-id>/` とSHA-256名の共有 `blobs/` です。最新版ポインタは全ファイルの検証後に `data-index.json` へ反映します。Pagesのactive履歴は最新META_UPDATE 5件と新セット・パッチ・Bパッチの基準版を合わせて最大20件に制限します。外れた版は `archive-map.json` に復旧情報を残し、Git履歴から戻せます。
+公開単位は不変の `bundles/<version-id>/` とSHA-256名の共有 `blobs/` です。最新版ポインタは全ファイルの検証後に `data-index.json` へ反映します。Pagesのactive履歴は最新版を含め原則直近5版です。最新available・stable正常版・直前availableを優先保護し、残りを新しい順に保持します。外れたbundleと未使用blobは検証前の隔離領域だけで整理し、検証成功後にサイト全体を公開します。`archive-map.json` は直近50件の復旧情報だけを保持し、Git履歴は書き換えません。
 
 `latestStableVersionId` は取得元整合性と主要機能が全て検証済みの正式最新版、`latestAvailableVersionId` は新セット直後の図鑑先行版を含む最新利用可能版です。旧クライアント向け `latestVersionId` は常に正式最新版を指します。新セット先行版では構成を `COLLECTING` とし、旧セットの構成を混在させません。
 
@@ -23,7 +23,7 @@ TFT Mobile Overlay の個人利用版へ、検証済み戦術データと画像�
 ## 安全性
 
 - HTTPSのみをアプリで受け入れます。
-- active履歴最大20版、1版1,500ファイル、単一30MiB、全体250MiBを配信ゲートとします。
+- active履歴は通常5版。互換validatorの最大100版、1版1,500ファイル、単一30MiB、全体250MiBの安全上限は維持します。
 - manifest SHA、表示内容fingerprint、集計条件hashを別々に検証し、同一IDの内容差し替えを拒否します。
 - SHA-256、サイズ、JSON、ID、参照、セット・パッチ・改訂の整合性を公開前に検証します。
 - 異常な件数減少や画像欠損増加時は公開せず、Actions Artifactへ簡潔な失敗レポートだけを保存します。

@@ -22,11 +22,11 @@
 
 ## 250MiB上限接近
 
-通常のMETA_UPDATE公開時に、active履歴を最新5件＋基準版、総数20件以内へ整理します。整理対象は `archive-map.json` にmanifest SHAと元commitを残し、Git履歴から復旧できます。基準版とlatestは整理前の選定対象から保護されます。整理後も70/85/95%へ達した場合は自動上限拡張せず、画像増加や未参照blobを調査します。
+新版公開時に、active履歴を最新版込み5版へ整理します。最新available・stable正常版・直前availableの枠を確保し、残りを新しい順に残します。整理対象の直近50件は `archive-map.json` にmanifest SHAと元commitを残します。古いbundleと未使用blobの整理はstaging内だけで行い、最終検証失敗時は現在の配信サイトを変更しません。整理後も70/85/95%へ達した場合は自動上限拡張せず、画像増加や未参照blobを調査します。
 
 ## archive-mapから旧版を復旧
 
-`archive-map.json` で対象IDと `archivedFromCommit` を確認します。該当commitからbundleを一時領域へ取り出し、manifest SHAを台帳と照合してからactive indexへ追加します。`validate-site.ps1` に合格するまでPagesへ公開しません。端末へ既に保存済みの版は、Pagesから外れた後もオフラインで利用できます。
+`archive-map.json` で対象IDと `archivedFromCommit` を確認します。該当commitからbundleと参照blobを一時領域へ取り出し、manifest SHAを台帳と照合してからactive indexへ追加します。台帳は直近50件のみなので、それ以前はGit履歴の調査が必要です。`validate-site.ps1` に合格するまでPagesへ公開しません。端末へ既に保存済みの版は、Pagesから外れた後もオフラインで利用できます。ただし未保存の過去版の再ダウンロードは保証しません。古いindexを保持した端末の途中ダウンロードが404になった場合も不完全版を採用せず、次のindex取得から最新版で再試行します。
 
 ## データ提供元の形式変更
 

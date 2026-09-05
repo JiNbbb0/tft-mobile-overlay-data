@@ -17,7 +17,10 @@ $outputFile = Resolve-RepoPath $OutputPath
 if (-not (Test-Path -LiteralPath $snapshotFile -PathType Leaf)) { throw "Composition snapshot missing: $snapshotFile" }
 $snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $snapshotFile | ConvertFrom-Json
 $comps = @($snapshot.compositions | Where-Object { $_ -is [pscustomobject] })
-if ($comps.Count -eq 0) { throw 'Composition snapshot contains no published compositions.' }
+$readiness = if ($snapshot.PSObject.Properties['readiness']) { [string]$snapshot.readiness } else { 'META_STABLE' }
+if ($comps.Count -eq 0 -and $readiness -notin @('CATALOG_READY','META_COLLECTING')) {
+    throw 'Stable composition snapshot contains no published compositions.'
+}
 
 $previousAverage = 0.0
 $rows = [Collections.Generic.List[object]]::new()
@@ -46,7 +49,8 @@ $report = [pscustomobject][ordered]@{
     generatedAtUtc = [DateTimeOffset]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
     sourceUpdatedEpochMs = [int64]$snapshot.statsUpdatedEpochMs
     setId = [string]$snapshot.setId
-    clusterId = [int]$snapshot.clusterId
+    clusterId = [string]$snapshot.clusterId
+    compositionState = if ($comps.Count) { 'AVAILABLE' } else { 'COLLECTING' }
     rankScope = if ($snapshot.statisticsScope.PSObject.Properties['effective']) { [string]$snapshot.statisticsScope.effective } else { '' }
     sort = 'Avg Placement ASC'
     compositions = @($rows.ToArray())

@@ -5,7 +5,9 @@ param(
     [bool]$DataQualityRequiresAttention = $false,
     [string]$DataQualityReason = 'OK',
     [int]$FailureThreshold = 4,
-    [int]$StaleHours = 6
+    [int]$StaleHours = 6,
+    [double]$SourceAgeMinutes = -1,
+    [bool]$SourceCheckFailed = $false
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,14 +47,21 @@ $completedResponse = Invoke-GitHubApi -Method Get -Uri "$apiRoot/actions/workflo
 $completedRuns = @($completedResponse.workflow_runs)
 $successResponse = Invoke-GitHubApi -Method Get -Uri "$apiRoot/actions/workflows/refresh-tft-data.yml/runs?status=success&per_page=1"
 $lastSuccessRun = @($successResponse.workflow_runs) | Select-Object -First 1
-$lastSuccessAt = if ($lastSuccessRun) { [DateTimeOffset]::Parse([string]$lastSuccessRun.updated_at) } else { $null }
+$lastSuccessAt = if ($lastSuccessRun) { ConvertTo-AutomationTimestamp $lastSuccessRun.updated_at } else { $null }
+$trackedSite = Join-Path $PSScriptRoot '../site'
+$siteBytes = (Get-ChildItem -LiteralPath $trackedSite -File -Recurse | Measure-Object Length -Sum).Sum
+$versionCount = @((Get-Content -Raw -LiteralPath (Join-Path $trackedSite 'data-index.json') | ConvertFrom-Json).versions).Count
 $health = Resolve-AutomationHealth `
     -CompletedRuns $completedRuns `
     -LastSuccessfulAt $lastSuccessAt `
     -Now ([DateTimeOffset]::UtcNow) `
     -FailureThreshold $FailureThreshold `
     -StaleHours $StaleHours `
-    -PublicOutOfSync $PublicOutOfSync
+    -PublicOutOfSync $PublicOutOfSync `
+    -SourceAgeMinutes $SourceAgeMinutes `
+    -SourceCheckFailed $SourceCheckFailed `
+    -CapacityPercent ($siteBytes / 250MB * 100) `
+    -VersionCount $versionCount
 
 $requiresAttention = [bool]$health.requiresAttention -or $DataQualityRequiresAttention
 $combinedReason = if ($DataQualityRequiresAttention) {
@@ -87,6 +96,9 @@ The GitHub-only watchdog detected that unattended TFT data publication needs att
 - Public site out of sync at watchdog check: $PublicOutOfSync
 - Public data quality requires attention: $DataQualityRequiresAttention
 - Public data quality reason: $DataQualityReason
+- Source verification age (minutes): $SourceAgeMinutes
+- Source check failed: $SourceCheckFailed
+- Capacity warning (bytes or retained version count): $($health.capacityWarning)
 - Latest refresh run: $latestRunUrl
 
 The tracked last-known-good bundle has not been replaced by an unvalidated bundle. Public availability and user-visible data quality are checked separately. This issue intentionally contains no credentials, request headers, local paths, or raw failure logs. It will close automatically after the scheduled pipeline recovers.
@@ -98,7 +110,23 @@ The tracked last-known-good bundle has not been replaced by an unvalidated bundl
         })
         Write-Output "Opened automation health issue #$($existingIssue.number)."
     } else {
-        Write-Output "Automation health issue #$($existingIssue.number) is already open; no duplicate was created."
+        if ([string]$existingIssue.body -notmatch [regex]::Escape("- Health reason: $combinedReason")) {
+            $body = @"
+The GitHub-only watchdog still requires attention. This is a severity update, not a duplicate alert.
+
+- Health reason: $combinedReason
+- Consecutive failed refresh runs: $($health.consecutiveFailures)
+- Source verification age (minutes): $SourceAgeMinutes
+- Source check failed: $SourceCheckFailed
+- Public site out of sync: $PublicOutOfSync
+- Public data quality reason: $DataQualityReason
+- Capacity warning (bytes or retained version count): $($health.capacityWarning)
+
+Only validated last-known-good data may be served. No history is automatically deleted. Review the Actions summary; no credentials, raw request logs or device identifiers are included here.
+"@
+            Invoke-GitHubApi -Method Patch -Uri "$apiRoot/issues/$($existingIssue.number)" -Body ([ordered]@{ body=$body }) | Out-Null
+        }
+        Write-Output "Automation health issue #$($existingIssue.number) remains open; no duplicate was created."
     }
 } elseif ($existingIssue) {
     Invoke-GitHubApi -Method Patch -Uri "$apiRoot/issues/$($existingIssue.number)" -Body ([ordered]@{ state = 'closed' }) | Out-Null
@@ -117,6 +145,9 @@ if ($env:GITHUB_STEP_SUMMARY) {
 - Public site out of sync: $PublicOutOfSync
 - Public data quality requires attention: $DataQualityRequiresAttention
 - Public data quality reason: $DataQualityReason
+- Source verification age (minutes): $SourceAgeMinutes
+- Source check failed: $SourceCheckFailed
+- Capacity warning (bytes or retained version count): $($health.capacityWarning)
 - Alert issue open: $requiresAttention
 "@ | Add-Content -LiteralPath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
 }

@@ -74,4 +74,25 @@ Assert-Equal 5 @($rolling | Where-Object updateKind -eq 'META_UPDATE').Count 'On
 Assert-Equal $true ($rolling.id -contains 'set17-17.8') 'Recent patch anchor must remain recoverable from the active window.'
 Assert-Equal $true ($rolling.id -contains 'set17-17.9') 'Current patch anchor must remain recoverable from the active window.'
 
-Write-Output "Data history policy tests passed."
+$stableId = 'stable-before-new-set'
+$compact = @([pscustomobject]@{ id=$stableId; updateKind='PATCH'; generatedAtUtc='2026-08-01T00:00:00Z' })
+for ($number = 1; $number -le 200; $number++) {
+    $previousId = [string]$compact[0].id
+    $next = [pscustomobject]@{
+        id="future-set-patch-$number"
+        updateKind=@('META_UPDATE','PATCH','B_PATCH','NEW_SET')[$number % 4]
+        generatedAtUtc=([DateTime]'2026-09-01T00:00:00Z').AddMinutes($number).ToString('o')
+    }
+    $selection = Select-ActiveDataHistory -Versions (@($next) + $compact) -LatestVersionId $next.id `
+        -ProtectedVersionIds @($stableId, $previousId) -MaxActiveVersions 5 -RecentOnly
+    $compact = @($selection.retained)
+    Assert-Equal $true ($compact.Count -le 5) 'All update kinds together must stay within five versions.'
+    foreach ($required in @($next.id, $stableId, $previousId)) {
+        Assert-Equal $true ($compact.id -contains $required) 'Latest, stable LKG and immediate rollback must survive.'
+    }
+}
+Assert-Equal 5 $compact.Count 'Compact window must fill available slots.'
+$reject = $false
+try { Select-ActiveDataHistory -Versions $compact -LatestVersionId $compact[0].id -ProtectedVersionIds @($compact.id) -MaxActiveVersions 2 -RecentOnly | Out-Null } catch { $reject=$true }
+Assert-Equal $true $reject 'Too many protected versions must fail closed, not remove LKG.'
+Write-Output "Data history policy tests passed: legacy and five-version compact retention across 200 updates."

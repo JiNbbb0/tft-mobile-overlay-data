@@ -115,9 +115,11 @@ jobs:
         shell: pwsh
         run: ./tools/test-patch-detection-policy.ps1
 
-      - name: Test append-only data history policy
+      - name: Test bounded data history and protected LKG policy
         shell: pwsh
-        run: ./tools/test-data-history-policy.ps1
+        run: |
+          ./tools/test-data-history-policy.ps1
+          ./tools/test-publication-retention.ps1
 
       - name: Test unattended publication reconciliation policy
         shell: pwsh

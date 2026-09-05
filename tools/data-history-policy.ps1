@@ -115,11 +115,12 @@ function Select-ActiveDataHistory {
         [Parameter(Mandatory = $true)][string]$LatestVersionId,
         [string[]]$ProtectedVersionIds = @(),
         [int]$MaxActiveVersions = 20,
-        [int]$MaxRecentMetaUpdates = 5
+        [int]$MaxRecentMetaUpdates = 5,
+        [switch]$RecentOnly
     )
 
     if ($MaxActiveVersions -lt 2) { throw "MaxActiveVersions must be at least 2" }
-    if ($MaxRecentMetaUpdates -lt 1 -or $MaxRecentMetaUpdates -ge $MaxActiveVersions) {
+    if (-not $RecentOnly -and ($MaxRecentMetaUpdates -lt 1 -or $MaxRecentMetaUpdates -ge $MaxActiveVersions)) {
         throw "MaxRecentMetaUpdates must be inside 1..MaxActiveVersions-1"
     }
 
@@ -137,6 +138,21 @@ function Select-ActiveDataHistory {
         $protected = @($ordered | Where-Object { [string]$_.id -eq [string]$protectedId }) | Select-Object -First 1
         if (-not $protected) { throw "Protected history version is missing: $protectedId" }
         $keep[[string]$protected.id] = $protected
+    }
+
+    if ($keep.Count -gt $MaxActiveVersions) { throw 'Protected versions exceed retention capacity; refusing to discard LKG.' }
+    if ($RecentOnly) {
+        # The live site is a small delivery window, not a long-term archive.
+        # Reserve slots for latest/stable/previous first, then prefer recency
+        # regardless of update kind, patch or set. Never exceed the total bound.
+        foreach ($version in $ordered) {
+            if ($keep.Count -ge $MaxActiveVersions) { break }
+            $keep[[string]$version.id] = $version
+        }
+        return [pscustomobject][ordered]@{
+            retained = @($keep.Values | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
+            archived = @($ordered | Where-Object { -not $keep.Contains([string]$_.id) })
+        }
     }
 
     # Frequent META_UPDATE snapshots are a rolling live window. Their immutable

@@ -5,7 +5,7 @@ param(
     [string]$MetaFingerprint = "",
     [ValidateSet("CATALOG_READY", "META_COLLECTING", "META_STABLE")]
     [string]$Readiness = "",
-    [int]$MaxActiveVersions = 20,
+    [int]$MaxActiveVersions = 5,
     [int]$MaxRecentMetaUpdates = 5,
     [switch]$ForceReplaceSameVersion
 )
@@ -257,9 +257,9 @@ if (-not [bool]$releaseContract.stableEligible) {
 $retention = Select-ActiveDataHistory `
     -Versions $versions `
     -LatestVersionId $versionId `
-    -ProtectedVersionIds @($latestStableVersionId) `
+    -ProtectedVersionIds @($latestStableVersionId, $(if ($previous) { [string]$previous.id })) `
     -MaxActiveVersions $MaxActiveVersions `
-    -MaxRecentMetaUpdates $MaxRecentMetaUpdates
+    -MaxRecentMetaUpdates $MaxRecentMetaUpdates -RecentOnly
 $versions = @($retention.retained)
 
 $archivePath = Join-Path $stagingRoot "archive-map.json"
@@ -287,7 +287,12 @@ foreach ($entry in $existingArchiveEntries) {
     }
 }
 foreach ($archivedVersion in @($retention.archived)) {
-    $archivedBundle = Join-Path $stagingRoot "bundles/$($archivedVersion.id)"
+    if ([string]$archivedVersion.id -cnotmatch '^[a-z0-9][a-z0-9._-]*$' -or [string]$archivedVersion.id -match '\.\.') {
+        throw 'Unsafe version ID refused before retention cleanup'
+    }
+    $archivedBundle = [IO.Path]::GetFullPath((Join-Path $stagingRoot "bundles/$($archivedVersion.id)"))
+    $bundlePrefix = [IO.Path]::GetFullPath((Join-Path $stagingRoot 'bundles')) + [IO.Path]::DirectorySeparatorChar
+    if (-not $archivedBundle.StartsWith($bundlePrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Retention path escaped staged bundles' }
     $archivedManifest = Join-Path $archivedBundle "manifest.json"
     $archivedManifestSha = if ($archivedVersion.PSObject.Properties['manifestSha256'] -and [string]$archivedVersion.manifestSha256) {
         [string]$archivedVersion.manifestSha256
@@ -317,7 +322,7 @@ $archiveDocument = [pscustomobject][ordered]@{
     schemaVersion = 1
     generatedAtUtc = [DateTime]::UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
     recoveryNote = "Archived bundles remain recoverable from the recorded Git commit history."
-    entries = @($archiveById.Values | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending)
+    entries = @($archiveById.Values | Sort-Object { ConvertTo-DataUtcTimestamp $_.generatedAtUtc } -Descending | Select-Object -First 50)
 }
 [IO.File]::WriteAllText($archivePath, (($archiveDocument | ConvertTo-Json -Depth 8).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
 

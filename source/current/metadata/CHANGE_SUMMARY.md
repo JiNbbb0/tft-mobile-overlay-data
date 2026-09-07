@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-09-07T17:55:12Z
-- From: tftset18-18.1-r422-ma2ed406d13
+- Generated: 2026-09-07T20:07:25Z
+- From: tftset18-18.1-r422-m715f34fb2d
 - To: TFTSet18 / patch 18.1 / revision 422
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -13,8 +13,8 @@
 | Compositions | 18 | 18 | 0 | 0 | 18 |
 | Images | 622 | 622 | - | - | 0 delta |
 
-- Tier changes: 0
-- Average-placement changes: 18
+- Tier changes: 1
+- Average-placement changes: 17
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
 
@@ -25,6 +25,6 @@
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GRANDMASTER_PLUS | 18 | 18 | 1 | 1 | 17 |
-| MASTER_PLUS | 18 | 18 | 1 | 1 | 17 |
+| MASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
 | PLATINUM_PLUS | 18 | 18 | 0 | 0 | 18 |
 

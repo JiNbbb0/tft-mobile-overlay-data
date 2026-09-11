@@ -1,29 +1,127 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-10T23:12:50Z",
-  "fromVersionId": "tftset18-18.2-r422-m99d05a3c2e",
+  "generatedAt": "2026-09-11T10:08:14Z",
+  "fromVersionId": "tftset18-18.2-r422-m72bd89ef1e",
   "toSetId": "TFTSet18",
   "toPatch": "18.2",
   "toRevision": "422",
   "champions": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_Ahri",
+      "DA_18_Akali_AD",
+      "DA_18_Alune",
+      "DA_18_Ashe",
+      "DA_18_Azir",
+      "DA_18_Caitlyn",
+      "DA_18_Cassiopeia",
+      "DA_18_Diana",
+      "DA_18_ElderDragon",
+      "DA_18_Ezreal",
+      "DA_18_GnarSmall",
+      "DA_18_Ivern",
+      "DA_18_Kayle",
+      "DA_18_Kennen",
+      "DA_18_KhaZix",
+      "DA_18_LeBlanc",
+      "DA_18_Leona",
+      "DA_18_Lillia",
+      "DA_18_Maokai",
+      "DA_18_Rengar",
+      "DA_18_Sentry",
+      "DA_18_Shen",
+      "DA_18_Soraka",
+      "DA_18_Varus",
+      "DA_18_Veigar",
+      "DA_18_Warwick",
+      "DA_18_Xayah",
+      "DA_18_Yunara",
+      "DA_18_Zyra",
+      "DA_Amumu18",
+      "DA_Brambleback18",
+      "DA_Cinderling18",
+      "DA_CrimsonRaptor18",
+      "DA_Fiddlesticks18",
+      "DA_Gromp18_AP",
+      "DA_Lux18_Base",
+      "DA_Nidalee18_AP",
+      "DA_Sentinel18",
+      "DA_Taric18",
+      "DA_Vi18"
+    ]
   },
   "traits": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_Hunter",
+      "DA_18_Inferno",
+      "DA_18_Summoner"
+    ]
   },
   "items": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_EmblemBrawler",
+      "DA_18_EmblemExecutioner",
+      "DA_18_EmblemFloraFatalisAugment",
+      "DA_18_EmblemInvoker",
+      "DA_18_EmblemSprykin",
+      "DA_18_EmblemVanguard",
+      "DA_Artifact_AegisOfDusk",
+      "DA_Artifact_BlightingJewel",
+      "DA_Artifact_LudensTempest",
+      "DA_Artifact_Manazane",
+      "DA_Artifact_NavoriFlickerblade",
+      "DA_Artifact_TitanicHydra",
+      "DA_Bloodthirster",
+      "DA_BloodthirsterRadiant",
+      "DA_BrambleVest",
+      "DA_BrambleVestRadiant",
+      "DA_EdgeOfNight",
+      "DA_EdgeOfNightRadiant",
+      "DA_HandOfJustice",
+      "DA_HandOfJusticeRadiant"
+    ]
   },
   "augments": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_FloraFatalisAugment",
+      "DA_18_FOURcing",
+      "DA_18_InfernoTraitAugment",
+      "DA_18_SolarTraitAugment",
+      "DA_BandOfThievesII",
+      "DA_BaronsLair",
+      "DA_BonusGift",
+      "DA_BonusGiftPlus",
+      "DA_BuriedTreasuresIII",
+      "DA_CapitalGainsII",
+      "DA_ComebackStory",
+      "DA_CursedCrown",
+      "DA_Dummify",
+      "DA_ForgedInStrength",
+      "DA_GildedSteel",
+      "DA_GoingLong",
+      "DA_GoldDestinyPlus",
+      "DA_HoldTheLine",
+      "DA_InvestmentStrategy",
+      "DA_KnowYourEnemy",
+      "DA_LivingForge",
+      "DA_MoneyHungryPlus",
+      "DA_NestingAnvils",
+      "DA_NestingAnvilsPlus",
+      "DA_PrismaticDestinyPlus",
+      "DA_ShimmerscaleEssence",
+      "DA_SpreadingRoots",
+      "DA_SpreadingRootsPlus",
+      "DA_TheGoldenDragon",
+      "DA_TheTraitTreePlus",
+      "DA_UpwardMobility"
+    ]
   },
   "compositions": {
     "added": [],
@@ -56,28 +154,29 @@
       "current": 18,
       "changes": {
         "added": [
-          "422000"
+          "422040",
+          "422041"
         ],
         "removed": [
-          "422011"
+          "422023",
+          "422036"
         ],
         "changed": [
+          "422000",
           "422002",
+          "422006",
           "422007",
           "422008",
           "422009",
           "422010",
+          "422011",
           "422012",
-          "422016",
           "422017",
           "422021",
-          "422023",
+          "422024",
+          "422026",
           "422030",
-          "422036",
           "422037",
-          "422040",
-          "422041",
-          "422044",
           "422045"
         ]
       }
@@ -174,41 +273,14 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [],
-        "removed": [],
+        "added": [
+          "422003"
+        ],
+        "removed": [
+          "422036"
+        ],
         "changed": [
           "422002",
-          "422007",
-          "422008",
-          "422009",
-          "422010",
-          "422011",
-          "422012",
-          "422017",
-          "422018",
-          "422021",
-          "422024",
-          "422030",
-          "422031",
-          "422036",
-          "422037",
-          "422041",
-          "422044",
-          "422048"
-        ]
-      }
-    },
-    {
-      "rankId": "MASTER_PLUS",
-      "previous": 18,
-      "current": 18,
-      "changes": {
-        "added": [],
-        "removed": [],
-        "changed": [
-          "422002",
-          "422003",
-          "422006",
           "422007",
           "422008",
           "422009",
@@ -222,7 +294,40 @@
           "422026",
           "422030",
           "422031",
-          "422036",
+          "422037",
+          "422041",
+          "422048"
+        ]
+      }
+    },
+    {
+      "rankId": "MASTER_PLUS",
+      "previous": 18,
+      "current": 18,
+      "changes": {
+        "added": [
+          "422048"
+        ],
+        "removed": [
+          "422036"
+        ],
+        "changed": [
+          "422002",
+          "422003",
+          "422005",
+          "422006",
+          "422007",
+          "422008",
+          "422009",
+          "422010",
+          "422011",
+          "422012",
+          "422017",
+          "422018",
+          "422021",
+          "422024",
+          "422026",
+          "422030",
           "422037"
         ]
       }
@@ -257,87 +362,108 @@
       }
     }
   ],
-  "tierChanges": [],
+  "tierChanges": [
+    {
+      "id": "422018",
+      "before": "A",
+      "after": "S"
+    },
+    {
+      "id": "422022",
+      "before": "A",
+      "after": "B"
+    }
+  ],
   "averagePlacementChanges": [
     {
-      "id": "422002",
-      "before": 4.130391232618431,
-      "after": 4.131206288653835
-    },
-    {
       "id": "422024",
-      "before": 4.1520979020979025,
-      "after": 4.146501206480524
+      "before": 4.136682874122096,
+      "after": 4.124542124542124
     },
     {
-      "id": "422017",
-      "before": 4.225195358749704,
-      "after": 4.2228438228438225
-    },
-    {
-      "id": "422010",
-      "before": 4.273074474856779,
-      "after": 4.275005220296513
-    },
-    {
-      "id": "422021",
-      "before": 4.283525693871943,
-      "after": 4.285772083614296
+      "id": "422002",
+      "before": 4.135633207211217,
+      "after": 4.1448720834271136
     },
     {
       "id": "422018",
-      "before": 4.310920121334681,
-      "after": 4.321073558648111
+      "before": 4.275064267352185,
+      "after": 4.212191582002903
+    },
+    {
+      "id": "422017",
+      "before": 4.228049399424801,
+      "after": 4.218043099986615
+    },
+    {
+      "id": "422010",
+      "before": 4.271506635441062,
+      "after": 4.27940414507772
+    },
+    {
+      "id": "422021",
+      "before": 4.291834209712341,
+      "after": 4.297903419831586
     },
     {
       "id": "422011",
-      "before": 4.343373493975903,
-      "after": 4.33399209486166
+      "before": 4.361832061068703,
+      "after": 4.364721485411141
     },
     {
       "id": "422030",
-      "before": 4.358193277310924,
-      "after": 4.362210174183874
+      "before": 4.353542867770132,
+      "after": 4.365311004784689
     },
     {
       "id": "422007",
-      "before": 4.405864853378666,
-      "after": 4.406655504395144
+      "before": 4.4051503518873965,
+      "after": 4.419888029858704
     },
     {
       "id": "422026",
-      "before": 4.420536828963796,
-      "after": 4.418206454791821
+      "before": 4.429842906473421,
+      "after": 4.427691795639873
     },
     {
       "id": "422006",
-      "before": 4.425270905745246,
-      "after": 4.431226014946476
+      "before": 4.414693088448526,
+      "after": 4.435907970419064
     },
     {
-      "id": "422005",
-      "before": 4.51985559566787,
-      "after": 4.514424635332253
+      "id": "422009",
+      "before": 4.456966736450338,
+      "after": 4.45998178690681
     },
     {
       "id": "422012",
-      "before": 4.512874630645842,
-      "after": 4.515012510425355
-    },
-    {
-      "id": "422037",
-      "before": 4.522135007849293,
-      "after": 4.516620068344206
-    },
-    {
-      "id": "422003",
-      "before": 4.552407279428703,
-      "after": 4.552296498408367
+      "before": 4.494655978623914,
+      "after": 4.487470862470863
     },
     {
       "id": "422008",
-      "before": 4.555656382335148,
-      "after": 4.5529761904761905
+      "before": 4.519002098391233,
+      "after": 4.502952755905512
+    },
+    {
+      "id": "422022",
+      "before": 4.499504670251911,
+      "after": 4.505644989501232
+    },
+    {
+      "id": "422005",
+      "before": 4.514054190934414,
+      "after": 4.518624014022787
+    },
+    {
+      "id": "422037",
+      "before": 4.534901175881911,
+      "after": 4.518833794424346
+    },
+    {
+      "id": "422003",
+      "before": 4.559543230016313,
+      "after": 4.561720698254364
     }
   ],
   "imageChanges": {

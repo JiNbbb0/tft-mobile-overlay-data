@@ -1,19 +1,19 @@
 # Change Summary
 
-- Generated: 2026-09-15T15:15:21Z
-- From: tftset18-18.2-r423-m325122504a
-- To: TFTSet18 / patch 18.2 / revision 423
+- Generated: 2026-09-24T01:47:40Z
+- From: tftset18-18.3-r424-mc585fa04a0
+- To: TFTSet18 / patch 18.3 / revision 424
 
 | Category | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
 | Champions | 65 | 65 | 0 | 0 | 0 |
 | Traits | 35 | 35 | 0 | 0 | 0 |
-| Items | 663 | 663 | 0 | 0 | 0 |
+| Items | 662 | 662 | 0 | 0 | 0 |
 | Augments | 592 | 592 | 0 | 0 | 0 |
 | Compositions | 18 | 18 | 0 | 0 | 18 |
 | Images | 622 | 622 | - | - | 0 delta |
 
-- Tier changes: 1
+- Tier changes: 0
 - Average-placement changes: 18
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
@@ -26,5 +26,5 @@
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GRANDMASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
 | MASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
-| PLATINUM_PLUS | 18 | 18 | 1 | 1 | 17 |
+| PLATINUM_PLUS | 18 | 18 | 0 | 0 | 18 |
 

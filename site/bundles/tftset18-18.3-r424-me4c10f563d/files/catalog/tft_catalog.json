@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "fetchedAtUtc": "2026-09-15T15:11:25Z",
+  "fetchedAtUtc": "2026-09-24T01:44:06Z",
   "set": {
     "id": "TFTSet18",
     "number": 18,
     "nameJa": "Enchanted Wilds",
     "nameEn": "Enchanted Wilds",
-    "tftPatch": "18.2",
-    "dataDragonVersion": "16.18.1",
+    "tftPatch": "18.3",
+    "dataDragonVersion": "16.19.1",
     "modes": [
       "通常",
       "ハイパーロール",
@@ -284,6 +284,7 @@
       "DA_Artifact_GoldCollector",
       "DA_Artifact_HellfireHatchet",
       "DA_Artifact_HorizonFocus",
+      "DA_Artifact_Hullcrusher",
       "DA_Artifact_InfinityForce",
       "DA_Artifact_LichBane",
       "DA_Artifact_LightshieldCrest",
@@ -361,8 +362,6 @@
       "DA_Component_TearOfTheGoddess",
       "DA_Crownguard",
       "DA_CrownguardRadiant",
-      "DA_CrystalBall18",
-      "DA_CrystalBall18_Upgrade",
       "DA_CurioCart18",
       "DA_CurioCart18_Upgrade",
       "DA_Cutpurse18",
@@ -889,7 +888,6 @@
       "DA_Corrosion",
       "DA_CraftedCrafting",
       "DA_CryMeARiver",
-      "DA_CursedCrown",
       "DA_CyberneticImplants_Gold",
       "DA_CyberneticUplink_Gold",
       "DA_DeadlierBlades",
@@ -902,6 +900,7 @@
       "DA_Epoch",
       "DA_EpochPlus",
       "DA_ExclusiveCustomization",
+      "DA_ExpectedUnexpectedness",
       "DA_Expedition",
       "DA_ExplosiveGrowth",
       "DA_ExplosiveGrowthPlus",
@@ -2575,7 +2574,7 @@
       },
       "stats": {
         "hp": 850.0,
-        "attackDamage": 65.0,
+        "attackDamage": 62.0,
         "attackSpeed": 0.800000011920929,
         "armor": 55.0,
         "magicResist": 55.0,
@@ -2669,7 +2668,7 @@
       "stats": {
         "hp": 900.0,
         "attackDamage": 60.0,
-        "attackSpeed": 0.800000011920929,
+        "attackSpeed": 0.75,
         "armor": 55.0,
         "magicResist": 55.0,
         "range": 1.0
@@ -2978,7 +2977,7 @@
       },
       "stats": {
         "hp": 1100.0,
-        "attackDamage": 115.0,
+        "attackDamage": 120.0,
         "attackSpeed": 0.550000011920929,
         "armor": 65.0,
         "magicResist": 65.0,
@@ -3495,7 +3494,7 @@
           "style": 1,
           "variables": {
             "TeamManaRegen": 1.0,
-            "{de27cb95}": 3.0
+            "{de27cb95}": 2.0
           }
         },
         {
@@ -3504,7 +3503,7 @@
           "style": 3,
           "variables": {
             "TeamManaRegen": 1.0,
-            "{de27cb95}": 4.0
+            "{de27cb95}": 3.0
           }
         },
         {
@@ -3513,7 +3512,7 @@
           "style": 3,
           "variables": {
             "TeamManaRegen": 2.0,
-            "{de27cb95}": 6.0
+            "{de27cb95}": 5.0
           }
         },
         {
@@ -3522,7 +3521,7 @@
           "style": 5,
           "variables": {
             "TeamManaRegen": 2.0,
-            "{de27cb95}": 9.0
+            "{de27cb95}": 8.0
           }
         }
       ],
@@ -6553,7 +6552,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "チャンピオンが倒されると爆発し、最大体力の可変値%にあたる魔法ダメージを与える。",
       "stats": {
-        "{8e1bf27f}": 0.15000000596046448
+        "{8e1bf27f}": 0.11999999731779099
       },
       "recipe": [],
       "restrictions": {
@@ -7558,7 +7557,7 @@
       "descriptionJa": "5秒ごとに、チャンピオンが可変値%の確率で可変値ゴールドをドロップする。",
       "stats": {
         "Timer": 5.0,
-        "{59d091e2}": 0.20000000298023224,
+        "{59d091e2}": 0.15000000596046448,
         "{90187eca}": 1.0
       },
       "recipe": [],
@@ -7577,7 +7576,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "可変値秒ごとに、チャンピオンが可変値%の確率で可変値ゴールドをドロップする。",
       "stats": {
-        "{59d091e2}": 0.20000000298023224,
+        "{59d091e2}": 0.15000000596046448,
         "{627bf513}": 4.0,
         "{90187eca}": 1.0
       },
@@ -8635,6 +8634,22 @@
       },
       "category": "その他",
       "searchKeywords": "バリア barrier da_barrier18_upgrade"
+    },
+    {
+      "id": "DA_Artifact_Hullcrusher",
+      "nameJa": "ハルクラッシャー",
+      "nameEn": "Hullcrusher",
+      "image": "tft/images/4d644776131ad1bcd44a9e03.png",
+      "descriptionJa": "戦闘開始時: 隣接する味方がいない場合、体力が400、攻撃力が10%、魔力が10%増加する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "アーティファクト",
+      "searchKeywords": "ハルクラッシャー hullcrusher da_artifact_hullcrusher"
     },
     {
       "id": "TFT9_Item_OrnnHullbreaker",
@@ -12789,7 +12804,7 @@
       "nameJa": "借り物の装備",
       "nameEn": "Borrowed Gear",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "チャンピオンが一時的なおすすめアイテムを獲得する。",
+      "descriptionJa": "戦闘開始時、チャンピオン1体が一時的なおすすめアイテムを獲得する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -12805,7 +12820,7 @@
       "nameJa": "借り物の装備",
       "nameEn": "Borrowed Gear",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "チャンピオンが一時的なおすすめアイテムを獲得し、さらに体力が可変値増加する。",
+      "descriptionJa": "戦闘開始時、チャンピオン1体が一時的なおすすめアイテムと体力を可変値獲得する。",
       "stats": {
         "{f1950c41}": 250.0
       },
@@ -14415,10 +14430,10 @@
       "nameJa": "急いで",
       "nameEn": "Quicken",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "スキル使用時、味方チャンピオンの攻撃速度が4秒間可変値%増加する。",
+      "descriptionJa": "スキル使用時、味方チャンピオンの攻撃速度が4秒間30%増加する。",
       "stats": {
-        "Duration": 4.0,
-        "{f5c9e48b}": 0.2999999523162842
+        "AttackSpeedGain": 0.2999999523162842,
+        "Duration": 4.0
       },
       "recipe": [],
       "restrictions": {
@@ -15125,42 +15140,6 @@
       "searchKeywords": "殺し屋の後悔 killer's regret da_killersregretupgrade18"
     },
     {
-      "id": "DA_CrystalBall18",
-      "nameJa": "水晶玉",
-      "nameEn": "Crystal Ball",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "次の対戦相手を明らかにする。味方チームの攻撃速度が12%増加する。",
-      "stats": {
-        "AttackSpeed": 0.12000000476837158
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "水晶玉 crystal ball da_crystalball18"
-    },
-    {
-      "id": "DA_CrystalBall18_Upgrade",
-      "nameJa": "水晶玉",
-      "nameEn": "Crystal Ball",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "次の対戦相手を明らかにする。味方チームの攻撃速度が可変値%増加する。",
-      "stats": {
-        "{101dcf04}": 0.1799999475479126
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "水晶玉 crystal ball da_crystalball18_upgrade"
-    },
-    {
       "id": "TFT4_Item_OrnnEternalWinter",
       "nameJa": "永遠の冬",
       "nameEn": "Eternal Winter",
@@ -15533,7 +15512,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "アイテムストアを開く。アイテムの価格は0～可変値ゴールド。",
       "stats": {
-        "{72eb58d9}": 15.0
+        "{72eb58d9}": 22.0
       },
       "recipe": [],
       "restrictions": {
@@ -15552,7 +15531,7 @@
       "descriptionJa": "アイテムストアを開く。アイテムの価格は0～可変値ゴールド。ゴールド可変値を獲得する。",
       "stats": {
         "{0fb627ae}": 2.0,
-        "{72eb58d9}": 15.0
+        "{72eb58d9}": 22.0
       },
       "recipe": [],
       "restrictions": {
@@ -17874,7 +17853,7 @@
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
-      "searchKeywords": "ボーナスギフト bonus gift da_bonusgift"
+      "searchKeywords": "ボーナスギフト bonus gifts da_bonusgift"
     },
     {
       "id": "DA_BonusGiftPlus",
@@ -17886,7 +17865,7 @@
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
-      "searchKeywords": "ボーナスギフト+ bonus gift+ da_bonusgiftplus"
+      "searchKeywords": "ボーナスギフト+ bonus gifts+ da_bonusgiftplus"
     },
     {
       "id": "DA_BoosterPack",
@@ -18321,18 +18300,6 @@
       "searchKeywords": "好きなだけ泣くがいい cry me a river da_crymeariver"
     },
     {
-      "id": "DA_CursedCrown",
-      "nameJa": "カースドのクラウン",
-      "nameEn": "Cursed Crown",
-      "image": "tft/images/fbb208ae7b883e5a0632c1a7.png",
-      "rarity": "プリズム",
-      "descriptionJa": "チームサイズの上限が2増加するが、対人戦に敗北した際に受けるダメージが上昇する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "カースドのクラウン cursed crown da_cursedcrown"
-    },
-    {
       "id": "DA_CyberneticImplants_Gold",
       "nameJa": "サイバネティック インプラント",
       "nameEn": "Cybernetic Implants",
@@ -18475,6 +18442,18 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "限定カスタマイズ exclusive customization da_exclusivecustomization"
+    },
+    {
+      "id": "DA_ExpectedUnexpectedness",
+      "nameJa": "想定内の意外性",
+      "nameEn": "Expected Unexpectedness",
+      "image": "tft/images/ccbc12163dd430dce97203d3.png",
+      "rarity": "プリズム",
+      "descriptionJa": "即座に、および次の2ステージの開始時に、3個のダイスを振る。その合計に応じて様々な報酬を獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "想定内の意外性 expected unexpectedness da_expectedunexpectedness"
     },
     {
       "id": "DA_Expedition",
@@ -23318,7 +23297,7 @@
       "nameEn": "New Recruit",
       "image": "tft/images/ff45abf2607ad05b0a197898.png",
       "rarity": "プリズム",
-      "descriptionJa": "最大チームサイズが1増加し、コスト4のチャンピオンを1体獲得する。",
+      "descriptionJa": "チームサイズが1増加し、コスト4のチャンピオンを1体獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],

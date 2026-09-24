@@ -39,6 +39,7 @@ jobs:
         shell: pwsh
         run: |
           ./tools/test-composition-ranks.ps1
+          ./tools/test-canonical-champion-id-contract.ps1
           ./tools/test-rank-scope-policy.ps1
           ./tools/test-data-history-policy.ps1
           ./tools/test-publication-retention.ps1

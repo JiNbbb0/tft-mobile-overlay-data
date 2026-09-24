@@ -15,6 +15,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'id-compatibility-policy.ps1')
 . (Join-Path $PSScriptRoot 'metatft-page-parity-policy.ps1')
 . (Join-Path $PSScriptRoot 'metatft-item-ranking-policy.ps1')
+. (Join-Path $PSScriptRoot 'metatft/canonical-champion-id-contract.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 
@@ -262,7 +263,10 @@ function New-BoardUnits {
         [Parameter(Mandatory = $true)][string[]]$UnitIds,
         [Parameter(Mandatory = $true)]$Details,
         [Parameter(Mandatory = $true)][hashtable]$UnitMap,
-        [Parameter(Mandatory = $true)][hashtable]$StarTargets
+        [Parameter(Mandatory = $true)][hashtable]$StarTargets,
+        [Parameter(Mandatory = $true)][hashtable]$CanonicalChampionMap,
+        [Parameter(Mandatory = $true)][hashtable]$CanonicalChampionAliases,
+        [Parameter(Mandatory = $true)][hashtable]$ChampionNameMap
     )
 
     $positioningUnits = $Details.positioning.units
@@ -347,9 +351,18 @@ function New-BoardUnits {
     return @(
         foreach ($instance in $instances) {
             $unitId = [string]$instance.unitId
+            $canonicalUnitId = Resolve-MetaTftCanonicalChampionId `
+                -SourceId $unitId `
+                -CanonicalChampionIds $CanonicalChampionMap `
+                -Aliases $CanonicalChampionAliases
+            $canonicalName = if ($ChampionNameMap.ContainsKey($canonicalUnitId)) {
+                [string]$ChampionNameMap[$canonicalUnitId]
+            } else {
+                [string]$UnitMap[$unitId].name
+            }
             [pscustomobject][ordered]@{
-                id = [string]$unitId
-                name = [string]$UnitMap[[string]$unitId].name
+                id = [string]$canonicalUnitId
+                name = $canonicalName
                 position = [int]$assigned[[string]$instance.key]
                 starLevel = if ($StarTargets.ContainsKey([string]$unitId)) { [int]$StarTargets[[string]$unitId].level } else { 0 }
                 starRate = if ($StarTargets.ContainsKey([string]$unitId)) { [double]$StarTargets[[string]$unitId].rate } else { 0.0 }
@@ -367,7 +380,10 @@ function New-BoardReference {
         [Parameter(Mandatory = $true)][int]$SampleCount,
         [Parameter(Mandatory = $true)]$Details,
         [Parameter(Mandatory = $true)][hashtable]$UnitMap,
-        [Parameter(Mandatory = $true)][hashtable]$StarTargets
+        [Parameter(Mandatory = $true)][hashtable]$StarTargets,
+        [Parameter(Mandatory = $true)][hashtable]$CanonicalChampionMap,
+        [Parameter(Mandatory = $true)][hashtable]$CanonicalChampionAliases,
+        [Parameter(Mandatory = $true)][hashtable]$ChampionNameMap
     )
 
     return [pscustomobject][ordered]@{
@@ -375,7 +391,14 @@ function New-BoardReference {
         source = $Source
         averagePlacement = [double]$AveragePlacement
         sampleCount = $SampleCount
-        units = @(New-BoardUnits -UnitIds $UnitIds -Details $Details -UnitMap $UnitMap -StarTargets $StarTargets)
+        units = @(New-BoardUnits `
+            -UnitIds $UnitIds `
+            -Details $Details `
+            -UnitMap $UnitMap `
+            -StarTargets $StarTargets `
+            -CanonicalChampionMap $CanonicalChampionMap `
+            -CanonicalChampionAliases $CanonicalChampionAliases `
+            -ChampionNameMap $ChampionNameMap)
     }
 }
 
@@ -669,6 +692,11 @@ $canonicalChampionMap = @{}
 foreach ($canonicalChampion in @($canonicalCatalog.champions)) {
     if ($canonicalChampion.id) { $canonicalChampionMap[[string]$canonicalChampion.id] = $canonicalChampion }
 }
+$canonicalChampionAliasResult = New-MetaTftCanonicalChampionAliasIndex `
+    -CanonicalChampionIds $canonicalChampionMap `
+    -MetaTftUnits @($metaTftLookup.units)
+$canonicalChampionAliasMap = $canonicalChampionAliasResult.aliases
+Write-Output "MetaTFT champion identity aliases: $($canonicalChampionAliasMap.Count) exact asset aliases; $(@($canonicalChampionAliasResult.ambiguousIds).Count) ambiguous aliases rejected"
 $canonicalTraitMap = @{}
 foreach ($canonicalTrait in @($canonicalCatalog.traits)) {
     if ($canonicalTrait.id) { $canonicalTraitMap[[string]$canonicalTrait.id] = $canonicalTrait }
@@ -1202,10 +1230,19 @@ $compositions = foreach ($composition in $compositionCandidates) {
                     }
             }
         )
+        $canonicalUnitId = Resolve-MetaTftCanonicalChampionId `
+            -SourceId ([string]$unitId) `
+            -CanonicalChampionIds $canonicalChampionMap `
+            -Aliases $canonicalChampionAliasMap
+        $canonicalUnitName = if ($metaTftTitleNameMap.ContainsKey($canonicalUnitId)) {
+            [string]$metaTftTitleNameMap[$canonicalUnitId]
+        } else {
+            [string]$unitMap[$unitId].name
+        }
 
         [pscustomobject][ordered]@{
-            id = [string]$unitId
-            name = [string]$unitMap[$unitId].name
+            id = [string]$canonicalUnitId
+            name = [string]$canonicalUnitName
             recommendedBuild = @($recommendedBuild)
             itemStats = $itemStats
         }
@@ -1219,7 +1256,10 @@ $compositions = foreach ($composition in $compositionCandidates) {
         -SampleCount ([int]$composition.sampleCount) `
         -Details $details `
         -UnitMap $unitMap `
-        -StarTargets $starTargets
+        -StarTargets $starTargets `
+        -CanonicalChampionMap $canonicalChampionMap `
+        -CanonicalChampionAliases $canonicalChampionAliasMap `
+        -ChampionNameMap $metaTftTitleNameMap
 
     $levelBoardRows = @{}
     foreach ($level in 4..9) {
@@ -1259,7 +1299,10 @@ $compositions = foreach ($composition in $compositionCandidates) {
                 -SampleCount ([int]$row.sampleCount) `
                 -Details $details `
                 -UnitMap $unitMap `
-                -StarTargets $starTargets
+                -StarTargets $starTargets `
+                -CanonicalChampionMap $canonicalChampionMap `
+                -CanonicalChampionAliases $canonicalChampionAliasMap `
+                -ChampionNameMap $metaTftTitleNameMap
         }
     }
 
@@ -1272,7 +1315,14 @@ $compositions = foreach ($composition in $compositionCandidates) {
         averagePlacement = [double]$composition.averagePlacement
         sampleCount = [int]$composition.sampleCount
         itemRecommendations = @($itemRecommendations)
-        overviewUnitIds = @($composition.overviewUnitIds)
+        overviewUnitIds = @(
+            foreach ($unitId in @($composition.overviewUnitIds)) {
+                Resolve-MetaTftCanonicalChampionId `
+                    -SourceId ([string]$unitId) `
+                    -CanonicalChampionIds $canonicalChampionMap `
+                    -Aliases $canonicalChampionAliasMap
+            }
+        )
         units = @($units)
         rollPlan = $rollPlan
         recommendedAugments = @($recommendedAugments)

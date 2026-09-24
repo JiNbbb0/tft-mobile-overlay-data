@@ -71,6 +71,10 @@ jobs:
         shell: pwsh
         run: ./tools/test-current-set-champion-membership.ps1
 
+      - name: Test canonical champion IDs and exact MetaTFT asset aliases
+        shell: pwsh
+        run: ./tools/test-canonical-champion-id-contract.ps1
+
       - name: Test current-set naming policy
         shell: pwsh
         run: ./tools/test-current-set-name-policy.ps1

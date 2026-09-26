@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-09-26T00:58:06Z
-- From: tftset18-18.3-r425-mfb4686e0cf
+- Generated: 2026-09-26T14:09:02Z
+- From: tftset18-18.3-r425-m7bdfb5c84a
 - To: TFTSet18 / patch 18.3 / revision 425
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -13,8 +13,8 @@
 | Compositions | 18 | 18 | 0 | 0 | 18 |
 | Images | 622 | 622 | - | - | 0 delta |
 
-- Tier changes: 1
-- Average-placement changes: 17
+- Tier changes: 0
+- Average-placement changes: 18
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
 

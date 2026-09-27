@@ -16,14 +16,15 @@
 
 ### 新セット初動の統計母集団
 
-構成統計はMetaTFT公開構成ページと同じ「ランク戦・現行パッチ・過去3日間・プラチナ+・平均順位順」を使用します。公開ページと異なる独自の全ランクfallbackは行いません。MetaTFT側が返すゲーム数から同ページの最小表示率を計算し、可視クラスタだけを採用します。取得条件や日本語lookupが検証できない場合は `META_COLLECTING` フェイルセーフへ進み、直前の正常版を壊しません。
+構成統計の既定ランクはDiamond+です。ランク戦・現行パッチ・過去3日間・平均順位順を使用し、各配信ランクの取得条件を個別に検証します。公開ページと異なる独自の全ランクfallbackは行いません。MetaTFT側が返すゲーム数から同ページの最小表示率を計算し、可視クラスタだけを採用します。取得条件や日本語lookupが検証できない場合は `META_COLLECTING` フェイルセーフへ進み、直前の正常版を壊しません。
 
-次回以降の定期実行でプラチナ以上が条件を満たせば自動的に通常母集団へ戻ります。生成スナップショットの `statisticsScope` に、採用母集団、判定件数、切替理由を記録します。
+次回以降の定期実行で該当ランクの統計が条件を満たせば自動的に通常状態へ戻ります。生成スナップショットの `statisticsScope` に、採用母集団、判定件数、切替理由を記録します。
 
 ## Workflows
 
 - `Refresh and publish TFT data`: UTC毎時7/22/37/52分、および手動実行。変更なしならコミットせず、Pagesが不一致の時だけ再配信。
-- `Watch unattended data automation`: 毎時11分と更新workflow終了後に実行。取得処理と独立してGitHub mainとPagesを照合し、404、旧版、manifest SHA不一致を検出したら検証済みsiteを自動再配信。修復不能または連続失敗時だけ重複しないIssueを1件作成し、回復時に閉じる。
+- `Validate ranked compositions`: PRとmainへのコード変更時に固定回帰テストと新セット移行fixtureを検証。データのみの自動コミットでは起動しない。
+- `Watch unattended data automation`: UTC毎時13/33/53分と更新workflow失敗後に実行。成功した更新直後の重複検査は省く。取得処理と独立してGitHub mainとPagesを照合し、404、旧版、manifest SHA不一致を検出したら検証済みsiteを自動再配信。修復不能または連続失敗時だけ重複しないIssueを1件作成し、回復時に閉じる。
 - `Validate and redeploy Pages`: データを再取得せず、現在の追跡済みsiteを検証して手動再配信。
 - `Restore a validated version as latest`: 既存versionIdを指定して検証し、latestだけを戻して再配信。
 - `Keep scheduled automation active`: UTC毎月1日17:13。小さなheartbeat状態だけを更新し、配信データは変更しない。
@@ -31,6 +32,8 @@
 ## 監視
 
 通常成功は追加の外部通知を発生させません。一時的な取得・push・Pages障害は次の定期実行またはwatchdogが自動修復します。4回連続失敗、6時間成功なし、または公開不一致を自動修復できない場合だけ、公開リポジトリに `automation-health` Issueを1件作成します。Summaryには版、セット、パッチ、revision、変更・公開有無、失敗工程、固定URL、次の対応が記録されます。
+
+定期更新は実データの取得・候補生成・SHA/参照/件数・site全体・公開HTTPSを毎回検証します。生成器の合成fixture群はコード変更時のCIに移し、毎回の取得を約5分妨げていた新セット回帰テストも同CIで検証します。GitHub Actionsのscheduleは開始時刻を保証しないため、更新遅延はwatchdogの鮮度監視で検知します。
 
 ## 手動実行
 

@@ -26,6 +26,9 @@ env:
 
 jobs:
   inspect:
+    # A fully successful refresh already performed candidate/publication checks.
+    # Independent schedules still inspect Pages and source freshness regularly.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'success'
     runs-on: windows-latest
     timeout-minutes: 10
     outputs:
@@ -116,7 +119,7 @@ jobs:
         uses: actions/deploy-pages@v5
 
   verify-repair:
-    if: always() && needs.inspect.result == 'success' && (needs.inspect.outputs.publish_required != 'true' || needs.repair-publication.result == 'success')
+    if: always() && needs.inspect.result == 'success' && needs.inspect.outputs.publish_required == 'true' && needs.repair-publication.result == 'success'
     needs: [inspect, repair-publication]
     runs-on: windows-latest
     timeout-minutes: 15
@@ -141,7 +144,7 @@ jobs:
           }
 
   report-health:
-    if: always()
+    if: always() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'success')
     needs: [inspect, repair-publication, verify-repair]
     runs-on: windows-latest
     timeout-minutes: 10
@@ -181,7 +184,7 @@ jobs:
         shell: pwsh
         env:
           GH_AUTOMATION_TOKEN: ${{ github.token }}
-          PUBLIC_OUT_OF_SYNC: ${{ needs.inspect.result != 'success' || needs.verify-repair.result != 'success' || steps.final-reconcile.outcome != 'success' || steps.final-reconcile.outputs.publish_required == 'true' }}
+          PUBLIC_OUT_OF_SYNC: ${{ needs.inspect.result != 'success' || (needs.inspect.outputs.publish_required == 'true' && needs.verify-repair.result != 'success') || steps.final-reconcile.outcome != 'success' || steps.final-reconcile.outputs.publish_required == 'true' }}
           DATA_QUALITY_REQUIRES_ATTENTION: ${{ needs.inspect.result != 'success' || steps.final-quality.outcome != 'success' || steps.final-quality.outputs.requires_attention == 'true' }}
           DATA_QUALITY_REASON: ${{ steps.final-quality.outputs.reason }}
           SOURCE_CHECK_REASON: ${{ steps.final-freshness.outputs.reason }}

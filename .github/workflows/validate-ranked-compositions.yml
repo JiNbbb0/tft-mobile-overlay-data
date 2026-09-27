@@ -10,6 +10,17 @@ on:
       - ".github/workflows/automation-watchdog.yml"
       - ".github/workflows/validate-ranked-compositions.yml"
       - ".github/workflows/refresh-tft-data.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/**"
+      - "schema/**"
+      - "config/**"
+      - ".github/scripts/**"
+      - ".github/workflows/automation-watchdog.yml"
+      - ".github/workflows/validate-ranked-compositions.yml"
+      - ".github/workflows/refresh-tft-data.yml"
   workflow_dispatch:
 
 permissions:
@@ -22,7 +33,7 @@ concurrency:
 jobs:
   validate:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
       - name: Validate PowerShell syntax
@@ -35,22 +46,9 @@ jobs:
             $failures += @($parseErrors)
           }
           if ($failures.Count) { throw ($failures | Out-String) }
-      - name: Verify rank isolation, source scope, and content identity
+      - name: Run complete generator and publication contract regression
         shell: pwsh
-        run: |
-          ./tools/test-composition-ranks.ps1
-          ./tools/test-canonical-champion-id-contract.ps1
-          ./tools/test-rank-scope-policy.ps1
-          ./tools/test-data-history-policy.ps1
-          ./tools/test-publication-retention.ps1
-          ./tools/test-composition-report.ps1
-          ./tools/test-source-contract.ps1
-          ./tools/test-content-fingerprint.ps1
-          ./tools/test-metatft-page-parity-policy.ps1
-          ./tools/test-publication-state.ps1
-          ./tools/test-workflow-concurrency-policy.ps1
-          ./tools/test-autonomous-recovery.ps1
-          ./tools/test-watchdog-runtime.ps1
+        run: ./tools/test-refresh-contracts.ps1
       - name: Run isolated production acquisition, publication, and LKG checks
         shell: pwsh
         run: ./tools/test-ranked-production-refresh.ps1

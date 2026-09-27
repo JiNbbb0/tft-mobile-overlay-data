@@ -12,7 +12,9 @@ TFT Mobile Overlay の個人利用版へ、検証済み戦術データと画像�
 
 `refresh-tft-data.yml` が UTC の毎時 7・22・37・52分にMetaTFTの Diamond+・現行パッチ・直近3日を確認します。画面に出る構成名、順位、Tier、盤面、レベル別編成、装備、オーグメント、カタログ文面、参照画像のcontent fingerprintが同じなら不要な版を増やしません。新しい版だけを一時領域で生成し、全検証に合格した後にGitHub Pagesへ公開します。
 
-更新時と毎時11分のwatchdogは、GitHub mainの検証済みsiteと実際のPagesをlatest ID・manifest SHAで照合します。Pagesだけ失敗、404、旧版、同一IDの内容不一致が起きても、取得処理とは独立して正常siteを再デプロイします。一時障害で直らない場合だけ重複しないIssueを作り、回復時に自動で閉じます。
+watchdogは UTC の毎時13・33・53分と更新失敗後に、GitHub mainの検証済みsiteと実際のPagesをlatest ID・manifest SHAで照合します。成功した更新の直後には重複検査を行いません。Pagesだけ失敗、404、旧版、同一IDの内容不一致が起きても、取得処理とは独立して正常siteを再デプロイします。一時障害で直らない場合だけ重複しないIssueを作り、回復時に自動で閉じます。
+
+生成器・公開処理の固定回帰テストはPRとmainへのコード変更時に実行します。15分ごとのデータ更新では実際の候補と公開サイトを検証し、毎回同じ合成テストデータを再生成しません。GitHub Actionsの定期実行は遅延・欠落する場合があるため、15分は確認設定間隔であり配信時刻の保証ではありません。
 
 公開単位は不変の `bundles/<version-id>/` とSHA-256名の共有 `blobs/` です。最新版ポインタは全ファイルの検証後に `data-index.json` へ反映します。Pagesのactive履歴は最新版を含め原則直近5版です。最新available・stable正常版・直前availableを優先保護し、残りを新しい順に保持します。外れたbundleと未使用blobは検証前の隔離領域だけで整理し、検証成功後にサイト全体を公開します。`archive-map.json` は直近50件の復旧情報だけを保持し、Git履歴は書き換えません。
 

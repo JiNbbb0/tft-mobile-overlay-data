@@ -1,5 +1,11 @@
 # Resolve status inputs from the immutable bundle selected by data-index.
 # source/current is a generation workspace, never the authority for published status.
+function Get-TftPublicDataQualityUri([uri]$IndexUri) {
+    if ($IndexUri.Scheme -ne 'https') { throw 'Public quality requires HTTPS.' }
+    # Relative URI resolution otherwise discards the verification cache-buster.
+    return [uri]::new($IndexUri, 'data-quality.json' + $IndexUri.Query)
+}
+
 function Convert-TftUtcTimestamp($Value) {
     if ($Value -is [DateTime]) { return $Value.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
     if ($Value -is [DateTimeOffset]) { return $Value.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ') }
@@ -12,7 +18,7 @@ function Get-TftPublishedDataInputs([string]$SiteRoot) {
     $index = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $SiteRoot 'data-index.json') | ConvertFrom-Json
     $availableId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
     $versions = @($index.versions | Where-Object { [string]$_.id -ceq $availableId })
-    if ($versions.Count -ne 1 -or $availableId -notmatch '^[a-z0-9._-]+$') { throw 'Published available identity is missing, duplicated, or unsafe.' }
+    if ($versions.Count -ne 1 -or $availableId -cnotmatch '^[a-z0-9][a-z0-9._-]*$' -or $availableId.Contains('..')) { throw 'Published available identity is missing, duplicated, or unsafe.' }
     $version = $versions[0]
     if ([string]$version.manifestUrl -cne "bundles/$availableId/manifest.json") { throw 'Published manifest URL differs from bundle identity.' }
     $manifestPath = Join-Path $SiteRoot ([string]$version.manifestUrl)

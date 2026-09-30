@@ -6,6 +6,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'published-data-contract.ps1')
 
 function Set-ActionOutput([string]$Name, [string]$Value) {
     if ($env:GITHUB_OUTPUT) { Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "$Name=$Value" -Encoding UTF8 }
@@ -41,7 +42,7 @@ $qualityState = 'UNKNOWN'
 $reason = 'OK'
 try {
     $indexUri = [uri]$DataIndexUrl
-    $qualityUri = [uri]::new($indexUri, 'data-quality.json')
+    $qualityUri = Get-TftPublicDataQualityUri $indexUri
     $index = Get-Json $indexUri
     $quality = Get-Json $qualityUri
     if ([int]$quality.schemaVersion -notin @(1,2)) { throw "Unsupported data-quality schema: $($quality.schemaVersion)" }

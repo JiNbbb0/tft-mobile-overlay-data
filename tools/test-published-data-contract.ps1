@@ -1,6 +1,8 @@
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'published-data-contract.ps1')
+$qualityUri = Get-TftPublicDataQualityUri ([uri]'https://fixture.invalid/data/data-index.json?verification=fresh')
+if ($qualityUri.AbsoluteUri -cne 'https://fixture.invalid/data/data-quality.json?verification=fresh') { throw 'Quality verification lost its cache-buster.' }
 $root = Split-Path -Parent $PSScriptRoot
 $fixture = Join-Path $root ('build/published-contract-test-' + [Guid]::NewGuid().ToString('N'))
 $site = Join-Path $fixture 'site'
@@ -34,6 +36,17 @@ try {
     Write-FixtureJson $indexPath $index
     $published=Get-TftPublishedDataInputs $site
     if ($published.version.id -ne 'test-version' -or $published.catalog.champions.Count -ne 1) { throw 'Bundle resolution failed.' }
+    foreach ($unsafeId in @('..','test..version','.hidden','TEST-VERSION')) {
+        $index.latestVersionId=$unsafeId
+        $version.id=$unsafeId
+        $version.manifestUrl="bundles/$unsafeId/manifest.json"
+        Write-FixtureJson $indexPath $index
+        Assert-Rejected { Get-TftPublishedDataInputs $site } 'unsafe bundle identity'
+    }
+    $index.latestVersionId='test-version'
+    $version.id='test-version'
+    $version.manifestUrl='bundles/test-version/manifest.json'
+    Write-FixtureJson $indexPath $index
     & (Join-Path $PSScriptRoot 'write-data-quality-status.ps1') -SiteDirectory $site | Out-Null
     $qualityPath=Join-Path $site 'data-quality.json'
     $oldQuality=Get-Content -Raw -LiteralPath $qualityPath

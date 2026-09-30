@@ -26,6 +26,8 @@ champion exception, guessed board, or alternate rank population is introduced.
 - `verify-publication.ps1`: one bounded remote verification entrypoint for refresh,
   manual redeploy, rollback and watchdog repair. A bad/mismatching quality status
   is a failure, not merely an attention message followed by a misleading PASS.
+  The quality URL retains the index verification cache-buster, avoiding stale
+  edge-cached quality during an otherwise successful deployment.
 - Rollback commits index, health AND matching quality. User input is passed as an
   environment value, not interpolated into executable PowerShell.
 - Any workflow change now triggers code-change CI; deterministic fixtures remain

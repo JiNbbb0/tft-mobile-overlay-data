@@ -214,23 +214,7 @@ jobs:
           ref: main
       - name: Verify HTTPS index, manifest, JSON, sample blob, and quality status
         shell: pwsh
-        run: |
-          $verified = $false
-          for ($attempt = 1; $attempt -le 6; $attempt++) {
-            try {
-              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
-              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
-              ./tools/check-public-data-quality.ps1 -DataIndexUrl $env:DATA_INDEX_URL
-              $verified = $true
-              break
-            } catch {
-              if ($attempt -eq 6) { throw }
-              Write-Warning "Public verification attempt $attempt failed while Pages propagates."
-              Start-Sleep -Seconds (10 * $attempt)
-            }
-          }
-          if (-not $verified) { throw "Public Pages validation did not converge."
-          }
+        run: ./tools/verify-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
       - name: Record public verification
         shell: pwsh
         run: |

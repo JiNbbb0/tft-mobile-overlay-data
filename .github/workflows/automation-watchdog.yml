@@ -129,19 +129,7 @@ jobs:
           ref: main
       - name: Verify public index, manifest, data, sample image, and quality status
         shell: pwsh
-        run: |
-          for ($attempt = 1; $attempt -le 6; $attempt++) {
-            try {
-              $checkUrl = "${env:DATA_INDEX_URL}?watchdog=${{ github.run_id }}-$attempt"
-              ./tools/validate-remote-site.ps1 -DataIndexUrl $checkUrl
-              ./tools/reconcile-publication.ps1 -DataIndexUrl $checkUrl -FailWhenOutOfSync
-              ./tools/check-public-data-quality.ps1 -DataIndexUrl $checkUrl
-              exit 0
-            } catch {
-              if ($attempt -eq 6) { throw }
-              Start-Sleep -Seconds (10 * $attempt)
-            }
-          }
+        run: ./tools/verify-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
 
   report-health:
     if: always() && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'success')

@@ -18,6 +18,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'metatft/canonical-champion-id-contract.ps1')
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
+. (Join-Path $PSScriptRoot 'board-star-policy.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -400,38 +401,6 @@ function New-BoardReference {
             -CanonicalChampionAliases $CanonicalChampionAliases `
             -ChampionNameMap $ChampionNameMap)
     }
-}
-
-function New-StarTargets {
-    param(
-        [Parameter(Mandatory = $true)]$Details,
-        [Parameter(Mandatory = $true)][hashtable]$UnitMap
-    )
-
-    $targets = @{}
-    foreach ($unit in @($Details.unit_stats)) {
-        $selected = @(
-            $unit.tiers |
-                Where-Object { [int]$_.tier -ge 3 -and [double]$_.pcnt -ge 0.20 } |
-                Sort-Object @{ Expression = { -[int]$_.tier } }
-        ) | Select-Object -First 1
-        $unitCost = if ($UnitMap.ContainsKey([string]$unit.unit)) {
-            [int]$UnitMap[[string]$unit.unit].cost
-        } else {
-            0
-        }
-        if (-not $selected -and $unitCost -ge 4) {
-            $selected = @(
-                $unit.tiers |
-                    Where-Object { [int]$_.tier -eq 2 -and [double]$_.pcnt -ge 0.55 }
-            ) | Select-Object -First 1
-        }
-        $targets[[string]$unit.unit] = [pscustomobject]@{
-            level = if ($selected) { [int]$selected.tier } else { 0 }
-            rate = if ($selected) { [double]$selected.pcnt } else { 0.0 }
-        }
-    }
-    return $targets
 }
 
 function New-RollPlanResult {

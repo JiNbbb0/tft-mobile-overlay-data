@@ -5,6 +5,7 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'release-contract-policy.ps1')
+. (Join-Path $PSScriptRoot 'published-data-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $root = if ([IO.Path]::IsPathRooted($SiteDirectory)) { [IO.Path]::GetFullPath($SiteDirectory) } else { [IO.Path]::GetFullPath((Join-Path $repositoryRoot $SiteDirectory)) }
@@ -258,6 +259,14 @@ if (Test-Path -LiteralPath $qualityPath) {
     $quality = Get-Content -Raw -Encoding UTF8 -LiteralPath $qualityPath | ConvertFrom-Json
     $expectedQualityVersion = if ($hasDualPointers) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
     if ([string]$quality.versionId -ne $expectedQualityVersion) { throw 'data-quality.json must describe latestAvailableVersionId.' }
+    foreach ($field in @('setId','patch','revision')) {
+        if ([string]$quality.$field -cne [string]$latestAvailable.$field) { throw "data-quality identity mismatch: $field" }
+    }
+    if ($quality.PSObject.Properties['payloadSha256']) {
+        $publishedInputs = Get-TftPublishedDataInputs $root
+        if ([string]$quality.payloadSha256.catalog -cne $publishedInputs.payloads['tft/tft_catalog.json'].sha256 -or
+            [string]$quality.payloadSha256.snapshot -cne $publishedInputs.payloads['tft_static_snapshot.json'].sha256) { throw 'data-quality payload SHA-256 mismatch.' }
+    }
     if ($hasDualPointers -and [int]$quality.schemaVersion -eq 2) {
         if ([string]$quality.latestStableVersionId -ne [string]$index.latestStableVersionId -or [string]$quality.latestAvailableVersionId -ne [string]$index.latestAvailableVersionId) { throw 'data-quality pointer contract mismatch.' }
         if ($latestAvailable.PSObject.Properties['featureReadiness'] -and ($quality.features | ConvertTo-Json -Depth 10 -Compress) -cne ($latestAvailable.featureReadiness | ConvertTo-Json -Depth 10 -Compress)) { throw 'data-quality/index feature readiness mismatch.' }

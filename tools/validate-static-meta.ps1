@@ -7,6 +7,7 @@
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot 'board-star-policy.ps1')
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 . (Join-Path $PSScriptRoot 'composition-rank-contract.ps1')
@@ -291,11 +292,8 @@ foreach ($composition in $compositions) {
             if ($positions.ContainsKey([string]$position)) {
                 throw "Duplicate board position: $($composition.id)/Lv$($board.level)/$position"
             }
-            if ([int]$boardUnit.starLevel -notin @(0, 2, 3)) {
-                throw "Board star target must be flexible, 2, or 3: $($composition.id)/Lv$($board.level)/$($boardUnit.id)"
-            }
-            if ([int]$boardUnit.starLevel -eq 2 -and [int]$catalogEntries[$boardUnit.id].cost -lt 4) {
-                throw "Two-star target must be cost 4 or higher: $($composition.id)/Lv$($board.level)/$($boardUnit.id)"
+            if (-not (Test-TftBoardStarLevel ([int]$boardUnit.starLevel) ([int]$catalogEntries[$boardUnit.id].cost))) {
+                throw "Unsupported board star target: $($composition.id)/Lv$($board.level)/$($boardUnit.id)/$($boardUnit.starLevel)"
             }
             if ([double]$boardUnit.starRate -lt 0 -or [double]$boardUnit.starRate -gt 1) {
                 throw "Board star rate outside 0-1: $($composition.id)/Lv$($board.level)/$($boardUnit.id)"

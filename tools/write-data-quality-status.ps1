@@ -1,24 +1,30 @@
 param(
     [string]$SiteDirectory = 'site',
-    [string]$SnapshotPath = 'source/current/tft_static_snapshot.json',
-    [string]$CatalogPath = 'source/current/tft/tft_catalog.json'
+    [string]$SnapshotPath = '',
+    [string]$CatalogPath = ''
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
+. (Join-Path $PSScriptRoot 'published-data-contract.ps1')
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 function Resolve-RepoPath([string]$Path) { if ([IO.Path]::IsPathRooted($Path)) { return [IO.Path]::GetFullPath($Path) }; return [IO.Path]::GetFullPath((Join-Path $repositoryRoot $Path)) }
 function Get-Field($Object, [string]$Name, $Default = $null) { if ($null -ne $Object -and $Object.PSObject.Properties[$Name]) { return $Object.PSObject.Properties[$Name].Value }; return $Default }
 
 $siteRoot = Resolve-RepoPath $SiteDirectory
-$snapshotFile = Resolve-RepoPath $SnapshotPath
-$catalogFile = Resolve-RepoPath $CatalogPath
-$indexFile = Join-Path $siteRoot 'data-index.json'
-foreach ($file in @($snapshotFile, $catalogFile, $indexFile)) { if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Required data-quality input missing: $file" } }
-$snapshot = Get-Content -Raw -Encoding UTF8 -LiteralPath $snapshotFile | ConvertFrom-Json
-$catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $catalogFile | ConvertFrom-Json
-$index = Get-Content -Raw -Encoding UTF8 -LiteralPath $indexFile | ConvertFrom-Json
+$published = Get-TftPublishedDataInputs $siteRoot
+# Existing callers may supply acquisition paths, but mismatching content is
+# rejected BEFORE writing status. Status itself always uses verified bundle bytes.
+foreach ($inputPair in @(@($SnapshotPath,'tft_static_snapshot.json'), @($CatalogPath,'tft/tft_catalog.json'))) {
+    if (-not [string]::IsNullOrWhiteSpace([string]$inputPair[0])) {
+        $inputHash = (Get-FileHash -Algorithm SHA256 -LiteralPath (Resolve-RepoPath ([string]$inputPair[0]))).Hash.ToLowerInvariant()
+        if ($inputHash -cne $published.payloads[[string]$inputPair[1]].sha256) { throw 'Data-quality input does not match the published bundle.' }
+    }
+}
+$snapshot = $published.snapshot
+$catalog = $published.catalog
+$index = $published.index
 $availableId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
 $stableId = if ($index.PSObject.Properties['latestStableVersionId']) { [string]$index.latestStableVersionId } else { [string]$index.latestVersionId }
 $available = @($index.versions | Where-Object { [string]$_.id -eq $availableId }) | Select-Object -First 1
@@ -42,7 +48,7 @@ if ([string]$features.compositions -eq 'PARTIAL') { $warnings.Add([string]$rankC
 if ([string]$features.compositionAugments -ne 'READY') { $warnings.Add('COMPOSITION_AUGMENTS_COLLECTING') }
 if ($sourceAlignment -ne 'VERIFIED') { $warnings.Add('SOURCE_ALIGNMENT_PARTIAL') }
 
-$sourceUpdatedAt = if ($available.PSObject.Properties['sourceTimestampUtc'] -and [string]$available.sourceTimestampUtc) { [string]$available.sourceTimestampUtc } else { [string]$snapshot.fetchedAtUtc }
+$sourceUpdatedAt = Convert-TftUtcTimestamp $(if ($available.PSObject.Properties['sourceTimestampUtc'] -and $available.sourceTimestampUtc) { $available.sourceTimestampUtc } else { $snapshot.fetchedAtUtc })
 $warningAfter = if ($index.PSObject.Properties['freshnessPolicy']) { [int]$index.freshnessPolicy.warningAfterSeconds } else { 21600 }
 $criticalAfter = if ($index.PSObject.Properties['freshnessPolicy']) { [int]$index.freshnessPolicy.criticalAfterSeconds } else { 86400 }
 $ageSeconds = ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse($sourceUpdatedAt, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal)).TotalSeconds
@@ -56,15 +62,26 @@ $messageEn = switch ($qualityState) { 'CATALOG_ONLY' { 'The catalog is available
 
 $status = [pscustomobject][ordered]@{
     schemaVersion=2; generatedAtUtc=[DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'); sourceUpdatedAtUtc=$sourceUpdatedAt
-    sourceCheckedAtUtc=$(if ($index.PSObject.Properties['sourceCheckedAtUtc']) { [string]$index.sourceCheckedAtUtc } else { [string]$index.generatedAtUtc })
+    sourceCheckedAtUtc=(Convert-TftUtcTimestamp $(if ($index.PSObject.Properties['sourceCheckedAtUtc']) { $index.sourceCheckedAtUtc } else { $index.generatedAtUtc }))
     freshnessStatus=$freshnessStatus; freshnessPolicy=[pscustomobject][ordered]@{ warningAfterSeconds=$warningAfter; criticalAfterSeconds=$criticalAfter }
     versionId=$availableId; latestStableVersionId=$stableId; latestAvailableVersionId=$availableId
     setId=[string]$available.setId; setNumber=[int]$available.setNumber; setName=[string]$available.setName; patch=[string]$available.patch; revision=[string]$available.revision
     readiness=[string]$available.readiness; releaseState=$releaseState; validationStatus=$validationStatus; sourceAlignment=$sourceAlignment
     qualityState=$qualityState; userMessageJa=$messageJa; userMessageEn=$messageEn; features=$features; levelBoardReadiness=$levelBoards
+    payloadSha256=[pscustomobject][ordered]@{ catalog=$published.payloads['tft/tft_catalog.json'].sha256; snapshot=$published.payloads['tft_static_snapshot.json'].sha256 }
     counts=[pscustomobject][ordered]@{ champions=@($catalog.champions).Count; traits=@($catalog.traits).Count; items=@($catalog.items).Count; augments=@($catalog.augments).Count; compositions=$compositions.Count; targetCompositions=$target; qualifiedSourceCompositions=$qualified; missingAugmentCompositions=$missingAugments }
     warnings=@($warnings.ToArray())
 }
 $outputPath = Join-Path $siteRoot 'data-quality.json'
-[IO.File]::WriteAllText($outputPath, (($status | ConvertTo-Json -Depth 12).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+$statusJson = ($status | ConvertTo-Json -Depth 12).Replace("`r`n", "`n") + "`n"
+if (-not (Test-Json -Json $statusJson -SchemaFile (Join-Path $repositoryRoot 'schema/data-quality.schema.json') -ErrorAction Stop)) {
+    throw 'Generated data-quality failed its published JSON schema.'
+}
+$temporaryPath = Join-Path $siteRoot ('.data-quality-' + [Guid]::NewGuid().ToString('N') + '.tmp')
+try {
+    [IO.File]::WriteAllText($temporaryPath, $statusJson, [Text.UTF8Encoding]::new($false))
+    [IO.File]::Move($temporaryPath, $outputPath, $true)
+} finally {
+    if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath }
+}
 Write-Output "Wrote data quality status: Available=$availableId Stable=$stableId Quality=$qualityState Freshness=$freshnessStatus"

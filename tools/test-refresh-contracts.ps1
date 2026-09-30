@@ -5,6 +5,9 @@ Set-StrictMode -Version Latest
 # workflows. Live refreshes validate their actual candidate instead of
 # rebuilding the same synthetic fixtures every 15 minutes.
 $tests = @(
+    'test-board-star-policy.ps1',
+    'test-published-data-contract.ps1',
+    'test-publication-verification.ps1',
     'test-catalog-image-policy.ps1',
     'test-content-fingerprint.ps1',
     'test-material-publication-policy.ps1',

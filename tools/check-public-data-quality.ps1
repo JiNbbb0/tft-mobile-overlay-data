@@ -1,10 +1,12 @@
 param(
     [Parameter(Mandatory = $true)][ValidatePattern('^https://')][string]$DataIndexUrl,
-    [int]$CatalogOnlyGraceHours = 2
+    [int]$CatalogOnlyGraceHours = 2,
+    [switch]$ReturnResult
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+. (Join-Path $PSScriptRoot 'published-data-contract.ps1')
 
 function Set-ActionOutput([string]$Name, [string]$Value) {
     if ($env:GITHUB_OUTPUT) { Add-Content -LiteralPath $env:GITHUB_OUTPUT -Value "$Name=$Value" -Encoding UTF8 }
@@ -40,14 +42,20 @@ $qualityState = 'UNKNOWN'
 $reason = 'OK'
 try {
     $indexUri = [uri]$DataIndexUrl
-    $qualityUri = [uri]::new($indexUri, 'data-quality.json')
+    $qualityUri = Get-TftPublicDataQualityUri $indexUri
     $index = Get-Json $indexUri
     $quality = Get-Json $qualityUri
     if ([int]$quality.schemaVersion -notin @(1,2)) { throw "Unsupported data-quality schema: $($quality.schemaVersion)" }
     $qualityState = [string]$quality.qualityState
     if ($qualityState -notin @('READY', 'DEGRADED_OPTIONAL', 'DEGRADED_CORE', 'CATALOG_ONLY')) { throw "Unknown quality state: $qualityState" }
     $expectedVersionId = if ($index.PSObject.Properties['latestAvailableVersionId']) { [string]$index.latestAvailableVersionId } else { [string]$index.latestVersionId }
-    if ([string]$quality.versionId -ne $expectedVersionId) {
+    $expectedVersions = @($index.versions | Where-Object { [string]$_.id -ceq $expectedVersionId })
+    if ($expectedVersions.Count -ne 1) { throw 'Available version is missing or duplicated.' }
+    $identityMismatch = [string]$quality.versionId -cne $expectedVersionId
+    foreach ($field in @('setId','patch','revision')) {
+        if ([string]$quality.$field -cne [string]$expectedVersions[0].$field) { $identityMismatch=$true }
+    }
+    if ($identityMismatch) {
         $requiresAttention = $true
         $reason = 'QUALITY_STATUS_OUT_OF_SYNC'
     } elseif ($qualityState -in @('CATALOG_ONLY', 'DEGRADED_CORE')) {
@@ -71,4 +79,7 @@ try {
 Set-ActionOutput 'requires_attention' $requiresAttention.ToString().ToLowerInvariant()
 Set-ActionOutput 'quality_state' $qualityState
 Set-ActionOutput 'reason' $reason
+if ($ReturnResult) {
+    return [pscustomobject]@{ requiresAttention=$requiresAttention; qualityState=$qualityState; reason=$reason }
+}
 Write-Output "Public data quality: State=$qualityState RequiresAttention=$requiresAttention Reason=$reason"

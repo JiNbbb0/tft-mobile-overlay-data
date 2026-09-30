@@ -55,17 +55,7 @@ jobs:
           ref: main
       - name: Verify public files
         shell: pwsh
-        run: |
-          for ($attempt = 1; $attempt -le 6; $attempt++) {
-            try {
-              ./tools/validate-remote-site.ps1 -DataIndexUrl $env:DATA_INDEX_URL
-              ./tools/reconcile-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL -FailWhenOutOfSync
-              exit 0
-            } catch {
-              if ($attempt -eq 6) { throw }
-              Start-Sleep -Seconds (10 * $attempt)
-            }
-          }
+        run: ./tools/verify-publication.ps1 -DataIndexUrl $env:DATA_INDEX_URL
       - name: Write summary
         shell: pwsh
         run: |

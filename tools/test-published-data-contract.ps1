@@ -53,6 +53,11 @@ try {
     $quality=$oldQuality | ConvertFrom-Json
     if ($quality.qualityState -ne 'CATALOG_ONLY' -or [string]$quality.sourceUpdatedAtUtc -notmatch '2026|10/01') { throw 'Catalog-first status failed.' }
     if ($oldQuality -notmatch '2026-10-01T00:00:00Z' -or $quality.payloadSha256.snapshot -cne $entries[1].sha256) { throw 'Timestamp/hash contract failed.' }
+    $qualitySchema=Join-Path $root 'schema/data-quality.schema.json'
+    if (-not (Test-Json -Json $oldQuality -SchemaFile $qualitySchema -ErrorAction Stop)) { throw 'Written quality does not match its published schema.' }
+    $invalidQuality=$oldQuality | ConvertFrom-Json -AsHashtable
+    $invalidQuality.payloadSha256.snapshot='invalid'
+    Assert-Rejected { Test-Json -Json ($invalidQuality | ConvertTo-Json -Depth 20) -SchemaFile $qualitySchema -ErrorAction Stop } 'invalid schema payload hash'
     $wrongSource=Join-Path $fixture 'wrong-snapshot.json'
     Write-FixtureJson $wrongSource @{setId='TFTSet20';clusterId='499';compositions=@()}
     Assert-Rejected { & (Join-Path $PSScriptRoot 'write-data-quality-status.ps1') -SiteDirectory $site -SnapshotPath $wrongSource } 'same-set wrong revision workspace'

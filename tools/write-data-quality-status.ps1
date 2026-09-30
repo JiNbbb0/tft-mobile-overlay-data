@@ -73,9 +73,13 @@ $status = [pscustomobject][ordered]@{
     warnings=@($warnings.ToArray())
 }
 $outputPath = Join-Path $siteRoot 'data-quality.json'
+$statusJson = ($status | ConvertTo-Json -Depth 12).Replace("`r`n", "`n") + "`n"
+if (-not (Test-Json -Json $statusJson -SchemaFile (Join-Path $repositoryRoot 'schema/data-quality.schema.json') -ErrorAction Stop)) {
+    throw 'Generated data-quality failed its published JSON schema.'
+}
 $temporaryPath = Join-Path $siteRoot ('.data-quality-' + [Guid]::NewGuid().ToString('N') + '.tmp')
 try {
-    [IO.File]::WriteAllText($temporaryPath, (($status | ConvertTo-Json -Depth 12).Replace("`r`n", "`n") + "`n"), [Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllText($temporaryPath, $statusJson, [Text.UTF8Encoding]::new($false))
     [IO.File]::Move($temporaryPath, $outputPath, $true)
 } finally {
     if (Test-Path -LiteralPath $temporaryPath) { Remove-Item -LiteralPath $temporaryPath }

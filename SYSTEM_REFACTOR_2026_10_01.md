@@ -23,6 +23,8 @@ champion exception, guessed board, or alternate rank population is introduced.
 - `write-data-quality-status.ps1`: status comes from those verified bundle bytes,
   not mutable acquisition workspaces; optional caller inputs must hash-match.
   UTC ISO 8601 timestamps and atomic status replacement.
+  Generated status must pass the published quality JSON schema before replacement;
+  optional catalog/snapshot hashes are defined in that backward-compatible schema.
 - `verify-publication.ps1`: one bounded remote verification entrypoint for refresh,
   manual redeploy, rollback and watchdog repair. A bad/mismatching quality status
   is a failure, not merely an attention message followed by a misleading PASS.

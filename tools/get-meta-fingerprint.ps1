@@ -172,6 +172,8 @@ $normalized = [ordered]@{
                     }
                 )
                 rollPlan = $composition.rollPlan
+                boardContract = Optional $composition 'boardContract' 'LEGACY'
+                earlyBoards = Optional $composition 'earlyBoards' @()
                 recommendedAugments = @(
                     @($composition.recommendedAugments) | ForEach-Object {
                         [ordered]@{
@@ -202,6 +204,9 @@ $normalized = [ordered]@{
                         [ordered]@{
                             level = [int]$_.level
                             source = [string]$_.source
+                            sourceVariantId = [string](Optional $_ 'sourceVariantId' '')
+                            sourceTraits = [string](Optional $_ 'sourceTraits' '')
+                            rawAveragePlacement = Exact-Numeric (Optional $_ 'rawAveragePlacement' $null)
                             averagePlacement = Exact-Numeric $_.averagePlacement
                             sampleCount = [int64](Optional $_ 'sampleCount' 0)
                             units = @($_.units | Sort-Object position,id | ForEach-Object {

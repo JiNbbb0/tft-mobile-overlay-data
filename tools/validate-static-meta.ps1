@@ -229,6 +229,7 @@ foreach ($composition in $compositions) {
     foreach ($augment in $recommendedAugments) {
         if ($augment.tier -notin @('S', 'A', 'B')) { throw "Unexpected recommended augment tier: $($composition.id)/$($augment.id)/$($augment.tier)" }
         if (-not $catalogEntries.ContainsKey($augment.id)) { throw "Recommended augment missing from catalog: $($composition.id)/$($augment.id)" }
+        if ($composition.PSObject.Properties['boardContract'] -and [string]$augment.rarity -notin @('Silver','Gold','Prismatic')) { throw "Recommended augment rarity missing: $($composition.id)/$($augment.id)" }
     }
 
     $units = @($composition.units)
@@ -261,7 +262,15 @@ foreach ($composition in $compositions) {
         }
     }
 
-    $boards = @($composition.finalBoard) + @($composition.levelBoards)
+    $earlyBoards = if ($composition.PSObject.Properties['earlyBoards']) { @($composition.earlyBoards) } else { @() }
+    $boards = @($composition.finalBoard) + @($composition.levelBoards) + $earlyBoards
+    if ($composition.PSObject.Properties['boardContract']) {
+        if ([string]$composition.boardContract -cne 'METATFT_SHORTLIST_V1') { throw 'Unknown board contract.' }
+        if (@($composition.levelBoards | Where-Object source -CNE 'MetaTFT options').Count) { throw 'Final-level and early-board sources were mixed.' }
+        foreach ($early in $earlyBoards) {
+            if ([string]$early.source -cne 'MetaTFT early_options' -or [double]$early.roundWinRate -lt 0 -or [double]$early.roundWinRate -gt 1) { throw 'Early-board win-rate/source mismatch.' }
+        }
+    }
     $levels = @($composition.levelBoards | ForEach-Object { [int]$_.level } | Sort-Object -Unique)
     if (@($levels | Where-Object { $_ -lt 4 -or $_ -gt 9 }).Count -gt 0) {
         throw "Composition level board is outside Lv4-Lv9: $($composition.id) [$($levels -join ',')]"

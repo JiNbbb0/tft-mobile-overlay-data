@@ -19,6 +19,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'source-contract.ps1')
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 . (Join-Path $PSScriptRoot 'board-star-policy.ps1')
+. (Join-Path $PSScriptRoot 'metatft-board-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -1049,6 +1050,7 @@ $compositions = foreach ($composition in $compositionCandidates) {
                         id = [string]$_.id
                         name = [string]$itemMap[[string]$_.id].name
                         tier = [string]$_.tier
+                        rarity = if ($metaTftAugmentMap.ContainsKey([string]$_.id)) { [string]$metaTftAugmentMap[[string]$_.id].rarity } else { '' }
                     }
                 }
         }
@@ -1230,40 +1232,26 @@ $compositions = foreach ($composition in $compositionCandidates) {
         -CanonicalChampionAliases $canonicalChampionAliasMap `
         -ChampionNameMap $metaTftTitleNameMap
 
-    $levelBoardRows = @{}
-    foreach ($level in 4..9) {
-        $sourceCollection = if ($level -le 7) { $details.early_options } else { $details.options }
-        $levelProperty = $sourceCollection.PSObject.Properties[[string]$level]
-        if (-not $levelProperty) { continue }
-        $candidates = @($levelProperty.Value | Sort-Object avg, @{ Expression = { -[int]$_.count } } | Select-Object -First 3)
-        $rows = @(
-            foreach ($candidate in $candidates) {
-                $unitListValue = if ($level -le 7) { [string]$candidate.unit_list } else { [string]$candidate.units_list }
-                if (-not $unitListValue) { continue }
-                $levelUnitIds = @(
-                    ($unitListValue -split '&') |
-                        Where-Object {
-                            $unitMap.ContainsKey([string]$_) -and @($unitMap[[string]$_].traits).Count -gt 0
-                        } |
-                        Select-Object -First $level
-                )
-                if ($levelUnitIds.Count -eq 0) { continue }
-                [pscustomobject]@{
-                    unitIds = @($levelUnitIds)
-                    source = $(if ($level -le 7) { 'MetaTFT early_options' } else { 'MetaTFT options' })
-                    averagePlacement = [double]$candidate.avg
-                    sampleCount = [int]$candidate.count
-                }
-            }
-        )
-        if ($rows.Count -gt 0) { $levelBoardRows[[string]$level] = @($rows) }
-    }
-    $levelBoards = foreach ($level in 4..9) {
-        foreach ($row in @($levelBoardRows[[string]$level] | Sort-Object averagePlacement, @{ Expression = { -[int]$_.sampleCount } })) {
-            New-BoardReference `
+    $boardIdentityUniverse = New-TftMetaBoardIdentityUniverse -CanonicalChampionIds $canonicalChampionMap `
+        -Aliases $canonicalChampionAliasMap -LookupUnits @($metaTftLookup.units)
+    $playableBoardIds = $boardIdentityUniverse.playable
+    $ignoredBoardIds = $boardIdentityUniverse.ignored
+    $detailAverage = [double]$details.overall.avg
+    if (-not [double]::IsFinite($detailAverage) -or $detailAverage -le 0) { throw 'Missing board placement normalization basis.' }
+    $placementScale = [double]$composition.averagePlacement / $detailAverage
+    $generatedBoards = @{ FINAL=@(); EARLY=@() }
+    foreach ($kind in @('FINAL','EARLY')) {
+        foreach ($level in 4..9) {
+            $collection = if ($kind -eq 'EARLY') { $details.early_options } else { $details.options }
+            $property = $collection.PSObject.Properties[[string]$level]
+            if (-not $property) { continue }
+            $scale = if ($kind -eq 'FINAL') { $placementScale } else { 1.0 }
+            $rows = @(Get-TftMetaBoardCandidates -Rows @($property.Value) -Kind $kind -Level $level -PlacementScale $scale -PlayableIds $playableBoardIds -IgnoredIds $ignoredBoardIds)
+            foreach ($row in $rows) {
+            $board = New-BoardReference `
                 -Level $level `
                 -UnitIds @($row.unitIds) `
-                -Source ([string]$row.source) `
+                -Source $(if ($kind -eq 'EARLY') { 'MetaTFT early_options' } else { 'MetaTFT options' }) `
                 -AveragePlacement ([double]$row.averagePlacement) `
                 -SampleCount ([int]$row.sampleCount) `
                 -Details $details `
@@ -1272,6 +1260,12 @@ $compositions = foreach ($composition in $compositionCandidates) {
                 -CanonicalChampionMap $canonicalChampionMap `
                 -CanonicalChampionAliases $canonicalChampionAliasMap `
                 -ChampionNameMap $metaTftTitleNameMap
+            $board | Add-Member -NotePropertyName sourceVariantId -NotePropertyValue ([string]$row.sourceVariantId)
+            $board | Add-Member -NotePropertyName rawAveragePlacement -NotePropertyValue ([double]$row.rawAveragePlacement)
+            $board | Add-Member -NotePropertyName sourceTraits -NotePropertyValue ([string]$row.sourceTraits)
+            if ($kind -eq 'EARLY') { $board | Add-Member -NotePropertyName roundWinRate -NotePropertyValue ([double]$row.roundWinRate) }
+            $generatedBoards[$kind] += $board
+            }
         }
     }
 
@@ -1296,7 +1290,9 @@ $compositions = foreach ($composition in $compositionCandidates) {
         rollPlan = $rollPlan
         recommendedAugments = @($recommendedAugments)
         finalBoard = $finalBoard
-        levelBoards = @($levelBoards)
+        boardContract = 'METATFT_SHORTLIST_V1'
+        levelBoards = @($generatedBoards.FINAL)
+        earlyBoards = @($generatedBoards.EARLY)
     }
 }
 

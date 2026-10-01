@@ -6,6 +6,7 @@ Set-StrictMode -Version Latest
 # rebuilding the same synthetic fixtures every 15 minutes.
 $tests = @(
     'test-board-star-policy.ps1',
+    'test-metatft-board-contract.ps1',
     'test-published-data-contract.ps1',
     'test-publication-verification.ps1',
     'test-catalog-image-policy.ps1',

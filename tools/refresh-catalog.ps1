@@ -15,6 +15,7 @@ Add-Type -AssemblyName System.Net.Http
 . (Join-Path $PSScriptRoot 'normalize/Get-EmblemMappings.ps1')
 . (Join-Path $PSScriptRoot 'normalize/Resolve-SourceBackedArtifactDescription.ps1')
 . (Join-Path $PSScriptRoot 'raw-champion-fallback.ps1')
+. (Join-Path $PSScriptRoot 'optional-reference-tables.ps1')
 
 $RepositoryRoot = if ($RepositoryRootOverride) {
     [IO.Path]::GetFullPath($RepositoryRootOverride)
@@ -988,6 +989,7 @@ $catalog = [pscustomobject][ordered]@{
     items = @($items)
     augments = @($augments)
     systemData = [ordered]@{
+        referenceTables = @(Get-OptionalReferenceTables -RepositoryRoot $RepositoryRoot -SetId $SetId -Patch $TftPatch -JapaneseItems $jaItemMap -CurrentSetData $setJa)
         shopOdds = @()
         experienceTable = @()
         stageDefinitions = @()
@@ -1130,6 +1132,15 @@ $sourceManifest = [pscustomobject][ordered]@{
         [ordered]@{ name = "CommunityDragon TFT en_us"; url = $Sources.communityDragonEn; type = "Riotクライアント抽出コミュニティ配布"; use = "英語名"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
         [ordered]@{ name = "CommunityDragon champion calculation bins"; url = $Sources.communityDragonChampionBinTemplate; type = "Riotクライアント抽出コミュニティ配布"; use = "チャンピオンスキル数式の現在値解決"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
         [ordered]@{ name = "MetaTFT Japanese lookup"; url = $Sources.metaTftJapaneseLookup; type = "公開配信データ"; use = "現在セットの名称・ID・表示文言の照合"; terms = "Public endpoint; availability and terms must be monitored" }
+        if (@($catalog.systemData.referenceTables | Where-Object { $_.id -eq 'wisp_tiers' -and $_.state -eq 'READY' }).Count -gt 0) {
+            [ordered]@{name='MetaTFT Wisp editorial ratings';url='https://api-hc.metatft.com/tft-stat-api/wisp_tiers';type='公開編集評価';use='強さ評価だけ。ユーザー許可により採用。現行セットIDとパッチ公開後の更新を照合';terms='Public endpoint; not a statistical win-rate ranking; availability and terms must be monitored'}
+        }
+        if (@($catalog.systemData.referenceTables | Where-Object { $_.id -eq 'wisp_reference' -and $_.state -eq 'READY' }).Count -gt 0) {
+            $referenceDefinition = Get-Content -Raw -Encoding UTF8 (Join-Path $RepositoryRoot "config/reference-tables/$SetId-$TftPatch.json") | ConvertFrom-Json
+            [ordered]@{ name='Little Buddy Bot Wisp public sheet'; url=$referenceDefinition.csvUrl; type='公開されたゲーム事実'; use='照合済みの価格・効果・条件のみ'; terms='Little Buddy Bot terms attribute TFT content to Riot; no partnership or commercial redistribution license claimed' }
+            [ordered]@{ name='Little Buddy Bot Wisp page'; url=$referenceDefinition.pageUrl; type='公開ページ'; use='表の対象パッチ確認'; terms='https://www.littlebuddybot.com/terms-of-service' }
+            [ordered]@{ name='Riot reference verification notes'; url=$referenceDefinition.officialUrl; type='Riot公式'; use='定義作成時の18.3・18.3B・hotfix照合。自動で新パッチの翻訳を生成したとはみなさない'; terms='Riot website terms' }
+        }
         if ($rawChampionFallbackUsed) {
             [ordered]@{ name = "CommunityDragon raw Map22"; url = $Sources.communityDragonRawMap22; type = "Riotクライアント抽出コミュニティ配布"; use = "derivedデータ欠損時の現在セットshop roster復元"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }
             [ordered]@{ name = "CommunityDragon Japanese string table"; url = $Sources.communityDragonJaStringTable; type = "Riotクライアント抽出コミュニティ配布"; use = "raw rosterの日本語表示復元"; terms = "Riot Legal Jibber Jabber; CommunityDragon is not endorsed by Riot" }

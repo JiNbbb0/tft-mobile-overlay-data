@@ -1,0 +1,27 @@
+{
+  "contract": "SOURCE_CHECKED_REFERENCE_V1",
+  "setId": "TFTSet18",
+  "patch": "18.3",
+  "verifiedAt": "2026-10-01T09:59:32Z",
+  "pageUrl": "https://www.littlebuddybot.com/tft-wisps",
+  "csvUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7Tuku8zc7N5ZaEvVy5XAicB1hOOrlNdAZD_R_xIyoi8lhW82-kgUMrnJzjpm1dqH6pJyK2wYobO4r/pub?gid=0&single=true&output=csv",
+  "officialUrl": "https://teamfighttactics.leagueoflegends.com/ja-jp/news/game-updates/teamfight-tactics-patch-18-3/",
+  "ratingsUrl": "https://api-hc.metatft.com/tft-stat-api/wisp_tiers",
+  "patchPublishedAt": "2026-09-22T18:00:00Z",
+  "disabledWispIds": ["DA_18_MajorPolymorph"],
+  "defaultCooldown": "5",
+  "conditionOverrides": {
+    "DA_BloodAndIron18": { "cooldown": "20", "excludedAugmentIds": ["DA_SoloLeveling"] },
+    "DA_BloodAndIron18_Upgrade": { "cooldown": "20", "excludedAugmentIds": ["DA_SoloLeveling"] }
+  },
+  "rows": [
+    { "id": "DA_BloodAndIron18", "nameJa": "血と鉄", "variant": "通常", "cost": "4", "description": "After 20 champion deaths, gain a component anvil.", "effectJa": "チャンピオンが合計20体倒されると素材アイテムの金床を獲得。", "bands": "EarlyMid; Mid", "bandsJa": "中盤前半・中盤", "condition": "", "conditionJa": "追加条件なし" },
+    { "id": "DA_BloodAndIron18_Upgrade", "nameJa": "血と鉄", "variant": "ブロッサム強化", "cost": "4", "description": "After 16 champion deaths, gain a component anvil.", "effectJa": "チャンピオンが合計16体倒されると素材アイテムの金床を獲得。", "bands": "Early", "bandsJa": "序盤", "condition": "", "conditionJa": "追加条件なし" },
+    { "id": "DA_Combust18", "nameJa": "コンバスト", "variant": "通常", "cost": "3", "description": "Your champions explode on death, dealing 15% Max Health magic damage.", "effectJa": "味方チャンピオンが倒されると爆発し、最大体力の15%の魔法ダメージを与える。", "bands": "VeryLate; Late", "bandsJa": "終盤・最終盤", "condition": "", "conditionJa": "追加条件なし" },
+    { "id": "DA_Combust18_Upgrade", "nameJa": "コンバスト", "variant": "ブロッサム強化", "cost": "3", "description": "Your champions explode on death, dealing 18% Max Health magic damage.", "effectJa": "味方チャンピオンが倒されると爆発し、最大体力の18%の魔法ダメージを与える。", "bands": "Late; VeryLate", "bandsJa": "終盤・最終盤", "condition": "", "conditionJa": "追加条件なし" },
+    { "id": "DA_ManaRichSoil18", "nameJa": "あふれるマナの地", "variant": "通常", "cost": "2", "description": "Your Casters have 15% reduced Max Mana.", "effectJa": "味方キャスターの最大マナが15%低下する。", "bands": "VeryLate; Late", "bandsJa": "終盤・最終盤", "condition": "Requires: At least 2 Casters on the board; an itemized champion on your board with the Caster role.", "conditionJa": "盤面にキャスター2体以上、装備を持つキャスター1体以上。" },
+    { "id": "DA_ManaRichSoil18_Upgrade", "nameJa": "あふれるマナの地", "variant": "ブロッサム強化", "cost": "2", "description": "Your Casters have 20% reduced Max Mana.", "effectJa": "味方キャスターの最大マナが20%低下する。", "bands": "VeryLate; Late", "bandsJa": "終盤・最終盤", "condition": "Requires: At least 2 Casters on the board; an itemized champion on your board with the Caster role.", "conditionJa": "盤面にキャスター2体以上、装備を持つキャスター1体以上。" },
+    { "id": "DA_ThreeMe18", "nameJa": "3を私に", "variant": "通常", "cost": "10", "description": "Gain a random 2-star 3-cost champion.", "effectJa": "ランダムな★2のコスト3チャンピオンを1体獲得。", "bands": "EarlyMid; Mid", "bandsJa": "中盤前半・中盤", "condition": "", "conditionJa": "追加条件なし" },
+    { "id": "DA_ThreeMe18_Upgrade", "nameJa": "3を私に", "variant": "ブロッサム強化", "cost": "8", "description": "Gain a random 2-star 3-cost champion.", "effectJa": "ランダムな★2のコスト3チャンピオンを1体獲得。", "bands": "EarlyMid; Mid", "bandsJa": "中盤前半・中盤", "condition": "", "conditionJa": "追加条件なし" }
+  ]
+}

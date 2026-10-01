@@ -11,6 +11,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 . (Join-Path $PSScriptRoot 'composition-rank-contract.ps1')
+. (Join-Path $PSScriptRoot 'composition-condition-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedSnapshot = if ([IO.Path]::IsPathRooted($SnapshotPath)) {
@@ -148,6 +149,7 @@ $allItemStats = @()
 $trustedStatCount = 0
 $trustedOptionCount = 0
 foreach ($composition in $compositions) {
+    Assert-CompositionSituationalContract $composition
     $title = if ($composition.PSObject.Properties['displayNameJa']) { [string]$composition.displayNameJa } else { [string]$composition.name }
     if (-not $composition.id -or -not $title) { throw "Composition identity missing" }
     if ([int]$snapshot.schemaVersion -ge 5 -and (-not $composition.titleKey -or -not $composition.titleSource)) {

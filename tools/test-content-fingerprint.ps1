@@ -62,6 +62,11 @@ Assert-NotEqual $baseline (Fingerprint) 'Catalog change was not detected.'
 $catalog.champions[0].nameJa='Test Unit'; Write-Fixture; [IO.File]::WriteAllBytes($imagePath, [byte[]](137,80,78,71,13,10,26,10,2))
 Assert-NotEqual $baseline (Fingerprint) 'Referenced image content change was not detected.'
 [IO.File]::WriteAllBytes($imagePath, [byte[]](137,80,78,71,13,10,26,10,1))
+$snapshot.compositions[0].conditionContract='METATFT_SITUATIONAL_V1'
+$snapshot.compositions[0].situationalRequirements=@([ordered]@{kind='EMBLEM';sourceId='source-emblem';name='紋章';adoptionRate=0.6})
+Write-Fixture
+Assert-NotEqual $baseline (Fingerprint) 'Situational requirement change was not versioned.'
+$snapshot.compositions[0].Remove('conditionContract'); $snapshot.compositions[0].Remove('situationalRequirements')
 $snapshot.compositions[0].units[0].recommendedBuild=@([ordered]@{ itemId='Item_B' },[ordered]@{ itemId='Item_A' }); Write-Fixture
 Assert-NotEqual $baseline (Fingerprint) 'Recommended item priority change was not detected.'
 

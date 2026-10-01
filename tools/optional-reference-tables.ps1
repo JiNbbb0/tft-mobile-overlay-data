@@ -13,11 +13,11 @@ function Get-OptionalReferenceTables {
         try {
             $definition = Get-Content -Raw -Encoding UTF8 -LiteralPath $definitionPath | ConvertFrom-Json
             if ([string]$definition.ratingsUrl -cne 'https://api-hc.metatft.com/tft-stat-api/wisp_tiers') { throw 'WISP_STRENGTH_URL_INVALID' }
-            $ratings = Get-OptionalReferenceText ([string]$definition.ratingsUrl) | ConvertFrom-Json
+            $ratings = Get-OptionalReferenceText ([string]$definition.ratingsUrl) 'WISP_STRENGTH' | ConvertFrom-Json
             $strength = ConvertTo-CheckedWispStrengthTable $definition $ratings $CurrentSetData $JapaneseItems $SetId $Patch
             Assert-ReferenceTables @($strength) $SetId $Patch
         } catch {
-            Write-Warning 'Optional Wisp strength verification failed; no guessed ratings or previous-patch fallback.'
+            Write-Warning ('Optional Wisp strength verification failed; ' + (Get-ReferenceFailureCode $_) + '; no guessed ratings or previous-patch fallback.')
             $strength = New-UnavailableReferenceTable 'wisp_tiers' 'ウィスプ評価' $SetId $Patch '現行セット・パッチに対応する評価を確認できませんでした。別版の評価や推測で補完しません。'
         }
     }
@@ -28,21 +28,30 @@ function Get-OptionalReferenceTables {
         }
         # One page plus its explicitly published sheet, once per catalog refresh;
         # no app-to-upstream traffic and no per-rank duplicate requests.
-        $page = Get-OptionalReferenceText ([string]$definition.pageUrl)
-        $csv = Get-OptionalReferenceText ([string]$definition.csvUrl)
+        $page = Get-OptionalReferenceText ([string]$definition.pageUrl) 'WISP_PAGE'
+        $csv = Get-OptionalReferenceText ([string]$definition.csvUrl) 'WISP_CSV'
         $facts = ConvertTo-CheckedWispTable $definition $page $csv $JapaneseItems $SetId $Patch
         Assert-ReferenceTables @($strength, $facts, $coven) $SetId $Patch
     } catch {
-        Write-Warning 'Optional Wisp reference verification failed; keeping compositions available and withholding the table.'
+        Write-Warning ('Optional Wisp reference verification failed; ' + (Get-ReferenceFailureCode $_) + '; keeping compositions available and withholding the table.')
         $facts = New-UnavailableReferenceTable 'wisp_reference' 'ウィスプ一覧' $SetId $Patch '提供元の変更または取得失敗で、この版の表を確認できませんでした。古い値は表示しません。'
     }
     return @($strength, $facts, $coven)
 }
 
-function Get-OptionalReferenceText([string]$Url) {
-    $lines = & curl.exe -L --proto '=https' --proto-redir '=https' --fail --silent --show-error --max-time 25 --max-filesize 4194304 -A 'TFT-Overlay-Reference/1.0' $Url
-    if ($LASTEXITCODE -ne 0) { throw 'REFERENCE_FETCH_FAILED' }
-    $text = $lines -join "`n"
+function Get-ReferenceFailureCode([object]$Failure) {
+    $code = [string]$Failure.Exception.Message
+    if ($code -cmatch '^[A-Z][A-Z0-9_:.-]{0,180}$') { return $code }
+    # Do not leak response bodies, URLs, local paths or credentials in summaries.
+    return 'REFERENCE_VALIDATION_FAILED'
+}
+
+function Get-OptionalReferenceText([string]$Url, [ValidatePattern('^[A-Z_]{1,40}$')][string]$SourceLabel='REFERENCE') {
+    $lines = @(& curl.exe -L --proto '=https' --proto-redir '=https' --fail --silent --show-error --max-time 25 --max-filesize 4194304 -A 'TFT-Overlay-Reference/1.0' --write-out "`nREFERENCE_HTTP_STATUS:%{http_code}" $Url)
+    $curlExit = $LASTEXITCODE
+    $status = if ($lines.Count -gt 0 -and $lines[-1] -cmatch '^REFERENCE_HTTP_STATUS:([0-9]{3})$') { $Matches[1] } else { '000' }
+    if ($curlExit -ne 0 -or $status -cne '200') { throw "REFERENCE_FETCH_FAILED:${SourceLabel}:HTTP${status}:CURL${curlExit}" }
+    $text = if ($lines.Count -gt 1) { $lines[0..($lines.Count-2)] -join "`n" } else { '' }
     if ([Text.Encoding]::UTF8.GetByteCount($text) -gt 4194304) { throw 'REFERENCE_RESPONSE_TOO_LARGE' }
     Write-SourceObservation -Url $Url -Text $text
     return $text

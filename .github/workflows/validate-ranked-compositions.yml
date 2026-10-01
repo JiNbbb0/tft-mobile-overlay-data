@@ -27,6 +27,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  reference-source-access:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Diagnose independent public reference access
+        shell: pwsh
+        run: ./tools/check-reference-source-access.ps1
   validate:
     runs-on: windows-latest
     timeout-minutes: 40

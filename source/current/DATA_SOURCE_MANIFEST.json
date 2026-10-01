@@ -1,5 +1,5 @@
 {
-  "generatedAtUtc": "2026-10-01T09:20:07Z",
+  "generatedAtUtc": "2026-10-01T10:52:34Z",
   "targetSet": {
     "id": "TFTSet18",
     "number": 18,
@@ -85,6 +85,13 @@
       "type": "公開配信データ",
       "use": "現在セットの名称・ID・表示文言の照合",
       "terms": "Public endpoint; availability and terms must be monitored"
+    },
+    {
+      "name": "MetaTFT Wisp editorial ratings",
+      "url": "https://api-hc.metatft.com/tft-stat-api/wisp_tiers",
+      "type": "公開編集評価",
+      "use": "強さ評価だけ。ユーザー許可により採用。現行セットIDとパッチ公開後の更新を照合",
+      "terms": "Public endpoint; not a statistical win-rate ranking; availability and terms must be monitored"
     }
   ]
 }

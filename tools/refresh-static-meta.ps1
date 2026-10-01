@@ -20,6 +20,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 . (Join-Path $PSScriptRoot 'board-star-policy.ps1')
 . (Join-Path $PSScriptRoot 'metatft-board-contract.ps1')
+. (Join-Path $PSScriptRoot 'composition-condition-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -977,6 +978,7 @@ $compositionCandidates = foreach ($stats in @($compsStats.results)) {
         # These are intentionally separate from the full item-stat rows used
         # by the optimizer and ranking screens.
         overviewBuilds = @($cluster.builds)
+        situationalRequirements = @(Get-CompositionSituationalRequirements -Cluster $cluster -ItemLookup $metaTftItemMap -AugmentLookup $metaTftAugmentMap)
     }
 }
 $effectiveQualifiedCompositions = @($compositionCandidates).Count
@@ -1274,6 +1276,8 @@ $compositions = foreach ($composition in $compositionCandidates) {
         displayNameJa = [string]$composition.displayNameJa
         titleSource = [string]$composition.titleSource
         titleKey = [string]$composition.titleKey
+        conditionContract = 'METATFT_SITUATIONAL_V1'
+        situationalRequirements = @($composition.situationalRequirements)
         tier = [string]$composition.tier
         averagePlacement = [double]$composition.averagePlacement
         sampleCount = [int]$composition.sampleCount

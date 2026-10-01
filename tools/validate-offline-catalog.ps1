@@ -9,6 +9,10 @@ $CatalogPath = Join-Path $AssetRoot "tft/tft_catalog.json"
 $raw = [IO.File]::ReadAllText($CatalogPath, [Text.Encoding]::UTF8)
 $catalog = $raw | ConvertFrom-Json
 if ([int]$catalog.schemaVersion -ne 1) { throw "Unsupported catalog schema" }
+. (Join-Path $PSScriptRoot 'reference-table-contract.ps1')
+if ($catalog.PSObject.Properties['systemData'] -and $catalog.systemData.PSObject.Properties['referenceTables']) {
+    Assert-ReferenceTables @($catalog.systemData.referenceTables) ([string]$catalog.set.id) ([string]$catalog.set.tftPatch)
+}
 
 $groups = @($catalog.champions), @($catalog.traits), @($catalog.items), @($catalog.augments)
 $records = @($catalog.champions) + @($catalog.traits) + @($catalog.items) + @($catalog.augments)

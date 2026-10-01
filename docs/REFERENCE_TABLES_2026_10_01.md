@@ -47,3 +47,18 @@ Definitions are exact-patch reviewed translations. A changed source field or a n
 - Full production dry-run including the new optional table path and public CI remain separate checks; do not infer them from the earlier run.
 
 Canonical draft PR #427 is not merged or modified by this feature.
+
+## HTTP403 recovery follow-up
+
+The first production run `36851776614` exposed a real boundary: editorial ratings were READY/159, but the independently sourced factual table was UNAVAILABLE/0 after an HTTP403. The earlier catch did not identify which of the two factual URLs failed, so the affected endpoint and the provider's internal reason cannot be retrospectively established. It was incorrect to equate the overall green workflow with successful factual-table publication.
+
+The Windows-hosted GitHub source probe job `110346040610` subsequently fetched both the original public page and its explicitly published CSV with HTTP200 (260,488 and 256,785 UTF-8 bytes). No URL substitution, proxy, cookies, authentication or browser impersonation was used. This proves availability at that later time, not a guarantee that a 403 cannot recur.
+
+- Fetch failures now report sanitized source labels and HTTP/curl codes, not bodies, credentials or URLs.
+- Standard curl transient retries are capped at one retry / 30-second retry window. 401/403 are not retryable, and `--retry-all-errors` is prohibited. The existing scheduled normal refresh rechecks the sources independently on later runs.
+- Explicit regression: UNAVAILABLE → READY changes the full content fingerprint even when Set/Patch/composition statistics are unchanged. A successful poll clock alone does not cause publication.
+- CI production dry-run now requires the configured facts table to be READY with the complete definition row count. Seven-rank generator success alone is no longer evidence that this feature works. Live publication still treats a rejected optional source as unavailable rather than blocking otherwise valid compositions.
+- The diagnostic job selects the current Set/Patch definition; it does not borrow a Set18 definition in a future set.
+- Full external-service uptime, all-Wisp translations and the Coven reward table remain out of scope for this HTTP403 repair. Native Android display remains unverified until a device is available.
+
+Final PR CI, production run and public SHA/row-count evidence will be recorded after they actually complete.

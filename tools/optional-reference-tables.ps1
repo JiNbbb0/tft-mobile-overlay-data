@@ -47,7 +47,11 @@ function Get-ReferenceFailureCode([object]$Failure) {
 }
 
 function Get-OptionalReferenceText([string]$Url, [ValidatePattern('^[A-Z_]{1,40}$')][string]$SourceLabel='REFERENCE') {
-    $lines = @(& curl.exe -L --proto '=https' --proto-redir '=https' --fail --silent --show-error --max-time 25 --max-filesize 4194304 -A 'TFT-Overlay-Reference/1.0' --write-out "`nREFERENCE_HTTP_STATUS:%{http_code}" $Url)
+    $sourceUri=$null
+    if (-not [uri]::TryCreate($Url,[UriKind]::Absolute,[ref]$sourceUri) -or $sourceUri.Scheme -cne 'https' -or $sourceUri.UserInfo) { throw 'REFERENCE_URL_INVALID' }
+    # curl's standard transient policy retries selected 408/429/5xx or timeout
+    # responses once, NOT 401/403. Never use --retry-all-errors here.
+    $lines = @(& curl.exe -L --proto '=https' --proto-redir '=https' --fail --silent --show-error --max-time 25 --max-filesize 4194304 --retry 1 --retry-delay 2 --retry-max-time 30 -A 'TFT-Overlay-Reference/1.0' --write-out "`nREFERENCE_HTTP_STATUS:%{http_code}" $Url)
     $curlExit = $LASTEXITCODE
     $status = if ($lines.Count -gt 0 -and $lines[-1] -cmatch '^REFERENCE_HTTP_STATUS:([0-9]{3})$') { $Matches[1] } else { '000' }
     if ($curlExit -ne 0 -or $status -cne '200') { throw "REFERENCE_FETCH_FAILED:${SourceLabel}:HTTP${status}:CURL${curlExit}" }

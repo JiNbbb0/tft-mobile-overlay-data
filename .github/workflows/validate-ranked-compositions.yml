@@ -55,7 +55,7 @@ jobs:
         run: ./tools/test-refresh-contracts.ps1
       - name: Run isolated production acquisition, publication, and LKG checks
         shell: pwsh
-        run: ./tools/test-ranked-production-refresh.ps1
+        run: ./tools/test-ranked-production-refresh.ps1 -RequireReferenceFacts
       - name: Confirm no production content was modified
         shell: pwsh
         run: |

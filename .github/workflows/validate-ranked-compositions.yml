@@ -27,6 +27,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  reference-source-access:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Diagnose independent public reference access
+        shell: pwsh
+        run: ./tools/check-reference-source-access.ps1
   validate:
     runs-on: windows-latest
     timeout-minutes: 40
@@ -47,7 +55,7 @@ jobs:
         run: ./tools/test-refresh-contracts.ps1
       - name: Run isolated production acquisition, publication, and LKG checks
         shell: pwsh
-        run: ./tools/test-ranked-production-refresh.ps1
+        run: ./tools/test-ranked-production-refresh.ps1 -RequireReferenceFacts
       - name: Confirm no production content was modified
         shell: pwsh
         run: |

@@ -7,6 +7,7 @@ Set-StrictMode -Version Latest
 $tests = @(
     'test-composition-condition-contract.ps1',
     'test-reference-table-contract.ps1',
+    'test-reference-transport.ps1',
     'test-wisp-strength-contract.ps1',
     'test-board-star-policy.ps1',
     'test-metatft-board-contract.ps1',

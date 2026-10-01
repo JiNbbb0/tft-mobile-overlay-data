@@ -1,3 +1,4 @@
+param([switch]$RequireReferenceFacts)
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $root = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
@@ -19,6 +20,16 @@ foreach ($preflight in @('ensure-json-array-contract.ps1', 'verify-runtime-harde
 if ($LASTEXITCODE -ne 0) { throw 'Isolated production refresh failed; public data is unchanged' }
 $snapshot = Get-Content -Raw -LiteralPath (Join-Path $workspace 'source/current/tft_static_snapshot.json') | ConvertFrom-Json
 if (-not $snapshot.PSObject.Properties['compositionRanks']) { throw 'Production refresh did not generate rank datasets' }
+$catalog=Get-Content -Raw -LiteralPath (Join-Path $workspace 'source/current/tft/tft_catalog.json') | ConvertFrom-Json
+$definitionPath=Join-Path $workspace ("config/reference-tables/$($catalog.set.id)-$($catalog.set.tftPatch).json")
+if ($RequireReferenceFacts -and (Test-Path -LiteralPath $definitionPath)) {
+    $definition=Get-Content -Raw -LiteralPath $definitionPath | ConvertFrom-Json
+    $facts=@($catalog.systemData.referenceTables | Where-Object id -CEQ 'wisp_reference')
+    if ($facts.Count -ne 1 -or $facts[0].state -cne 'READY' -or @($facts[0].rows).Count -ne @($definition.rows).Count) {
+        throw 'Live reference facts were not verified; generator success alone is not proof of restored table availability.'
+    }
+    Write-Output "Live reference facts PASS: Set=$($catalog.set.id); Patch=$($catalog.set.tftPatch); Rows=$(@($facts[0].rows).Count)"
+}
 # The real refresh already published and validated this exact immutable ID.
 # Do not regenerate metadata and attempt to publish it a second time.
 $indexPath = Join-Path $workspace 'site/data-index.json'

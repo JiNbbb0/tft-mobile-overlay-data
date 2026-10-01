@@ -70,4 +70,13 @@ $snapshot.compositions[0].Remove('conditionContract'); $snapshot.compositions[0]
 $snapshot.compositions[0].units[0].recommendedBuild=@([ordered]@{ itemId='Item_B' },[ordered]@{ itemId='Item_A' }); Write-Fixture
 Assert-NotEqual $baseline (Fingerprint) 'Recommended item priority change was not detected.'
 
+$catalog.systemData.referenceTables=@([ordered]@{id='wisp_reference';state='UNAVAILABLE';rows=@()})
+Write-Fixture; $unavailableFingerprint=Fingerprint
+$catalog.systemData.referenceTables[0].state='READY'
+$catalog.systemData.referenceTables[0].rows=@([ordered]@{id='checked';cells=@('価格','4 G')})
+Write-Fixture; $recoveredFingerprint=Fingerprint
+Assert-NotEqual $unavailableFingerprint $recoveredFingerprint 'Recovered optional table was not versioned when patch and composition stats stayed unchanged.'
+$catalog.fetchedAtUtc='2026-01-02T00:00:00Z'; Write-Fixture
+Assert-Equal $recoveredFingerprint (Fingerprint) 'Successful poll clock produced needless publication.'
+
 Write-Output 'Composite material fingerprint fixtures passed.'

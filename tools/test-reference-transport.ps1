@@ -1,5 +1,6 @@
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
+$nativeExitBefore=Get-Variable -Name LASTEXITCODE -Scope Global -ValueOnly -ErrorAction SilentlyContinue
 . (Join-Path $PSScriptRoot 'optional-reference-tables.ps1')
 $script:curlCalls=0; $script:observations=0
 $script:response=@('verified-body','REFERENCE_HTTP_STATUS:200'); $script:curlResult=0
@@ -7,7 +8,9 @@ function curl.exe {
     $script:curlCalls++
     if ($args -ccontains '--retry-all-errors') { throw 'Unsafe rejection retry policy' }
     if (($args -join ' ') -notmatch '--retry 1 --retry-delay 2 --retry-max-time 30') { throw 'Unbounded transient retry policy' }
-    $global:LASTEXITCODE=$script:curlResult
+    # Emulate the native exit code only in the calling fetch function. A global
+    # mocked failure survives this script and falsely fails the Actions wrapper.
+    Set-Variable -Name LASTEXITCODE -Value $script:curlResult -Scope 1
     return $script:response
 }
 function Write-SourceObservation { param([string]$Url,[string]$Text); $script:observations++ }
@@ -31,4 +34,6 @@ if ($script:curlCalls -ne 4) { throw 'Unsafe URL reached the transport' }
 try { throw 'https://private.test/?token=secret /local/path' } catch {
     if ((Get-ReferenceFailureCode $_) -cne 'REFERENCE_VALIDATION_FAILED') { throw 'Failure sanitization leaked private text' }
 }
+$nativeExitAfter=Get-Variable -Name LASTEXITCODE -Scope Global -ValueOnly -ErrorAction SilentlyContinue
+if ($nativeExitBefore -cne $nativeExitAfter) { throw 'Mocked native exit code escaped the transport test' }
 Write-Output 'Reference transport PASS: HTTPS-only, sanitized source/status codes, bounded transient policy, no 403 bypass, no false success.'

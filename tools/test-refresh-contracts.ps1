@@ -5,6 +5,7 @@ Set-StrictMode -Version Latest
 # workflows. Live refreshes validate their actual candidate instead of
 # rebuilding the same synthetic fixtures every 15 minutes.
 $tests = @(
+    'test-team-planner-contract.ps1',
     'test-composition-condition-contract.ps1',
     'test-reference-table-contract.ps1',
     'test-reference-transport.ps1',

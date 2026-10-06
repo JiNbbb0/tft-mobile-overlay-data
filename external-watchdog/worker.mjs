@@ -47,7 +47,7 @@ async function bytes(fetcher, url, options = {}, maximum = 1_048_576) {
   for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
   return result;
 }
-const decode = data => new TextDecoder("utf-8", { fatal: true }).decode(data).replace(/^\uFEFF/, "");
+const decode = data => new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(data).replace(/^\uFEFF/, "");
 const json = async (...args) => JSON.parse(decode(await bytes(...args)));
 const sha256 = async data => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", data)), n => n.toString(16).padStart(2, "0")).join("");
 const base64url = data => btoa(String.fromCharCode(...data)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");

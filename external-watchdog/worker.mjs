@@ -63,18 +63,24 @@ export function privateKeyBytes(pem) {
   // GitHub downloads PKCS#1; Web Crypto imports PKCS#8. DER-wrap the unchanged key.
   return der(0x30, new Uint8Array([0x02, 0x01, 0x00, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, ...der(0x04, decoded)]));
 }
-async function githubToken(env, fetcher, now) {
+async function githubToken(env, fetcher, now, setStage) {
   // A scoped token is supported for bootstrap only. Production should use an
   // installation token renewed automatically, not a PAT with a renewal deadline.
   if (env.GITHUB_TOKEN) return env.GITHUB_TOKEN;
   if (!/^\d+$/.test(env.GITHUB_APP_ID || "") || !/^\d+$/.test(env.GITHUB_INSTALLATION_ID || "")) fail("GITHUB_NOT_CONNECTED");
   const identity = `${env.GITHUB_APP_ID}:${env.GITHUB_INSTALLATION_ID}:${env.GITHUB_REPOSITORY}`;
   if (tokenCache?.identity === identity && tokenCache.expires > now + 5 * MINUTE) return tokenCache.token;
-  const key = await crypto.subtle.importKey("pkcs8", privateKeyBytes(env.GITHUB_APP_PRIVATE_KEY), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  setStage("APP_KEY_DECODE");
+  const keyBytes = privateKeyBytes(env.GITHUB_APP_PRIVATE_KEY);
+  setStage("APP_KEY_IMPORT");
+  const key = await crypto.subtle.importKey("pkcs8", keyBytes, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  setStage("APP_JWT_ENCODE");
   const header = base64url(encoder.encode(JSON.stringify({ alg: "RS256", typ: "JWT" })));
   const payload = base64url(encoder.encode(JSON.stringify({ iat: Math.floor(now / 1000) - 60, exp: Math.floor(now / 1000) + 540, iss: env.GITHUB_APP_ID })));
   const signing = `${header}.${payload}`;
+  setStage("APP_JWT_SIGN");
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(signing));
+  setStage("APP_TOKEN_REQUEST");
   const result = await json(fetcher, `https://api.github.com/app/installations/${env.GITHUB_INSTALLATION_ID}/access_tokens`, {
     method: "POST",
     headers: { ...githubHeaders(`${signing}.${base64url(new Uint8Array(signature))}`), "Content-Type": "application/json" },
@@ -208,7 +214,7 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
     try {
       const config = configuration(env);
       stage = "AUTHENTICATION";
-      const token = await githubToken(env, fetcher, now);
+      const token = await githubToken(env, fetcher, now, value => { stage = value; });
       const headers = githubHeaders(token);
       stage = "RUN_QUEUE";
       const response = await json(fetcher, `${config.api}/actions/runs?branch=main&per_page=50`, { headers });

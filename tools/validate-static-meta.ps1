@@ -12,6 +12,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'statistics-scope-contract.ps1')
 . (Join-Path $PSScriptRoot 'composition-rank-contract.ps1')
 . (Join-Path $PSScriptRoot 'composition-condition-contract.ps1')
+. (Join-Path $PSScriptRoot 'team-planner-contract.ps1')
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $resolvedSnapshot = if ([IO.Path]::IsPathRooted($SnapshotPath)) {
@@ -35,6 +36,7 @@ if (-not (Test-Path -LiteralPath $resolvedCatalog)) {
 $snapshot = if ($null -ne $SnapshotObject) { $SnapshotObject } else { Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedSnapshot | ConvertFrom-Json }
 $catalog = Get-Content -Raw -Encoding UTF8 -LiteralPath $resolvedCatalog | ConvertFrom-Json
 if ([string]$snapshot.setId -cne [string]$catalog.set.id) { throw 'Snapshot/catalog set mismatch' }
+Assert-TftTeamPlannerCodes -Snapshot $snapshot
 Assert-CompositionRanks -Snapshot $snapshot -Patch ([string]$catalog.set.tftPatch)
 if ($snapshot.PSObject.Properties['compositionRanks']) {
     foreach ($rankDataset in @($snapshot.compositionRanks.datasets)) {

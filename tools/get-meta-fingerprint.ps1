@@ -156,6 +156,7 @@ $normalized = [ordered]@{
                 displayNameJa = $title
                 titleSource = [string](Optional $composition 'titleSource' '')
                 titleKey = [string](Optional $composition 'titleKey' '')
+                teamPlannerCode = [string](Optional $composition 'teamPlannerCode' '')
                 conditionContract = [string](Optional $composition 'conditionContract' '')
                 situationalRequirements = @(Optional $composition 'situationalRequirements' @())
                 tier = [string]$composition.tier

@@ -21,6 +21,7 @@ Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot 'board-star-policy.ps1')
 . (Join-Path $PSScriptRoot 'metatft-board-contract.ps1')
 . (Join-Path $PSScriptRoot 'composition-condition-contract.ps1')
+. (Join-Path $PSScriptRoot 'team-planner-contract.ps1')
 
 $UserAgent = "TFT-Mobile-Overlay-Data/1.0 public-statistics-refresh"
 $MetaTftRobotsUrl = "https://www.metatft.com/robots.txt"
@@ -667,6 +668,18 @@ $canonicalChampionAliasResult = New-MetaTftCanonicalChampionAliasIndex `
     -CanonicalChampionIds $canonicalChampionMap `
     -MetaTftUnits @($metaTftLookup.units)
 $canonicalChampionAliasMap = $canonicalChampionAliasResult.aliases
+$plannerIndex = [Collections.Generic.Dictionary[string,int]]::new([StringComparer]::Ordinal)
+$plannerUrl = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tftchampions-teamplanner.json'
+if ($canonicalChampionMap.Count -gt 0) {
+    try {
+        $plannerIndex = New-TftTeamPlannerIndex -Document (Get-Json -Url $plannerUrl) `
+            -SetId ([string]$clusterInfo.tft_set) -ChampionIds @($canonicalChampionMap.Keys)
+    } catch {
+        # This optional export feature must not block healthy statistics publication.
+        # Never reuse another set's planner IDs or invent aliases.
+        Write-Warning 'Team planner codes unavailable: current-set source could not be verified.'
+    }
+}
 Write-Output "MetaTFT champion identity aliases: $($canonicalChampionAliasMap.Count) exact asset aliases; $(@($canonicalChampionAliasResult.ambiguousIds).Count) ambiguous aliases rejected"
 $canonicalTraitMap = @{}
 foreach ($canonicalTrait in @($canonicalCatalog.traits)) {
@@ -1294,6 +1307,8 @@ $compositions = foreach ($composition in $compositionCandidates) {
         rollPlan = $rollPlan
         recommendedAugments = @($recommendedAugments)
         finalBoard = $finalBoard
+        teamPlannerCode = Get-TftTeamPlannerCode -SetId ([string]$clusterInfo.tft_set) `
+            -UnitIds @($finalBoard.units | ForEach-Object { [string]$_.id }) -Index $plannerIndex
         boardContract = 'METATFT_SHORTLIST_V1'
         levelBoards = @($generatedBoards.FINAL)
         earlyBoards = @($generatedBoards.EARLY)
@@ -1396,6 +1411,7 @@ $snapshot = [pscustomobject][ordered]@{
         unitItemPopularity = $unitItemsUrl
         metaTftJapaneseLookup = $metaTftLookupUrl
         communityDragon = $CommunityDragonUrl
+        teamPlanner = $plannerUrl
     }
     augments = @($augments)
     compositions = @($compositions)

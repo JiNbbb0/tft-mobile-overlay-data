@@ -26,4 +26,6 @@ $snapshot = [pscustomobject]@{setId='TFTSet18';compositions=@([pscustomobject]@{
 Assert-TftTeamPlannerCodes $snapshot
 $snapshot.setId = 'TFTSet19'
 Reject { Assert-TftTeamPlannerCodes $snapshot }
+Assert-TftTeamPlannerCodes ([pscustomobject]@{setId='TFTSet19';compositions=@()})
+Assert-TftTeamPlannerCodes ([pscustomobject]@{setId='TFTSet19';compositions=$null})
 Write-Output 'Team planner contract PASS: golden/duplicates, exact IDs, missing set/IDs, ambiguity, overflow, validation.'

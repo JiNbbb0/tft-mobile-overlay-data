@@ -39,6 +39,7 @@ function Get-TftTeamPlannerCode {
 function Assert-TftTeamPlannerCodes {
     param([Parameter(Mandatory)]$Snapshot)
     foreach ($comp in @($Snapshot.compositions)) {
+        if ($null -eq $comp) { continue }
         if (-not $comp.PSObject.Properties['teamPlannerCode'] -or -not $comp.teamPlannerCode) { continue }
         $code = [string]$comp.teamPlannerCode
         if ($code -cnotmatch ('^02[0-9a-f]{30}' + [regex]::Escape([string]$Snapshot.setId) + '$')) {

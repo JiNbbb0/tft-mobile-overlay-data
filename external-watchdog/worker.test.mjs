@@ -49,6 +49,17 @@ function fixture(options = {}) {
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
 
+test("diagnostics locate a failure without exposing its message or untrusted name", async () => {
+  const f = fixture({ fetchFailure: () => true });
+  const failed = await runCheck(f.env, { fetcher: f.fetcher, now });
+  assert.equal(failed.failureStage, "RUN_QUEUE");
+  assert.equal(failed.failureKind, "OTHER");
+  assert.ok(!JSON.stringify(failed).includes("private-url-secret"));
+  const recovered = await runCheck(f.env, { fetcher: fixture().fetcher, now: now + minute });
+  assert.equal(recovered.failureStage, null);
+  assert.equal(recovered.failureKind, null);
+});
+
 test("independent dispatch when all GitHub schedules have been silent for six hours", () => {
   assert.equal(decision([run({ created_at: at(400) })]).action, "REFRESH");
 });

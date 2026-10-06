@@ -184,6 +184,8 @@ export function publicHealth(state, now = Date.now()) {
     sourceVerificationAgeMinutes: age === null ? null : Math.round(age / MINUTE),
     publicationAligned: state.publication?.aligned === true,
     lastAction: state.action || "NONE", reason: state.reason || "NOT_STARTED",
+    failureStage: state.failureStage || null,
+    failureKind: state.failureKind || null,
     lastDispatchAt: state.lastDispatchAt || null,
     // Bounded evidence, no tokens, account names, repository URLs or log bodies.
     observationStartedAt: state.observationStartedAt || null,
@@ -199,11 +201,16 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
   const state = await env.STATE.get("watchdog-v1", "json") || {};
   let decision = { action: "NONE", reason: "DISABLED" };
   let status = "DISABLED";
+  let stage = "CONFIGURATION";
+  state.failureStage = null;
+  state.failureKind = null;
   if (env.ENABLED === "true") {
     try {
       const config = configuration(env);
+      stage = "AUTHENTICATION";
       const token = await githubToken(env, fetcher, now);
       const headers = githubHeaders(token);
+      stage = "RUN_QUEUE";
       const response = await json(fetcher, `${config.api}/actions/runs?branch=main&per_page=50`, { headers });
       if (!Array.isArray(response.workflow_runs)) fail("RUNS_INVALID");
       const runs = response.workflow_runs;
@@ -212,18 +219,22 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
         if (!r.path || !r.status || !Number.isSafeInteger(r.id)) fail("RUNS_INVALID");
         timestamp(r.created_at);
       }
+      stage = "TRACKED_HEAD";
       const head = await json(fetcher, `${config.api}/git/ref/heads/main`, { headers }, 16_384);
       // Pin control-file comparisons to one commit; main can advance while the
       // independent check is reading Pages. Never compare two different commits.
+      stage = "PUBLICATION";
       const publication = await readPublication({ ...config, commitSha: head.object?.sha }, fetcher, now);
       state.publication = publication;
       const successful = runs.find(r => r.path === REFRESH && r.head_branch === "main" && r.status === "completed" && r.conclusion === "success");
       if (successful && String(successful.id) !== state.sourceProof?.runId) {
+        stage = "SOURCE_PROOF";
         const jobs = await json(fetcher, `${config.api}/actions/runs/${successful.id}/jobs?per_page=100`, { headers });
         if (!Array.isArray(jobs.jobs)) fail("JOBS_INVALID");
         const proof = sourceProof(successful, jobs.jobs, publication.versionId, now);
         if (proof) state.sourceProof = proof;
       }
+      stage = "DECISION";
       decision = decide({ runs, publication, state, now });
       status = !publication.aligned ? "PUBLICATION_DELAYED" : "CHECKED";
       if (decision.reason === "RUN_STALLED") status = "NEEDS_ATTENTION";
@@ -231,7 +242,9 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
         // Reserve before the request. An ambiguous timeout must not cause a new
         // dispatch every five minutes. GitHub concurrency remains the final lock.
         state.lastDispatchAt = iso(now);
+        stage = "DISPATCH_RESERVATION";
         await env.STATE.put("watchdog-v1", JSON.stringify(state));
+        stage = "DISPATCH";
         const workflow = decision.action === "REFRESH" ? "refresh-tft-data.yml" : "deploy-pages.yml";
         const dispatch = await fetcher(`${config.api}/actions/workflows/${workflow}/dispatches`, {
           method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
@@ -243,6 +256,9 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
     } catch (error) {
       if (error instanceof CheckError && /(?:^|_)401$/.test(error.code)) tokenCache = undefined;
       status = "CHECK_FAILED";
+      state.failureStage = stage;
+      // Never expose error.message, stack, URLs, credential text or arbitrary names.
+      state.failureKind = ["TypeError", "SyntaxError", "DataError", "InvalidCharacterError", "OperationError", "NotSupportedError", "AbortError", "TimeoutError"].includes(error?.name) ? error.name : "OTHER";
       decision = { action: "NONE", reason: error instanceof CheckError ? error.code : "CHECK_UNAVAILABLE" };
       state.failedChecks = (state.failedChecks || 0) + 1;
     }

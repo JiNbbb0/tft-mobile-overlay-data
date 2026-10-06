@@ -28,6 +28,7 @@ function fixture(options = {}) {
   const env = { ENABLED: "true", GITHUB_TOKEN: "test-secret-not-for-logs", GITHUB_REPOSITORY: repository, DATA_INDEX_URL: indexUrl,
     STATE: { get: async () => structuredClone(stored), put: async (_key, value) => { stored = JSON.parse(value); } } };
   const fetcher = async (input, init = {}) => {
+    assert.equal(init.redirect, "manual", "workerd rejects redirect:error; redirects must be gated explicitly");
     const url = new URL(input);
     calls.push({ url: url.href, init });
     if (options.fetchFailure?.(url)) throw new Error("private-url-secret-must-not-leak");
@@ -48,6 +49,45 @@ function fixture(options = {}) {
   return { env, fetcher, calls, state: () => stored };
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
+
+test("redirects are refused before credentials can reach another host", async () => {
+  const f = fixture();
+  let calls = 0;
+  const result = await runCheck(f.env, { now, fetcher: async (_url, init) => {
+    calls++;
+    assert.equal(init.redirect, "manual");
+    return new Response(null, { status: 302, headers: { Location: "https://untrusted.invalid/" } });
+  } });
+  assert.equal(calls, 1);
+  assert.equal(result.reason, "HTTP_302");
+  assert.equal(result.lastAction, "NONE");
+});
+
+test("production transport preserves the Workers native fetch receiver", async () => {
+  const f = fixture();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = function(input, init) {
+    assert.equal(this, globalThis, "Workers native fetch rejects an unbound receiver");
+    return f.fetcher(input, init);
+  };
+  try {
+    const result = await runCheck(f.env, { now });
+    assert.equal(result.status, "CHECKED");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("diagnostics locate a failure without exposing its message or untrusted name", async () => {
+  const f = fixture({ fetchFailure: () => true });
+  const failed = await runCheck(f.env, { fetcher: f.fetcher, now });
+  assert.equal(failed.failureStage, "RUN_QUEUE");
+  assert.equal(failed.failureKind, "OTHER");
+  assert.ok(!JSON.stringify(failed).includes("private-url-secret"));
+  const recovered = await runCheck(f.env, { fetcher: fixture().fetcher, now: now + minute });
+  assert.equal(recovered.failureStage, null);
+  assert.equal(recovered.failureKind, null);
+});
 
 test("independent dispatch when all GitHub schedules have been silent for six hours", () => {
   assert.equal(decision([run({ created_at: at(400) })]).action, "REFRESH");

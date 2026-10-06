@@ -28,7 +28,9 @@ function configuration(env) {
   return { repository, index, api: `https://api.github.com/repos/${repository}` };
 }
 async function bytes(fetcher, url, options = {}, maximum = 1_048_576) {
-  const response = await fetcher(url, { ...options, redirect: "error", signal: AbortSignal.timeout(15_000) });
+  // workerd rejects redirect:"error" before sending a request. Manual mode plus
+  // the status gate rejects redirects without ever forwarding credentials.
+  const response = await fetcher(url, { ...options, redirect: "manual", signal: AbortSignal.timeout(15_000) });
   if (!response.ok) fail(`HTTP_${response.status}`);
   if (response.headers.get("content-length") && Number(response.headers.get("content-length")) > maximum) fail("RESPONSE_TOO_LARGE");
   if (!response.body) fail("EMPTY_RESPONSE");
@@ -63,18 +65,24 @@ export function privateKeyBytes(pem) {
   // GitHub downloads PKCS#1; Web Crypto imports PKCS#8. DER-wrap the unchanged key.
   return der(0x30, new Uint8Array([0x02, 0x01, 0x00, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, ...der(0x04, decoded)]));
 }
-async function githubToken(env, fetcher, now) {
+async function githubToken(env, fetcher, now, setStage) {
   // A scoped token is supported for bootstrap only. Production should use an
   // installation token renewed automatically, not a PAT with a renewal deadline.
   if (env.GITHUB_TOKEN) return env.GITHUB_TOKEN;
   if (!/^\d+$/.test(env.GITHUB_APP_ID || "") || !/^\d+$/.test(env.GITHUB_INSTALLATION_ID || "")) fail("GITHUB_NOT_CONNECTED");
   const identity = `${env.GITHUB_APP_ID}:${env.GITHUB_INSTALLATION_ID}:${env.GITHUB_REPOSITORY}`;
   if (tokenCache?.identity === identity && tokenCache.expires > now + 5 * MINUTE) return tokenCache.token;
-  const key = await crypto.subtle.importKey("pkcs8", privateKeyBytes(env.GITHUB_APP_PRIVATE_KEY), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  setStage("APP_KEY_DECODE");
+  const keyBytes = privateKeyBytes(env.GITHUB_APP_PRIVATE_KEY);
+  setStage("APP_KEY_IMPORT");
+  const key = await crypto.subtle.importKey("pkcs8", keyBytes, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
+  setStage("APP_JWT_ENCODE");
   const header = base64url(encoder.encode(JSON.stringify({ alg: "RS256", typ: "JWT" })));
   const payload = base64url(encoder.encode(JSON.stringify({ iat: Math.floor(now / 1000) - 60, exp: Math.floor(now / 1000) + 540, iss: env.GITHUB_APP_ID })));
   const signing = `${header}.${payload}`;
+  setStage("APP_JWT_SIGN");
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, encoder.encode(signing));
+  setStage("APP_TOKEN_REQUEST");
   const result = await json(fetcher, `https://api.github.com/app/installations/${env.GITHUB_INSTALLATION_ID}/access_tokens`, {
     method: "POST",
     headers: { ...githubHeaders(`${signing}.${base64url(new Uint8Array(signature))}`), "Content-Type": "application/json" },
@@ -184,6 +192,8 @@ export function publicHealth(state, now = Date.now()) {
     sourceVerificationAgeMinutes: age === null ? null : Math.round(age / MINUTE),
     publicationAligned: state.publication?.aligned === true,
     lastAction: state.action || "NONE", reason: state.reason || "NOT_STARTED",
+    failureStage: state.failureStage || null,
+    failureKind: state.failureKind || null,
     lastDispatchAt: state.lastDispatchAt || null,
     // Bounded evidence, no tokens, account names, repository URLs or log bodies.
     observationStartedAt: state.observationStartedAt || null,
@@ -194,16 +204,23 @@ export function publicHealth(state, now = Date.now()) {
     recent: state.recent || [],
   };
 }
-export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) {
+// Workers native fetch requires its global receiver; Node-only injected mocks do
+// not reveal an unbound-fetch TypeError. Preserve the receiver in production.
+export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now() } = {}) {
   if (!env.STATE?.get || !env.STATE?.put) fail("STATE_NOT_CONNECTED");
   const state = await env.STATE.get("watchdog-v1", "json") || {};
   let decision = { action: "NONE", reason: "DISABLED" };
   let status = "DISABLED";
+  let stage = "CONFIGURATION";
+  state.failureStage = null;
+  state.failureKind = null;
   if (env.ENABLED === "true") {
     try {
       const config = configuration(env);
-      const token = await githubToken(env, fetcher, now);
+      stage = "AUTHENTICATION";
+      const token = await githubToken(env, fetcher, now, value => { stage = value; });
       const headers = githubHeaders(token);
+      stage = "RUN_QUEUE";
       const response = await json(fetcher, `${config.api}/actions/runs?branch=main&per_page=50`, { headers });
       if (!Array.isArray(response.workflow_runs)) fail("RUNS_INVALID");
       const runs = response.workflow_runs;
@@ -212,18 +229,22 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
         if (!r.path || !r.status || !Number.isSafeInteger(r.id)) fail("RUNS_INVALID");
         timestamp(r.created_at);
       }
+      stage = "TRACKED_HEAD";
       const head = await json(fetcher, `${config.api}/git/ref/heads/main`, { headers }, 16_384);
       // Pin control-file comparisons to one commit; main can advance while the
       // independent check is reading Pages. Never compare two different commits.
+      stage = "PUBLICATION";
       const publication = await readPublication({ ...config, commitSha: head.object?.sha }, fetcher, now);
       state.publication = publication;
       const successful = runs.find(r => r.path === REFRESH && r.head_branch === "main" && r.status === "completed" && r.conclusion === "success");
       if (successful && String(successful.id) !== state.sourceProof?.runId) {
+        stage = "SOURCE_PROOF";
         const jobs = await json(fetcher, `${config.api}/actions/runs/${successful.id}/jobs?per_page=100`, { headers });
         if (!Array.isArray(jobs.jobs)) fail("JOBS_INVALID");
         const proof = sourceProof(successful, jobs.jobs, publication.versionId, now);
         if (proof) state.sourceProof = proof;
       }
+      stage = "DECISION";
       decision = decide({ runs, publication, state, now });
       status = !publication.aligned ? "PUBLICATION_DELAYED" : "CHECKED";
       if (decision.reason === "RUN_STALLED") status = "NEEDS_ATTENTION";
@@ -231,10 +252,12 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
         // Reserve before the request. An ambiguous timeout must not cause a new
         // dispatch every five minutes. GitHub concurrency remains the final lock.
         state.lastDispatchAt = iso(now);
+        stage = "DISPATCH_RESERVATION";
         await env.STATE.put("watchdog-v1", JSON.stringify(state));
+        stage = "DISPATCH";
         const workflow = decision.action === "REFRESH" ? "refresh-tft-data.yml" : "deploy-pages.yml";
         const dispatch = await fetcher(`${config.api}/actions/workflows/${workflow}/dispatches`, {
-          method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
+          method: "POST", redirect: "manual", signal: AbortSignal.timeout(15_000),
           headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }),
         });
         if (![200, 204].includes(dispatch.status)) fail(`DISPATCH_HTTP_${dispatch.status}`);
@@ -243,6 +266,9 @@ export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) 
     } catch (error) {
       if (error instanceof CheckError && /(?:^|_)401$/.test(error.code)) tokenCache = undefined;
       status = "CHECK_FAILED";
+      state.failureStage = stage;
+      // Never expose error.message, stack, URLs, credential text or arbitrary names.
+      state.failureKind = ["TypeError", "SyntaxError", "DataError", "InvalidCharacterError", "OperationError", "NotSupportedError", "AbortError", "TimeoutError"].includes(error?.name) ? error.name : "OTHER";
       decision = { action: "NONE", reason: error instanceof CheckError ? error.code : "CHECK_UNAVAILABLE" };
       state.failedChecks = (state.failedChecks || 0) + 1;
     }

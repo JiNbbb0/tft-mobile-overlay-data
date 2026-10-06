@@ -2,9 +2,22 @@
 
 ## Deployment state
 
-Implementation and local fault-injection tests are prepared. Cloudflare deployment,
-GitHub App installation, real scheduled recovery and the 48-hour unattended check
-are **not yet verified**. Do not describe this directory's existence as a running service.
+Provisioning checkpoint (2026-10-07 JST): the Worker code is deployed to
+`tft-data-watchdog.raizin20050317.workers.dev`, the `STATE` KV binding is attached,
+and actual five-minute Cron invocations have been observed. Production is enabled
+for connection verification; `wrangler.jsonc` defaults to disabled for safe recovery.
+The private GitHub App `tft-data-watchdog-jinbbb0` (App ID `5214289`) is installed
+only on the data repository (installation `168606955`), with the approved Actions
+write / Contents read permissions. User key generation and the encrypted Cloudflare
+secret entry are confirmed. No private key is
+stored in this repository. The identifiers in `wrangler.jsonc` are not credentials.
+
+Local fault-injection tests (39 cases), independent-watchdog CI `37514398141`, and
+complete pipeline regression CI `37510293965` passed. PR #490 is merged as `4c4f0ef`.
+Initial enabled ticks failed in authentication; safe stage diagnostics are being used
+to distinguish key import from token exchange without exposing credential contents.
+Authenticated scoped dispatch, real recovery and the 48-hour unattended check are
+**not yet verified**. This checkpoint is not production acceptance.
 
 ## Why it exists
 
@@ -72,6 +85,10 @@ Run `node --test external-watchdog/worker.test.mjs`. The tests inject missing Gi
 ticks, wrong/missing public data, SHA mismatch, API failure, rapid retries, an ambiguous
 dispatch, no-change evidence, SOURCE_NOT_READY, branch/version changes and UTC offsets.
 The accelerated 48-hour fixture proves **bounded storage only**, not live uptime.
+Disabled provisioning ticks are not autonomous-operation evidence. Start the live
+48-hour acceptance window only after enablement and the first authenticated check;
+preserve its start time and evaluate subsequent events, not `observationStartedAt`
+alone (that field includes pre-enablement observations).
 
 `node external-watchdog/probe-publication.mjs` is a read-only public smoke check.
 CI also runs existing publication/LKG/concurrency regressions. It never deploys this

@@ -7,6 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 . (Join-Path $PSScriptRoot '../../tools/automation-health-policy.ps1')
+. (Join-Path $PSScriptRoot '../../tools/published-data-contract.ps1')
 
 # A NO_CHANGE run is fresh evidence, not a new immutable data version. Only
 # completed successful main runs and matching-version observations may extend
@@ -76,7 +77,7 @@ $ageMinutes = -1.0
 $verificationBasis = 'PUBLISHED_SOURCE_TIMESTAMP'
 try {
     $indexUri = [uri]$DataIndexUrl
-    $qualityUri = [uri]::new($indexUri, 'data-quality.json')
+    $qualityUri = Get-TftPublicDataQualityUri $indexUri
     $index = Get-Json $indexUri
     $quality = Get-Json $qualityUri
 

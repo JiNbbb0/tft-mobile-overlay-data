@@ -1,0 +1,43 @@
+name: Validate independent automation watchdog
+
+on:
+  pull_request:
+    paths:
+      - "external-watchdog/**"
+      - ".github/workflows/external-watchdog-ci.yml"
+      - ".github/workflows/refresh-tft-data.yml"
+      - ".github/scripts/check-refresh-freshness.ps1"
+      - ".github/scripts/check-independent-watchdog.ps1"
+      - ".github/workflows/automation-watchdog.yml"
+      - "tools/reconcile-publication.ps1"
+  push:
+    branches: [main]
+    paths:
+      - "external-watchdog/**"
+      - ".github/workflows/external-watchdog-ci.yml"
+      - ".github/workflows/refresh-tft-data.yml"
+      - ".github/scripts/check-refresh-freshness.ps1"
+      - ".github/scripts/check-independent-watchdog.ps1"
+      - ".github/workflows/automation-watchdog.yml"
+      - "tools/reconcile-publication.ps1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check dependency-free Worker and fault-injection contracts
+        run: node --test external-watchdog/worker.test.mjs
+      - name: Check existing publication safety regressions
+        shell: pwsh
+        run: |
+          ./tools/test-published-data-contract.ps1
+          ./tools/test-publication-verification.ps1
+          ./tools/test-publication-state.ps1
+          ./tools/test-autonomous-recovery.ps1
+          ./tools/test-workflow-concurrency-policy.ps1

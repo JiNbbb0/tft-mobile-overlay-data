@@ -28,7 +28,9 @@ function configuration(env) {
   return { repository, index, api: `https://api.github.com/repos/${repository}` };
 }
 async function bytes(fetcher, url, options = {}, maximum = 1_048_576) {
-  const response = await fetcher(url, { ...options, redirect: "error", signal: AbortSignal.timeout(15_000) });
+  // workerd rejects redirect:"error" before sending a request. Manual mode plus
+  // the status gate rejects redirects without ever forwarding credentials.
+  const response = await fetcher(url, { ...options, redirect: "manual", signal: AbortSignal.timeout(15_000) });
   if (!response.ok) fail(`HTTP_${response.status}`);
   if (response.headers.get("content-length") && Number(response.headers.get("content-length")) > maximum) fail("RESPONSE_TOO_LARGE");
   if (!response.body) fail("EMPTY_RESPONSE");
@@ -255,7 +257,7 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
         stage = "DISPATCH";
         const workflow = decision.action === "REFRESH" ? "refresh-tft-data.yml" : "deploy-pages.yml";
         const dispatch = await fetcher(`${config.api}/actions/workflows/${workflow}/dispatches`, {
-          method: "POST", redirect: "error", signal: AbortSignal.timeout(15_000),
+          method: "POST", redirect: "manual", signal: AbortSignal.timeout(15_000),
           headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }),
         });
         if (![200, 204].includes(dispatch.status)) fail(`DISPATCH_HTTP_${dispatch.status}`);

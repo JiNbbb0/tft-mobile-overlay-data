@@ -28,6 +28,7 @@ function fixture(options = {}) {
   const env = { ENABLED: "true", GITHUB_TOKEN: "test-secret-not-for-logs", GITHUB_REPOSITORY: repository, DATA_INDEX_URL: indexUrl,
     STATE: { get: async () => structuredClone(stored), put: async (_key, value) => { stored = JSON.parse(value); } } };
   const fetcher = async (input, init = {}) => {
+    assert.equal(init.redirect, "manual", "workerd rejects redirect:error; redirects must be gated explicitly");
     const url = new URL(input);
     calls.push({ url: url.href, init });
     if (options.fetchFailure?.(url)) throw new Error("private-url-secret-must-not-leak");
@@ -48,6 +49,19 @@ function fixture(options = {}) {
   return { env, fetcher, calls, state: () => stored };
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
+
+test("redirects are refused before credentials can reach another host", async () => {
+  const f = fixture();
+  let calls = 0;
+  const result = await runCheck(f.env, { now, fetcher: async (_url, init) => {
+    calls++;
+    assert.equal(init.redirect, "manual");
+    return new Response(null, { status: 302, headers: { Location: "https://untrusted.invalid/" } });
+  } });
+  assert.equal(calls, 1);
+  assert.equal(result.reason, "HTTP_302");
+  assert.equal(result.lastAction, "NONE");
+});
 
 test("production transport preserves the Workers native fetch receiver", async () => {
   const f = fixture();

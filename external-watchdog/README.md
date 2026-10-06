@@ -2,9 +2,17 @@
 
 ## Deployment state
 
-Implementation and local fault-injection tests are prepared. Cloudflare deployment,
-GitHub App installation, real scheduled recovery and the 48-hour unattended check
-are **not yet verified**. Do not describe this directory's existence as a running service.
+Provisioning checkpoint (2026-10-07 JST): the Worker code is deployed to
+`tft-data-watchdog.raizin20050317.workers.dev`, the `STATE` KV binding is attached,
+and the five-minute Cron configuration has been saved. `ENABLED=false` is deliberate.
+The private GitHub App `tft-data-watchdog-jinbbb0` (App ID `5214289`) is registered,
+but key handoff and repository installation are still pending. No private key is
+stored in this repository. The identifiers in `wrangler.jsonc` are not credentials.
+
+Local fault-injection tests (38 cases) and the independent-watchdog CI have passed.
+The complete pipeline regression is still being checked. Actual scheduled invocation,
+scoped dispatch, real recovery and the 48-hour unattended check are **not yet verified**.
+The service is **not enabled** and this checkpoint is not production acceptance.
 
 ## Why it exists
 
@@ -72,6 +80,10 @@ Run `node --test external-watchdog/worker.test.mjs`. The tests inject missing Gi
 ticks, wrong/missing public data, SHA mismatch, API failure, rapid retries, an ambiguous
 dispatch, no-change evidence, SOURCE_NOT_READY, branch/version changes and UTC offsets.
 The accelerated 48-hour fixture proves **bounded storage only**, not live uptime.
+Disabled provisioning ticks are not autonomous-operation evidence. Start the live
+48-hour acceptance window only after enablement and the first authenticated check;
+preserve its start time and evaluate subsequent events, not `observationStartedAt`
+alone (that field includes pre-enablement observations).
 
 `node external-watchdog/probe-publication.mjs` is a read-only public smoke check.
 CI also runs existing publication/LKG/concurrency regressions. It never deploys this

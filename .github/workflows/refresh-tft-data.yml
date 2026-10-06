@@ -157,6 +157,20 @@ jobs:
           path: build/refresh-observation/refresh-observation.json
           retention-days: 7
 
+      # The independent scheduler reads this step through the authenticated Jobs
+      # API, and trusts it ONLY after the entire main-branch run has succeeded.
+      # A green SOURCE_NOT_READY run must never advance the verification clock.
+      - name: "Source verified: ${{ steps.refresh.outputs.detected_version }}"
+        if: success() && (steps.refresh.outputs.result == 'NO_CHANGE' || steps.refresh.outputs.result == 'PUBLISHED')
+        shell: pwsh
+        env:
+          VERIFIED_VERSION: ${{ steps.refresh.outputs.detected_version }}
+        run: |
+          $index = Get-Content -Raw site/data-index.json | ConvertFrom-Json
+          $available = if ($index.latestAvailableVersionId) { $index.latestAvailableVersionId } else { $index.latestVersionId }
+          if ($env:VERIFIED_VERSION -cne $available) { throw 'Verified source identity differs from the validated site.' }
+          Write-Output 'Source verification is bound to the validated published identity.'
+
       - name: Write Actions summary
         if: always()
         shell: pwsh

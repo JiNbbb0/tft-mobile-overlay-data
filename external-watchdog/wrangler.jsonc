@@ -1,0 +1,16 @@
+{
+  "name": "tft-data-watchdog",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": true,
+  "triggers": { "crons": ["2-59/5 * * * *"] },
+  "vars": {
+    "ENABLED": "false",
+    "GITHUB_REPOSITORY": "JiNbbb0/tft-mobile-overlay-data",
+    "DATA_INDEX_URL": "https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json"
+  },
+  "observability": { "enabled": true },
+  "kv_namespaces": [
+    { "binding": "STATE", "id": "REPLACE_WITH_FREE_KV_NAMESPACE_ID" }
+  ]
+}

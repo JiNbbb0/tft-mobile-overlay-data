@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Add-Type -AssemblyName System.Net.Http
 . (Join-Path $PSScriptRoot 'publication-reconcile-policy.ps1')
+. (Join-Path $PSScriptRoot 'published-data-contract.ps1')
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $siteRoot = if ([IO.Path]::IsPathRooted($SiteDirectory)) {
@@ -132,7 +133,7 @@ $remoteQualitySha = ''
 $remoteQualityFailure = ''
 if ($remoteReachable) {
     try {
-        $qualityUri = [uri]::new($indexUri, 'data-quality.json')
+        $qualityUri = Get-TftPublicDataQualityUri $indexUri
         if ($qualityUri.Scheme -ne 'https' -or -not $qualityUri.Host.Equals($indexUri.Host, [StringComparison]::OrdinalIgnoreCase)) {
             throw 'Public data-quality URL left the configured HTTPS host.'
         }

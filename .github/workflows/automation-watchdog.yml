@@ -169,6 +169,9 @@ jobs:
         run: ./.github/scripts/check-refresh-freshness.ps1 -DataIndexUrl $env:DATA_INDEX_URL -Repository '${{ github.repository }}'
 
       - name: Upsert or close one sanitized automation health issue
+        # The external clock is also observed from GitHub: neither side treats
+        # the mere existence of the other's schedule as proof of operation.
+        id: report-health
         shell: pwsh
         env:
           GH_AUTOMATION_TOKEN: ${{ github.token }}
@@ -177,6 +180,7 @@ jobs:
           DATA_QUALITY_REASON: ${{ steps.final-quality.outputs.reason }}
           SOURCE_CHECK_REASON: ${{ steps.final-freshness.outputs.reason }}
           SOURCE_AGE_MINUTES: ${{ steps.final-freshness.outputs.age_minutes }}
+          INDEPENDENT_WATCHDOG_URL: ${{ vars.INDEPENDENT_WATCHDOG_URL }}
         run: |
           $outOfSync = $env:PUBLIC_OUT_OF_SYNC -eq 'true'
           $qualityAttention = $env:DATA_QUALITY_REQUIRES_ATTENTION -eq 'true'
@@ -184,6 +188,18 @@ jobs:
           $sourceAge = -1.0
           $sourceAgeValid = [double]::TryParse($env:SOURCE_AGE_MINUTES, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$sourceAge)
           $sourceFailed = -not $sourceAgeValid -or $env:SOURCE_CHECK_REASON -notin @('FRESH', 'SOURCE_STALE')
+          if ($env:INDEPENDENT_WATCHDOG_URL) {
+            $independentOutput = [IO.Path]::GetTempFileName()
+            $originalOutput = $env:GITHUB_OUTPUT
+            try {
+              $env:GITHUB_OUTPUT = $independentOutput
+              ./.github/scripts/check-independent-watchdog.ps1 -MonitorUrl $env:INDEPENDENT_WATCHDOG_URL
+              $sourceFailed = $sourceFailed -or ((Get-Content -Raw -LiteralPath $independentOutput) -match 'requires_attention=true')
+            } finally {
+              $env:GITHUB_OUTPUT = $originalOutput
+              Remove-Item -LiteralPath $independentOutput -Force
+            }
+          }
           ./tools/watch-automation-health.ps1 `
             -Repository '${{ github.repository }}' `
             -GitHubToken $env:GH_AUTOMATION_TOKEN `

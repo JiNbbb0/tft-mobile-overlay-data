@@ -5,8 +5,10 @@
 Provisioning checkpoint (2026-10-07 JST): the Worker code is deployed to
 `tft-data-watchdog.raizin20050317.workers.dev`, the `STATE` KV binding is attached,
 and the five-minute Cron configuration has been saved. `ENABLED=false` is deliberate.
-The private GitHub App `tft-data-watchdog-jinbbb0` (App ID `5214289`) is registered,
-but key handoff and repository installation are still pending. No private key is
+The private GitHub App `tft-data-watchdog-jinbbb0` (App ID `5214289`) is installed
+only on the data repository (installation `168606955`), with the approved Actions
+write / Contents read permissions. User key generation is confirmed; the encrypted
+Cloudflare secret entry remains pending. No private key is
 stored in this repository. The identifiers in `wrangler.jsonc` are not credentials.
 
 Local fault-injection tests (38 cases) and the independent-watchdog CI have passed.

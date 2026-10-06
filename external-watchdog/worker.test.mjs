@@ -49,6 +49,21 @@ function fixture(options = {}) {
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
 
+test("production transport preserves the Workers native fetch receiver", async () => {
+  const f = fixture();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = function(input, init) {
+    assert.equal(this, globalThis, "Workers native fetch rejects an unbound receiver");
+    return f.fetcher(input, init);
+  };
+  try {
+    const result = await runCheck(f.env, { now });
+    assert.equal(result.status, "CHECKED");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("diagnostics locate a failure without exposing its message or untrusted name", async () => {
   const f = fixture({ fetchFailure: () => true });
   const failed = await runCheck(f.env, { fetcher: f.fetcher, now });

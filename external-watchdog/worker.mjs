@@ -202,7 +202,9 @@ export function publicHealth(state, now = Date.now()) {
     recent: state.recent || [],
   };
 }
-export async function runCheck(env, { fetcher = fetch, now = Date.now() } = {}) {
+// Workers native fetch requires its global receiver; Node-only injected mocks do
+// not reveal an unbound-fetch TypeError. Preserve the receiver in production.
+export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now() } = {}) {
   if (!env.STATE?.get || !env.STATE?.put) fail("STATE_NOT_CONNECTED");
   const state = await env.STATE.get("watchdog-v1", "json") || {};
   let decision = { action: "NONE", reason: "DISABLED" };

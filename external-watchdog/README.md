@@ -4,17 +4,20 @@
 
 Provisioning checkpoint (2026-10-07 JST): the Worker code is deployed to
 `tft-data-watchdog.raizin20050317.workers.dev`, the `STATE` KV binding is attached,
-and the five-minute Cron configuration has been saved. `ENABLED=false` is deliberate.
+and actual five-minute Cron invocations have been observed. Production is enabled
+for connection verification; `wrangler.jsonc` defaults to disabled for safe recovery.
 The private GitHub App `tft-data-watchdog-jinbbb0` (App ID `5214289`) is installed
 only on the data repository (installation `168606955`), with the approved Actions
-write / Contents read permissions. User key generation is confirmed; the encrypted
-Cloudflare secret entry remains pending. No private key is
+write / Contents read permissions. User key generation and the encrypted Cloudflare
+secret entry are confirmed. No private key is
 stored in this repository. The identifiers in `wrangler.jsonc` are not credentials.
 
-Local fault-injection tests (38 cases) and the independent-watchdog CI have passed.
-The complete pipeline regression is still being checked. Actual scheduled invocation,
-scoped dispatch, real recovery and the 48-hour unattended check are **not yet verified**.
-The service is **not enabled** and this checkpoint is not production acceptance.
+Local fault-injection tests (39 cases), independent-watchdog CI `37514398141`, and
+complete pipeline regression CI `37510293965` passed. PR #490 is merged as `4c4f0ef`.
+Initial enabled ticks failed in authentication; safe stage diagnostics are being used
+to distinguish key import from token exchange without exposing credential contents.
+Authenticated scoped dispatch, real recovery and the 48-hour unattended check are
+**not yet verified**. This checkpoint is not production acceptance.
 
 ## Why it exists
 

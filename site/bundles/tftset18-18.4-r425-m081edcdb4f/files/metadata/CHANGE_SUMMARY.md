@@ -1,17 +1,17 @@
 # Change Summary
 
-- Generated: 2026-10-06T19:49:24Z
-- From: tftset18-18.4-r425-m9ee3c6c10f
+- Generated: 2026-10-06T21:20:15Z
+- From: tftset18-18.4-r425-m25be07b1be
 - To: TFTSet18 / patch 18.4 / revision 425
 
 | Category | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
 | Champions | 65 | 65 | 0 | 0 | 0 |
-| Traits | 35 | 35 | 0 | 0 | 0 |
+| Traits | 34 | 34 | 0 | 0 | 0 |
 | Items | 662 | 662 | 0 | 0 | 0 |
 | Augments | 592 | 592 | 0 | 0 | 0 |
 | Compositions | 18 | 18 | 0 | 0 | 18 |
-| Images | 622 | 622 | - | - | 0 delta |
+| Images | 621 | 621 | - | - | 0 delta |
 
 - Tier changes: 0
 - Average-placement changes: 16

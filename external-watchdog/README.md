@@ -2,22 +2,31 @@
 
 ## Deployment state
 
-Provisioning checkpoint (2026-10-07 JST): the Worker code is deployed to
+Production checkpoint (2026-10-07 JST): the Worker code is deployed to
 `tft-data-watchdog.raizin20050317.workers.dev`, the `STATE` KV binding is attached,
-and actual five-minute Cron invocations have been observed. Production is enabled
-for connection verification; `wrangler.jsonc` defaults to disabled for safe recovery.
+and actual five-minute Cron invocations have been observed. Production is enabled;
+`wrangler.jsonc` defaults to disabled for safe recovery.
 The private GitHub App `tft-data-watchdog-jinbbb0` (App ID `5214289`) is installed
 only on the data repository (installation `168606955`), with the approved Actions
 write / Contents read permissions. User key generation and the encrypted Cloudflare
 secret entry are confirmed. No private key is
 stored in this repository. The identifiers in `wrangler.jsonc` are not credentials.
 
-Local fault-injection tests (39 cases), independent-watchdog CI `37514398141`, and
-complete pipeline regression CI `37510293965` passed. PR #490 is merged as `4c4f0ef`.
-Initial enabled ticks failed in authentication; safe stage diagnostics are being used
-to distinguish key import from token exchange without exposing credential contents.
-Authenticated scoped dispatch, real recovery and the 48-hour unattended check are
-**not yet verified**. This checkpoint is not production acceptance.
+Independent-watchdog CI `37515575622` and complete pipeline regression CI
+`37510293965` passed. The final transport correction was also checked with only
+three targeted local tests. PR #490 is merged as `4c4f0ef`, and #491 as `fa6cd1b`.
+Initial enabled ticks reached token exchange but workerd rejected `redirect:"error"`.
+The transport now uses `manual` plus fail-closed HTTP status validation; authentication
+secrets are unchanged and redirects still never receive forwarded credentials.
+
+At 2026-10-07 04:03 JST, the real Cloudflare Cron authenticated and dispatched run
+`37516029102` as the dedicated GitHub App. The next tick correctly waited for the
+active run and recorded the previous successful source verification. That run completed
+generation, deployment and remote verification successfully, publishing the same-patch
+meta update `tftset18-18.4-r425-md6706527db`. A separate read-only HTTPS/hash probe
+confirmed public/tracked agreement. GitHub repository variable `INDEPENDENT_WATCHDOG_URL` is saved.
+The 48-hour unattended and long-term free-quota checks remain **not yet verified**.
+See `docs/INDEPENDENT_WATCHDOG_DEPLOYMENT_2026_10_07.md` for evidence and boundaries.
 
 ## Why it exists
 

@@ -65,11 +65,11 @@ function Write-SourceObservation {
 }
 
 function Get-Text {
-    param([Parameter(Mandatory = $true)][string]$Url)
+    param([Parameter(Mandatory = $true)][string]$Url, [int]$MaxTime = 120)
 
     if ($ResponseCache.ContainsKey($Url)) { return [string]$ResponseCache[$Url] }
     for ($attempt = 1; $attempt -le 3; $attempt++) {
-        $lines = & curl.exe -L --fail --silent --show-error --max-time 120 `
+        $lines = & curl.exe -L --fail --silent --show-error --max-time $MaxTime `
             -A $UserAgent $Url
         if ($LASTEXITCODE -eq 0) {
             $text = ($lines -join "`n")
@@ -83,9 +83,9 @@ function Get-Text {
 }
 
 function Get-Json {
-    param([Parameter(Mandatory = $true)][string]$Url)
+    param([Parameter(Mandatory = $true)][string]$Url, [int]$MaxTime = 120)
 
-    $text = Get-Text -Url $Url
+    $text = Get-Text -Url $Url -MaxTime $MaxTime
     try {
         $document = $text | ConvertFrom-Json
         $nativeClaims = [ordered]@{}
@@ -670,13 +670,15 @@ $canonicalChampionAliasResult = New-MetaTftCanonicalChampionAliasIndex `
 $canonicalChampionAliasMap = $canonicalChampionAliasResult.aliases
 $plannerIndex = [Collections.Generic.Dictionary[string,int]]::new([StringComparer]::Ordinal)
 $plannerUrl = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/tftchampions-teamplanner.json'
-if ($canonicalChampionMap.Count -gt 0) {
+$plannerFailureKey = "TEAM_PLANNER_UNAVAILABLE|$($clusterInfo.tft_set)|$plannerUrl"
+if ($canonicalChampionMap.Count -gt 0 -and -not $ResponseCache.ContainsKey($plannerFailureKey)) {
     try {
-        $plannerIndex = New-TftTeamPlannerIndex -Document (Get-Json -Url $plannerUrl) `
+        $plannerIndex = New-TftTeamPlannerIndex -Document (Get-Json -Url $plannerUrl -MaxTime 20) `
             -SetId ([string]$clusterInfo.tft_set) -ChampionIds @($canonicalChampionMap.Keys)
     } catch {
         # This optional export feature must not block healthy statistics publication.
         # Never reuse another set's planner IDs or invent aliases.
+        $ResponseCache[$plannerFailureKey] = $true
         Write-Warning 'Team planner codes unavailable: current-set source could not be verified.'
     }
 }

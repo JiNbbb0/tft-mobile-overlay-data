@@ -2,7 +2,7 @@
 
 各rank snapshotのcompositionに、任意項目`teamPlannerCode`を追加する。旧APK/旧snapshotの互換性を維持する。
 
-- Riotのteam planner datasetをCommunityDragonから取得。7ランクの同一バッチ内は既存ResponseCacheで共有する。
+- Riotのteam planner datasetをCommunityDragonから取得。7ランクの同一バッチ内は既存ResponseCacheで成功/失敗を共有する。任意取得は1試行20秒・最大3試行とし、失敗をrankごとに繰り返さない。
 - 対象`TFTSetN`の`character_id`とcurrent catalogのIDを完全一致で結合する。名前/prefixによる推測をしない。
 - Riot v2形式: `02` + 完成編成順の3桁hex ID×10スロット + `TFTSetN`。空きは`000`、同一ユニットの複数配置を保持。位置・星・装備はコードに含まれない。
 - コードはsnapshot/manifestの既存SHA検証対象。コード変更もmetaFingerprintへ含め、META_UPDATEとして配信する。

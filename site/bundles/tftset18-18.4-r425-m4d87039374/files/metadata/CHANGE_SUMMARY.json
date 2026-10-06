@@ -1,29 +1,126 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-06T16:13:19Z",
-  "fromVersionId": "tftset18-18.3-r425-mef4b6e17ff",
+  "generatedAt": "2026-10-06T20:10:15Z",
+  "fromVersionId": "tftset18-18.4-r425-m9f24af8013",
   "toSetId": "TFTSet18",
-  "toPatch": "18.3",
+  "toPatch": "18.4",
   "toRevision": "425",
   "champions": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_Ahri",
+      "DA_18_Aphelios",
+      "DA_18_Ashe",
+      "DA_18_Azir",
+      "DA_18_Camille",
+      "DA_18_Cassiopeia",
+      "DA_18_Diana",
+      "DA_18_Ezreal",
+      "DA_18_Kayle",
+      "DA_18_Kennen",
+      "DA_18_KhaZix",
+      "DA_18_Kobuko",
+      "DA_18_LeBlanc",
+      "DA_18_Lillia",
+      "DA_18_Malphite",
+      "DA_18_MasterYi_AD",
+      "DA_18_Ornn",
+      "DA_18_Rakan",
+      "DA_18_Rammus",
+      "DA_18_RekSai",
+      "DA_18_Rengar",
+      "DA_18_Shen",
+      "DA_18_Sivir",
+      "DA_18_Teemo",
+      "DA_18_Tristana",
+      "DA_18_Varus",
+      "DA_18_Veigar",
+      "DA_18_Warwick",
+      "DA_18_Xayah",
+      "DA_Brambleback18",
+      "DA_CrimsonRaptor18",
+      "DA_Draven18",
+      "DA_Gromp18_AP",
+      "DA_Karma18",
+      "DA_Nidalee18_AP",
+      "DA_Taric18"
+    ]
   },
   "traits": {
     "added": [],
-    "removed": [],
-    "changed": []
+    "removed": [
+      "DA_18_Blackthorn"
+    ],
+    "changed": [
+      "DA_18_LuxUniqueTrait",
+      "DA_18_Summoner",
+      "DA_18_Vanguard"
+    ]
   },
   "items": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_EmblemBrawler",
+      "DA_18_EmblemHunter",
+      "DA_18_EmblemJuggernaut",
+      "DA_Artifact_EternalPact",
+      "DA_Artifact_MogulsMail",
+      "DA_Crownguard",
+      "DA_ManaPotion18",
+      "DA_ManaPotion18_Radiant",
+      "DA_TitansResolve_Radiant",
+      "DA_WarmogsArmor"
+    ]
   },
   "augments": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_CaretakersAlly",
+      "DA_18_OnesTwosThree",
+      "DA_18_PrimalAugment_Nidalee",
+      "DA_18_PrimalAugmentPlus_Nidalee",
+      "DA_18_RiftbeastTraitAugment",
+      "DA_18_RivalsAugment",
+      "DA_18_SolarTraitAugment",
+      "DA_18_SprykinAugment",
+      "DA_18_WeightTheWorth",
+      "DA_BacklineBlueprint",
+      "DA_BlackthornTraitAugment",
+      "DA_BoxingLessons",
+      "DA_BronzeForLifeII",
+      "DA_ChallengersGrace",
+      "DA_ComponentQuest",
+      "DA_ExplosiveGrowthPlus",
+      "DA_FrontlineFoundation",
+      "DA_GroupHugI",
+      "DA_GroupHugII",
+      "DA_HealingOrbsI",
+      "DA_HealingOrbsII",
+      "DA_HeartOfSteel",
+      "DA_InvestmentStrategy",
+      "DA_InvestmentStrategyI",
+      "DA_ItsMeBaby",
+      "DA_JeweledLotus_II",
+      "DA_LevelUp",
+      "DA_LoadedDice",
+      "DA_LuxurySubscription",
+      "DA_MakeshiftArmorI",
+      "DA_MakeshiftArmorII",
+      "DA_Min_Max",
+      "DA_PandorasItemsII",
+      "DA_ShimmerscaleEssence",
+      "DA_ShoppingSpree",
+      "DA_TradeSector",
+      "DA_TradeSectorPlus",
+      "DA_UpwardMobility",
+      "DA_VerticalityII",
+      "DA_VerticalityIII",
+      "DA_WorththeWait",
+      "DA_WorththeWaitII"
+    ]
   },
   "compositions": {
     "added": [],
@@ -55,18 +152,14 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [
-          "425006"
-        ],
-        "removed": [
-          "425030"
-        ],
+        "added": [],
+        "removed": [],
         "changed": [
           "425000",
           "425002",
           "425003",
           "425005",
-          "425007",
+          "425006",
           "425008",
           "425013",
           "425014",
@@ -75,6 +168,7 @@
           "425023",
           "425025",
           "425026",
+          "425030",
           "425045",
           "425047",
           "425048",
@@ -174,12 +268,8 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [
-          "425019"
-        ],
-        "removed": [
-          "425011"
-        ],
+        "added": [],
+        "removed": [],
         "changed": [
           "425000",
           "425002",
@@ -191,6 +281,7 @@
           "425009",
           "425013",
           "425014",
+          "425019",
           "425022",
           "425023",
           "425025",
@@ -263,95 +354,90 @@
   "tierChanges": [],
   "averagePlacementChanges": [
     {
-      "id": "425014",
-      "before": 4.189323384710346,
-      "after": 4.189077421168618
-    },
-    {
       "id": "425022",
-      "before": 4.213739721733259,
-      "after": 4.212751596962757
+      "before": 4.209305710542914,
+      "after": 4.210129964775902
     },
     {
       "id": "425013",
-      "before": 4.241764103747062,
-      "after": 4.2407620914279125
+      "before": 4.238935493202199,
+      "after": 4.238359811326215
     },
     {
       "id": "425002",
-      "before": 4.316766897821771,
-      "after": 4.31715173127804
+      "before": 4.320040982191165,
+      "after": 4.3201663201663205
     },
     {
       "id": "425005",
-      "before": 4.371570800479634,
-      "after": 4.371706971548961
+      "before": 4.373450875175674,
+      "after": 4.373775102968977
     },
     {
       "id": "425007",
-      "before": 4.374761041125435,
-      "after": 4.375721412501223
+      "before": 4.375006110377866,
+      "after": 4.3753087627479275
     },
     {
       "id": "425026",
-      "before": 4.386608296253768,
-      "after": 4.386239586325768
+      "before": 4.3787769784172665,
+      "after": 4.379297942742052
     },
     {
       "id": "425000",
-      "before": 4.395109395109395,
-      "after": 4.394254602022297
+      "before": 4.3930210918114145,
+      "after": 4.391849821585561
     },
     {
       "id": "425017",
-      "before": 4.436070789421356,
-      "after": 4.443538767395626
+      "before": 4.427517447657029,
+      "after": 4.426321036889332
+    },
+    {
+      "id": "425025",
+      "before": 4.44476937576228,
+      "after": 4.44444906848669
     },
     {
       "id": "425001",
-      "before": 4.44936349170266,
-      "after": 4.449710194340266
-    },
-    {
-      "id": "425047",
-      "before": 4.477833344157953,
-      "after": 4.47806989086851
-    },
-    {
-      "id": "425006",
-      "before": 4.479600952948183,
-      "after": 4.479017857142857
+      "before": 4.459864410642055,
+      "after": 4.460001142008793
     },
     {
       "id": "425008",
-      "before": 4.482362412177986,
-      "after": 4.481298492168057
+      "before": 4.475433366456884,
+      "after": 4.475557192853196
     },
     {
-      "id": "425023",
-      "before": 4.486919125552503,
-      "after": 4.488038277511961
+      "id": "425006",
+      "before": 4.477755421417394,
+      "after": 4.479432624113475
     },
     {
       "id": "425003",
-      "before": 4.491158517399786,
-      "after": 4.491552779408066
+      "before": 4.48943150987444,
+      "after": 4.488934702120498
+    },
+    {
+      "id": "425023",
+      "before": 4.494026788946543,
+      "after": 4.493299529156102
     },
     {
       "id": "425033",
-      "before": 4.502164733550697,
-      "after": 4.5007742004378235
+      "before": 4.497296429145029,
+      "after": 4.49680879592384
     },
     {
       "id": "425012",
-      "before": 4.520727414939382,
-      "after": 4.520130948890843
+      "before": 4.522544204322201,
+      "after": 4.5197167863113386
     }
   ],
   "imageChanges": {
     "previous": 622,
-    "current": 622,
-    "delta": 0
+    "current": 621,
+    "delta": -1
   },
   "missingCounts": {
     "previous": {
@@ -372,7 +458,7 @@
     },
     "traits": {
       "previous": 35,
-      "current": 35
+      "current": 34
     },
     "items": {
       "previous": 662,
@@ -388,7 +474,7 @@
     },
     "images": {
       "previous": 622,
-      "current": 622
+      "current": 621
     }
   }
 }

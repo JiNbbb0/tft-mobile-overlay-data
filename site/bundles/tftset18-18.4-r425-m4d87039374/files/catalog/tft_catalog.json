@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "fetchedAtUtc": "2026-10-06T16:09:20Z",
+  "fetchedAtUtc": "2026-10-06T20:04:53Z",
   "set": {
     "id": "TFTSet18",
     "number": 18,
     "nameJa": "Enchanted Wilds",
     "nameEn": "Enchanted Wilds",
-    "tftPatch": "18.3",
+    "tftPatch": "18.4",
     "dataDragonVersion": "16.19.1",
     "modes": [
       "通常",
@@ -102,7 +102,6 @@
       "DA_18_Adaptor",
       "DA_18_ApexPredator",
       "DA_18_Battlemage",
-      "DA_18_Blackthorn",
       "DA_18_Blossom",
       "DA_18_Brawler",
       "DA_18_Caustic",
@@ -1440,7 +1439,7 @@
       "ability": {
         "nameJa": "乾坤一擲",
         "nameEn": "Piercing Arrow",
-        "descriptionJa": "力を溜めた後、対象と直線上の最も敵の数が多い方向に矢を放つ。命中した敵に445/670/1070/1815の物理ダメージを与える。このダメージは敵に触れるたびに40%減少する(最低40%まで)。",
+        "descriptionJa": "力を溜めた後、直線上で最も敵の数が多い方向に矢を放つ。命中した敵に445/670/1070/1815の物理ダメージを与える。このダメージは敵に触れるたびに40%減少する(最低40%まで)。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1471,7 +1470,7 @@
       "ability": {
         "nameJa": "ふいごの息",
         "nameEn": "Bellows Breath",
-        "descriptionJa": "発動効果: 4秒間、耐久値400/460/550/640のシールドを獲得し、扇形範囲内の敵に200/300/450/765の魔法ダメージを与える。\r\n\r\nクエスト: 各対人戦でオーンがブロックしたダメージを「鍛冶場パワー」として蓄える。★3になるとこの効果が2倍になる。十分な「鍛冶場パワー」を獲得するたびに、「アーティファクトの金床」を1個獲得する。(鍛冶場パワー: 戦闘中の状態に応じて変化 / )",
+        "descriptionJa": "発動効果: 4秒間、耐久値400/460/550/640のシールドを獲得し、扇形範囲内の敵に200/300/450/765の魔法ダメージを与える。\r\n\r\nクエスト: 各対人戦でオーンがブロックしたダメージを「鍛冶場パワー」として蓄える。★3になるとこの効果が85%増加する。十分な「鍛冶場パワー」を獲得するたびに、「アーティファクトの金床」を1個獲得する。(鍛冶場パワー: 戦闘中の状態に応じて変化 / )",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1502,7 +1501,7 @@
       "ability": {
         "nameJa": "ディフェンシブスイープ",
         "nameEn": "Defensive Sweep",
-        "descriptionJa": "対象を切り裂いて170/255/435/740の物理ダメージを与え、2秒間、耐久値60/90/200/310のシールドを獲得する。",
+        "descriptionJa": "対象を切り裂いて160/240/400/705の物理ダメージを与え、2秒間、耐久値60/90/200/310のシールドを獲得する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1533,7 +1532,7 @@
       "ability": {
         "nameJa": "カルマの絆",
         "nameEn": "Karmic Bond",
-        "descriptionJa": "現在の対象と繋がり、1.5秒かけて280/420/630/1070の魔法ダメージを与える。その後、その対象の周囲に爆発的な力を解き放ち、1マス以内のすべての敵に120/180/270/460の魔法ダメージを与え、2秒間30%のスロウ効果を付与する。\r\n\r\nスロウ効果: 攻撃速度が低下する。",
+        "descriptionJa": "現在の対象と繋がり、1.5秒かけて280/420/630/1070の魔法ダメージを与える。その後、その対象の周囲に爆発的な力を解き放ち、1マス以内のすべての敵に125/185/300/515の魔法ダメージを与え、2秒間30%のスロウ効果を付与する。\r\n\r\nスロウ効果: 攻撃速度が低下する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1564,7 +1563,7 @@
       "ability": {
         "nameJa": "命のダンス",
         "nameEn": "Dance of Life",
-        "descriptionJa": "2秒間かけて体力を314/364/509/624回復する。次の通常攻撃がバッシュになり、140/175/220/70の魔法ダメージを与える。",
+        "descriptionJa": "2秒間かけて体力を334/384/529/644回復する。次の通常攻撃がバッシュになり、140/175/220/70の魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1596,7 +1595,7 @@
       "ability": {
         "nameJa": "デッドリープルーム",
         "nameEn": "Deadly Plumage",
-        "descriptionJa": "次の通常攻撃5回の間、攻撃速度を50%獲得する。これらの通常攻撃は羽根に置き換わり、68/102/155/165の物理ダメージを与え、物理防御を2低下させる。",
+        "descriptionJa": "次の通常攻撃5回の間、攻撃速度を50%獲得する。これらの通常攻撃は羽根に置き換わり、73/108/165/280の物理ダメージを与え、物理防御を2低下させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1652,14 +1651,14 @@
       "cost": 1,
       "image": "tft/images/082be800ac6cccdd731db3ea.png",
       "traits": [
-        "ブラックソーン",
+        "エルドリッチ",
         "スプライキン",
         "スペルウィーバー"
       ],
       "ability": {
         "nameJa": "メテオバースト",
         "nameEn": "Primordial Burst",
-        "descriptionJa": "指定した対象に巨大な魔弾を放ち、175/265/395/670の魔法ダメージを与える。対象の体力が最大体力の30%を下回っていた場合は、このダメージが265/400/595/1015に増加する。\r\n\r\n対象が倒されると、魔力が恒久的に3%増加する。\r\n\r\n現在の増加量: 戦闘中の状態に応じて変化% [魔力]",
+        "descriptionJa": "指定した対象に巨大な魔弾を放ち、190/285/430/725の魔法ダメージを与える。対象の体力が最大体力の30%を下回っていた場合は、このダメージが285/430/640/1000に増加する。\r\n\r\n対象が倒されると、魔力が恒久的に2%増加する。\r\n\r\n現在の増加量: 戦闘中の状態に応じて変化% [魔力]",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1675,7 +1674,7 @@
         "magicResist": 25.0,
         "range": 4.0
       },
-      "searchKeywords": "ベイガー veigar da_18_veigar ブラックソーン スプライキン スペルウィーバー"
+      "searchKeywords": "ベイガー veigar da_18_veigar エルドリッチ スプライキン スペルウィーバー"
     },
     {
       "id": "DA_18_Yorick",
@@ -1723,7 +1722,7 @@
       "ability": {
         "nameJa": "魅惑の舞踊",
         "nameEn": "Entrancing Dance",
-        "descriptionJa": "4秒間、耐久値270/320/415/490のシールドを獲得する。その後、この戦闘で最も多くのダメージを与えた味方に、4秒間、徐々に減少する攻撃速度を90%/100%/130%/160%付与する。",
+        "descriptionJa": "4秒間、耐久値290/340/435/510のシールドを獲得する。その後、この戦闘で最も多くのダメージを与えた味方に、4秒間、徐々に減少する攻撃速度を90%/100%/130%/160%付与する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1779,7 +1778,7 @@
       "cost": 1,
       "image": "tft/images/c791238583d1c7c825f428cd.png",
       "traits": [
-        "ブラックソーン",
+        "エルドリッチ",
         "ブローラー"
       ],
       "ability": {
@@ -1801,7 +1800,7 @@
         "magicResist": 40.0,
         "range": 1.0
       },
-      "searchKeywords": "レク＝サイ rek'sai da_18_reksai ブラックソーン ブローラー"
+      "searchKeywords": "レク＝サイ rek'sai da_18_reksai エルドリッチ ブローラー"
     },
     {
       "id": "DA_18_Sentry",
@@ -1909,7 +1908,7 @@
       "ability": {
         "nameJa": "ベルチーバブル",
         "nameEn": "Belchy Bubble",
-        "descriptionJa": "アダプター [魔力]: 現在の対象に向かって有毒な泡を吐き出す。泡は最初の敵に命中した時点で爆発し、225/340/535/910の魔法ダメージを与える。爆発の1マス以内にいる敵は3秒かけて160/240/360/610の魔法ダメージを受ける。\r\n\r\nアダプター [攻撃力]: 対象に強力なスロウ効果を付与する。\r\n\r\nパープルバフ: 5秒ごとに魔力が30%増加する。",
+        "descriptionJa": "アダプター [魔力]: 現在の対象に向かって有毒な泡を吐き出す。泡は最初の敵に命中した時点で爆発し、225/340/535/910の魔法ダメージを与える。爆発の1マス以内にいる敵は3秒かけて160/240/375/625の魔法ダメージを受ける。\r\n\r\nアダプター [攻撃力]: 対象に強力なスロウ効果を付与する。\r\n\r\nパープルバフ: 5秒ごとに魔力が30%増加する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1971,7 +1970,7 @@
       "ability": {
         "nameJa": "太陽の審判",
         "nameEn": "Solar Judgement",
-        "descriptionJa": "自動効果: 自身のスターレベルに応じて「超越」し、スタックするボーナスを獲得する。\r\n\r\n1回目の超越: 通常攻撃が62/92/105/115の追加魔法ダメージを与える。\r\n2回目の超越: 通常攻撃が命中した敵に2秒間、20%の細断を付与する。\r\n3回目の超越: 通常攻撃が波動を放ち、命中した他の全ユニットに35/45の魔法ダメージを与える。\r\n4回目の超越: 射程が無限になる。3回おきに波動が大幅に広がる。\r\n\r\n細断: 魔法防御を低下させる。",
+        "descriptionJa": "自動効果: 自身のスターレベルに応じて「超越」し、スタックするボーナスを獲得する。\r\n\r\n1回目の超越: 通常攻撃が65/97/110/115の追加魔法ダメージを与える。\r\n2回目の超越: 通常攻撃が命中した敵に2秒間、20%の細断を付与する。\r\n3回目の超越: 通常攻撃が波動を放ち、命中した他の全ユニットに35/45の魔法ダメージを与える。\r\n4回目の超越: 射程が無限になる。3回おきに波動が大幅に広がる。\r\n\r\n細断: 魔法防御を低下させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2002,7 +2001,7 @@
       "ability": {
         "nameJa": "内気功",
         "nameEn": "Ki Barrier",
-        "descriptionJa": "4秒間、自身に耐久値350/430/550/700のシールドを、周囲のダメージを負った味方1体に耐久値200/275/375/0のシールドを付与する。両者は次の3回の通常攻撃における攻撃速度が40%増加し、35/55/80/135の追加魔法ダメージを与える。",
+        "descriptionJa": "4秒間、シェンと周囲のダメージを負った味方1体に耐久値375/450/575/725のシールドを付与する。両者は次の3回の通常攻撃における攻撃速度が40%増加し、35/55/80/135の追加魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2095,7 +2094,7 @@
       "ability": {
         "nameJa": "ファンガス アマング アス",
         "nameEn": "Fungus Among Us",
-        "descriptionJa": "最も近くにいる敵3体に、60/90/135/230の魔法ダメージを与えるキノコの塊を2つ投げつける。その後、巨大なキノコを投げつけ、対象に135/200/310/515の魔法ダメージを与える。\r\n\r\nスキルを使用するたびに10%/12%/15%/20%の確率で追加のキノコを採集でき、拾うとボーナス効果を獲得する。\r\n\r\n赤: リロール1回(赤キノコ: 戦闘中の状態に応じて変化個)\r\n緑: タクティシャンの体力1(緑キノコ: 個)\r\n黄: 2XP(黄キノコ: 個)",
+        "descriptionJa": "最も近くにいる敵3体に、55/82/155/240の魔法ダメージを与えるキノコの塊を2つ投げつける。その後、巨大なキノコを投げつけ、対象に135/200/310/515の魔法ダメージを与える。\r\n\r\nスキルを使用するたびに10%/12%/15%/20%の確率で追加のキノコを採集でき、拾うとボーナス効果を獲得する。\r\n\r\n赤: リロール1回(赤キノコ: 戦闘中の状態に応じて変化個)\r\n緑: タクティシャンの体力1(緑キノコ: 個)\r\n黄: 2XP(黄キノコ: 個)",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2188,7 +2187,7 @@
       "ability": {
         "nameJa": "鏡像",
         "nameEn": "Mirror Image",
-        "descriptionJa": "自動効果: 対人戦ラウンド後、最も強いルブランが10%/15%/40%/100%の確率で味方1体のコピーをボード上に作り出す。この確率はキルまたはアシストごとに4%増加する。\r\n\r\n発動効果: 現在の対象に鏡像を放ち、260/390/615/1045の魔法ダメージを与え、隣接する敵には100/150/230/390を与える。",
+        "descriptionJa": "自動効果: 対人戦ラウンド後、最も強いルブランが10%/15%/30%/100%の確率で味方1体のコピーをボード上に作り出す。この確率はキルまたはアシストごとに4%増加する。\r\n\r\n発動効果: 現在の対象に鏡像を放ち、260/390/615/1045の魔法ダメージを与え、隣接する敵には100/150/230/390を与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2213,7 +2212,7 @@
       "cost": 2,
       "image": "tft/images/fa91b5cc804ddc33f574fdf2.png",
       "traits": [
-        "ブラックソーン",
+        "エルドリッチ",
         "ラヴィジャー"
       ],
       "ability": {
@@ -2235,7 +2234,7 @@
         "magicResist": 45.0,
         "range": 1.0
       },
-      "searchKeywords": "ワーウィック warwick da_18_warwick ブラックソーン ラヴィジャー"
+      "searchKeywords": "ワーウィック warwick da_18_warwick エルドリッチ ラヴィジャー"
     },
     {
       "id": "DA_18_Azir",
@@ -2244,14 +2243,14 @@
       "cost": 3,
       "image": "tft/images/69330491d20dc3d958e816a9.png",
       "traits": [
-        "ブラックソーン",
+        "エルドリッチ",
         "エクセキューショナー",
         "サモナー"
       ],
       "ability": {
         "nameJa": "目覚めよ！",
         "nameEn": "Arise!",
-        "descriptionJa": "攻撃速度が150%増加し、次の通常攻撃6回の間、兵士を2体召喚する。これらの通常攻撃は、各兵士にそれぞれ43/65/103/175の魔法ダメージを与えさせる命令に変わる。",
+        "descriptionJa": "攻撃速度が150%増加し、次の通常攻撃6回の間、兵士を2体召喚する。これらの通常攻撃は、各兵士にそれぞれ46/69/110/185の魔法ダメージを与えさせる命令に変わる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2267,7 +2266,7 @@
         "magicResist": 35.0,
         "range": 4.0
       },
-      "searchKeywords": "アジール azir da_18_azir ブラックソーン エクセキューショナー サモナー"
+      "searchKeywords": "アジール azir da_18_azir エルドリッチ エクセキューショナー サモナー"
     },
     {
       "id": "DA_Vi18",
@@ -2312,7 +2311,7 @@
       "ability": {
         "nameJa": "甘美なる恐怖",
         "nameEn": "Taste Their Fear",
-        "descriptionJa": "3マス以内で最も遠い敵に飛びかかり、285/400/580/935の魔法ダメージを与える。隣接する味方がいない場合、代わりに310/445/660/1150の魔法ダメージを与え、マナを10獲得する。戦闘中の状態に応じて変化",
+        "descriptionJa": "3マス以内で最も遠い敵に飛びかかり、265/370/535/860の魔法ダメージを与える。隣接する味方がいない場合、代わりに285/410/605/1060の魔法ダメージを与え、マナを10獲得する。戦闘中の状態に応じて変化",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2343,7 +2342,7 @@
       "ability": {
         "nameJa": "ノクサスブラスト",
         "nameEn": "Noxious Blast",
-        "descriptionJa": "対象と最も近い毒を受けていない敵を毒状態にし、15秒かけて400/600/950/1615の魔法ダメージを与える。毒はスタックする。",
+        "descriptionJa": "対象と最も近い毒を受けていない敵を毒状態にし、15秒かけて420/630/1020/1750の魔法ダメージを与える。毒はスタックする。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2438,7 +2437,7 @@
       "ability": {
         "nameJa": "蒼白のバリア",
         "nameEn": "Pale Barrier",
-        "descriptionJa": "2秒間、耐久値150/275/500/725のシールドを獲得し、2マス以内の敵に6個の月光のオーブを分散して送り出す。オーブはそれぞれ75/115/180/305の魔法ダメージを与える。",
+        "descriptionJa": "2秒間、耐久値150/275/500/700のシールドを獲得し、2マス以内の敵に6個の月光のオーブを分散して送り出す。オーブはそれぞれ75/115/180/230の魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2470,7 +2469,7 @@
       "ability": {
         "nameJa": "ヨードルグレネード",
         "nameEn": "Explosive Charge",
-        "descriptionJa": "対象に4秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が60%増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを分散して与え、160/240/385/680の物理ダメージ + 詠唱中の通常攻撃1回ごとに10/15/25/42のダメージを与える。\r\n\r\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
+        "descriptionJa": "対象に4秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が60%増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを均等に与え、175/265/420/715の物理ダメージ + 詠唱中の通常攻撃1回ごとに10/15/25/42のダメージを与える。\r\n\r\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": "tft/images/eb56b0d42a0036750ef9fa26.png"
       },
@@ -2564,7 +2563,7 @@
       "ability": {
         "nameJa": "ウージュースタイル",
         "nameEn": "Wuju Style",
-        "descriptionJa": "自動効果: 通常攻撃が3回ごとに「ダブルストライク」になる。キルまたはアシストを獲得すると、移動速度が大幅に増加する。\r\n\r\nアダプター[攻撃力]: 「ダブルストライク」を行うたびに、攻撃速度が15%増加するスタックを獲得する。\r\n\r\nアダプター[魔力]: 「ダブルストライク」が追加ダメージを与え、自身の体力を回復する。",
+        "descriptionJa": "自動効果: 通常攻撃が3回ごとに、2回攻撃の「ダブルストライク」になる。キルまたはアシストを獲得すると、移動速度が大幅に増加する。\r\n\r\nアダプター [攻撃力]: 「ダブルストライク」を行うたびに、攻撃速度が15%増加するスタックを獲得する。\r\n\r\nアダプター [魔力]: 「ダブルストライク」が追加ダメージを与え、自身の体力を回復する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2584,7 +2583,7 @@
     },
     {
       "id": "DA_CrimsonRaptor18",
-      "nameJa": "ママ鳥",
+      "nameJa": "ラプター",
       "nameEn": "Mama Beak",
       "cost": 3,
       "image": "tft/images/350fbcd1ea3a29cef6cb1229.png",
@@ -2594,9 +2593,9 @@
         "ラピッドファイア"
       ],
       "ability": {
-        "nameJa": "フロックファミリー",
+        "nameJa": "仲間の群れ",
         "nameEn": "Flock Family",
-        "descriptionJa": "周辺に5秒間、対象指定不可のミニヒナ鳥を4体召喚する。ママ鳥が攻撃するたびにミニヒナ鳥も同じ敵を攻撃し、22/33/48/82の物理ダメージを与える。\r\n\r\nオレンジバフ: 物理ダメージを与えると、敵の物理防御を2低下させる。",
+        "descriptionJa": "周辺に5秒間、対象指定不可のミニヒナ鳥を4体召喚する。ママ鳥が攻撃するたびにミニヒナ鳥も同じ敵を攻撃し、22/33/52/82の物理ダメージを与える。\r\n\r\nオレンジバフ: 物理ダメージを与えると、敵の物理防御を2低下させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2612,7 +2611,7 @@
         "magicResist": 35.0,
         "range": 4.0
       },
-      "searchKeywords": "ママ鳥 mama beak da_crimsonraptor18 リフトビースト サモナー ラピッドファイア"
+      "searchKeywords": "ラプター mama beak da_crimsonraptor18 リフトビースト サモナー ラピッドファイア"
     },
     {
       "id": "DA_18_Rammus",
@@ -2627,7 +2626,7 @@
       "ability": {
         "nameJa": "かたくなる",
         "nameEn": "Defensive Ball Curl",
-        "descriptionJa": "敵を挑発して、このチャンピオンを攻撃させる。4秒間、350/450/550/650のシールドと60の物理防御および魔法防御を獲得する。\r\n\r\nシールドが破壊されると、2マス以内の敵に50/75/120/165の物理ダメージを与える。",
+        "descriptionJa": "敵を挑発して、このチャンピオンを攻撃させる。4秒間、400/550/700/900のシールドと60の物理防御および魔法防御を獲得する。\r\n\r\nシールドが破壊されると、2マス以内の敵に50/75/120/165の物理ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2657,7 +2656,7 @@
       "ability": {
         "nameJa": "逆上",
         "nameEn": "Savagery",
-        "descriptionJa": "3マス以内で体力の割合が最も低い敵に跳びかかって突き刺し、255/385/615/1050の物理ダメージを与える。その後、体力を60/90/210回復する。この効果は対象の減少体力に応じて最大120/180/420まで増加する。戦闘中の状態に応じて変化",
+        "descriptionJa": "3マス以内で体力の割合が最も低い敵に跳びかかって突き刺し、255/385/650/1105の物理ダメージを与える。その後、体力を60/90/210回復する。この効果は対象の減少体力に応じて最大120/180/420まで増加する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2688,7 +2687,7 @@
       "ability": {
         "nameJa": "スピリットボム",
         "nameEn": "Spirit Bomb",
-        "descriptionJa": "4マス以内で、周囲に最も多くの敵がいる地点にスピリットボムを放つ。スピリットボムは3マス以内の敵に455/685/3500/5000の魔法ダメージを与える。このダメージは爆発地点から1マス離れるごとに21%ずつ減少する。",
+        "descriptionJa": "スピリットボムにエネルギーを注ぎ込む1.75敵の大群に投げつける数秒前。 455/685/3500/5000敵に魔法ダメージを与える3-六角形の半径、21%震源地から離れたヘックスごとに（最小）16% )",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2719,7 +2718,7 @@
       "ability": {
         "nameJa": "月光の猛攻撃",
         "nameEn": "Moonlight's Onslaught",
-        "descriptionJa": "セヴェラムを装備し、2秒かけて対象を[攻撃速度]回斬りつける。各攻撃は70/105/850/1500の物理ダメージを与える。\r\n\r\n猛攻撃の終了後、爆風を放ち、半径2マス以内のすべての敵に490/735/5225/9376の物理ダメージを分散して与える。",
+        "descriptionJa": "セヴェラムを装備し、2秒かけて対象を[攻撃速度]回斬りつける。各攻撃は70/105/850/1500 + 最大体力の0%の物理ダメージを与える。\r\n\r\n猛攻撃の終了後、爆風を放ち、半径2マス以内のすべての敵に490/735/5225/9376の物理ダメージを分散して与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2781,7 +2780,7 @@
       "ability": {
         "nameJa": "森の突風",
         "nameEn": "Forest's Flurry",
-        "descriptionJa": "現在対象としている敵から離れるようにブリンクして、対象に250/375/1200/1530の物理ダメージを与え、攻撃速度を30%/100%獲得する。\r\n\r\n4回目のスキル発動時に「大地の激憤」で獲得した攻撃速度をすべて消費し、最も多くの敵がいる集団を貫通する衝撃波を放つ。この衝撃波は、385/580/2500/5000の物理ダメージを与え、敵を1体貫通するごとにダメージが25%ずつ減少する(最低50%)。",
+        "descriptionJa": "現在対象としている敵から離れるようにブリンクして、対象に270/405/1200/1530の物理ダメージを与え、攻撃速度を30%/100%獲得する。\r\n\r\n4回目のスキル発動時に「森の突風」で獲得した攻撃速度をすべて消費し、敵の数が最も多い集団を貫通する衝撃波を放つ。この衝撃波は、385/580/2500/5000の物理ダメージを与え、敵を1体貫通するごとにダメージが25%ずつ減少する(最低50%)。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2843,7 +2842,7 @@
       "ability": {
         "nameJa": "ブーメランブレード",
         "nameEn": "Boomerang Blade",
-        "descriptionJa": "現在の対象に205/305/1150/2250物理ダメージを与える巨大なクロスブレードを投げる。クロスブレードは周囲の敵の間を8回跳ね返り、跳ね返るたびに41/61/460/1350物理ダメージを与える。これで敵をキルすると、追加で3/6/10回跳ね返る。",
+        "descriptionJa": "現在の対象に215/320/1150/2250物理ダメージを与える巨大なクロスブレードを投げる。クロスブレードは周囲の敵の間を8回跳ね返り、跳ね返るたびに43/64/460/1350物理ダメージを与える。これで敵をキルすると、追加で1回跳ね返る。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2936,7 +2935,7 @@
       "ability": {
         "nameJa": "槍投げ",
         "nameEn": "Javelin Toss",
-        "descriptionJa": "アダプター [魔力]: 次の通常攻撃3/99回の間、攻撃速度を150%獲得する。これらの通常攻撃は槍に変化し、170/255/2000/3000の魔法ダメージを与える。3回目の通常攻撃はアイテム数が最も少ない最も遠くの敵を狙うようになり、300/450/3000/5000の魔法ダメージを与える。\r\n\r\nアダプター[攻撃力]: 敵を薙ぎ払う近接型のクーガーアサシン形態に変身する。",
+        "descriptionJa": "アダプター [魔力]: 次の通常攻撃3/99回の間、攻撃速度を150%獲得する。これらの通常攻撃は槍に変化し、185/275/2000/3000の魔法ダメージを与える。3回目の通常攻撃はアイテム数が最も少ない最も遠くの敵を狙うようになり、330/500/3000/5000の魔法ダメージを与える。\r\n\r\nアダプター[攻撃力]: 敵を薙ぎ払う近接型のクーガーアサシン形態に変身する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2967,7 +2966,7 @@
       "ability": {
         "nameJa": "深紅の憤怒",
         "nameEn": "Crimson Fury",
-        "descriptionJa": "自動効果: 対象を倒すと次の対象に跳びかかり、155/235/1000/1500の物理ダメージを与える。\r\n\r\n発動効果: 8秒間、攻撃力が80%/300%/400%増加する。この効果時間中は45%/85%/95%の物理防御を無視する。\r\n\r\nレッドバフ: 通常攻撃が敵に1%の燃焼を付与し、最大体力の4%を回復する。",
+        "descriptionJa": "自動効果: 対象を倒すと次の対象に跳びかかり、135/205/1000/1500の物理ダメージを与える。\r\n\r\n発動効果: 8秒間、攻撃力が100%/300%/400%増加する。この効果時間中は45%/90%/100%の物理防御を無視する。\r\n\r\nレッドバフ: 通常攻撃が敵に1%の燃焼を付与し、最大体力の4%を回復する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2992,7 +2991,7 @@
       "cost": 4,
       "image": "tft/images/47b6c74423afd8ce3093fd03.png",
       "traits": [
-        "ブラックソーン",
+        "エルドリッチ",
         "モノリス"
       ],
       "ability": {
@@ -3014,7 +3013,7 @@
         "magicResist": 70.0,
         "range": 1.0
       },
-      "searchKeywords": "マルファイト malphite da_18_malphite ブラックソーン モノリス"
+      "searchKeywords": "マルファイト malphite da_18_malphite エルドリッチ モノリス"
     },
     {
       "id": "DA_18_Morgana",
@@ -3060,7 +3059,7 @@
       "ability": {
         "nameJa": "夢見の子守唄",
         "nameEn": "Lilting Lullaby",
-        "descriptionJa": "体力を325/475/800/3800回復し、近くの敵に4匹の蝶を放つ。命中した敵に90/135/2000/5000の魔法ダメージを与え、1.5/1.75/8/20秒間、睡眠状態にする。対象は1000のダメージを受けると眠りから覚め、追加で最大体力の10%の魔法ダメージを受ける。",
+        "descriptionJa": "体力を350/525/800/3800回復し、近くの敵に4匹の蝶を放つ。命中した敵に90/135/2000/5000の魔法ダメージを与え、1.5/1.75/8/20秒間、睡眠状態にする。対象は1000のダメージを受けると眠りから覚め、追加で最大体力の10%の魔法ダメージを受ける。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3153,7 +3152,7 @@
       "ability": {
         "nameJa": "精霊の裂け目",
         "nameEn": "Spirit Rift",
-        "descriptionJa": "最も敵が多い一直線上に貫通する矢を放ち、465/700/1000の物理ダメージを与える。このダメージは敵に命中するたびに80%/40%ずつ減少する(最小20%)。\r\n\r\n矢が4/20秒間軌跡を残す。軌跡の中の敵に7/11/220 + 最大体力の2%/3%/10%にあたる物理ダメージを毎秒与え、20%のスロウ効果を付与する。\r\n\r\nスロウ効果: 攻撃速度が低下する。",
+        "descriptionJa": "最も敵が多い一直線上に貫通する矢を放ち、465/700/1000の物理ダメージを与える。このダメージは敵に命中するたびに80%/40%ずつ減少する(最小20%)。敵に命中しなかった場合、消費したマナの70%を返還する。\r\n\r\n矢が3/20秒間軌跡を残す。軌跡の中の敵に11/17/220 + 最大体力の1.5%/10%にあたる物理ダメージを毎秒与え、20%のスロウ効果を付与する。\r\n\r\nスロウ効果: 攻撃速度が低下する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3247,7 +3246,7 @@
       "ability": {
         "nameJa": "ファイアストーム",
         "nameEn": "Firestorm",
-        "descriptionJa": "チャージを行い、燃焼状態の敵1体ごとに15%の魔力を獲得する。その後、2.5秒間、耐久値250/350/3000/1000のシールドを獲得し、近くにいる敵集団の間を走り抜けて、それぞれの敵に80/120/1500/2550の魔法ダメージを与える。\r\n\r\n走り抜けた後、2マスの火炎嵐を発生させ、2秒かけて、命中したすべての敵に合計475/715/5000/10000の魔法ダメージを分散して与える。",
+        "descriptionJa": "チャージを行い、燃焼状態の敵1体ごとに15%の魔力を獲得する。その後、2.5秒間、耐久値230/300/3000/1000のシールドを獲得し、近くにいる敵集団の間を走り抜けて、それぞれの敵に80/120/1500/2550の魔法ダメージを与える。\r\n\r\n走り抜けた後、2マスの火炎嵐を発生させ、2秒かけて、命中したすべての敵に合計475/715/5000/10000の魔法ダメージを分散して与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3278,7 +3277,7 @@
       "ability": {
         "nameJa": "エメラルド レディアンス",
         "nameEn": "Emerald Radiance",
-        "descriptionJa": "自動効果: タリックか、そのペアになった味方の体力が初めて50%を下回ると、両者からエメラルドの気が放たれ、3マス以内の味方に3/99秒間、耐久値295/420/11300のシールドを付与する。\r\n\r\n発動効果: 体力を 250/375/3000/9000回復する。タリックおよびそのペアになった味方は、次の通常攻撃2回の間、100/150/1000の追加魔法ダメージを獲得する。",
+        "descriptionJa": "自動効果: タリックか、そのペアになった味方の体力が初めて50%を下回ると、両者からエメラルドの気が放たれ、3マス以内の味方に3/99秒間、耐久値270/345/11300のシールドを付与する。\r\n\r\n発動効果: 体力を 275/450/3000/9000回復する。タリックおよびそのペアになった味方は、次の通常攻撃2回の間、100/150/1000の追加魔法ダメージを獲得する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3308,7 +3307,7 @@
       "ability": {
         "nameJa": "死の車輪",
         "nameEn": "Whirling Death",
-        "descriptionJa": "自動効果: 通常攻撃が範囲内のランダムな敵を標的にして「出血」を付与し、12秒かけて140/210/3000/4000の物理ダメージを与える。通常攻撃のたびに12%の確率で50%/900%の追加物理ダメージを与え、2の「出血」を付与するようになる。\r\n\r\n発動効果: 最も「出血」スタックが多い敵に向かって、巨大な斧を2本投げつける。命中した敵に100/150/400/9999の物理ダメージを与え、「出血」を消費して残りのダメージを即座に与える。その後、両斧は命中した敵に30/45/100/1111の物理ダメージを与えながら自身の手元に戻る。",
+        "descriptionJa": "自動効果: 通常攻撃が範囲内のランダムな敵を標的にして「出血」を付与し、12秒かけて150/225/3000/4000の物理ダメージを与える。通常攻撃のたびに12%の確率で、50%/900%の追加物理ダメージを与え、2の「出血」を付与するようになる。\r\n\r\n発動効果:最も「出血」スタックが多い敵に向かって、巨大な斧を2本投げつける。命中した敵に100/150/400/9999の物理ダメージを与え、「出血」を消費して残りのダメージを即座に与える。その後、両斧は命中した敵に30/45/100/1111の物理ダメージを与えながら自身の手元に戻る。敵に命中しなかった場合、消費したマナの50%を返還する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3467,7 +3466,7 @@
       "nameJa": "アバター",
       "nameEn": "Avatar",
       "image": "tft/images/93f2464892ad538e14fb35ea.png",
-      "descriptionJa": "ベンチまたはボード上に「アバター」がいると、自分のショップの他のすべての「アバター」がその「アバター」の特性に変化する。\r\n\r\n「アバター」が選択した特性は、特性ボーナスにおいて2体分としてカウントされる。",
+      "descriptionJa": "ベンチまたはボード上にアバターがいると、自分のショップの他のすべてのアバターがそのアバターの特性に変化する。特定の特性を持つアバターを所持できるのは1人のみ。\r\n\r\n選んだアバターの特性は特性ボーナスにおいて2体分としてカウントされる。",
       "activationLevels": [
         {
           "minimumUnits": 1,
@@ -3595,7 +3594,7 @@
       "nameJa": "ヴァンガード",
       "nameEn": "Vanguard",
       "image": "tft/images/5be515a5959a531a2c7dca23.png",
-      "descriptionJa": "戦闘開始時、および体力が0%/50%未満になると、「ヴァンガード」は0/10秒間、自身の最大体力に応じたシールドを獲得する。",
+      "descriptionJa": "戦闘開始時と体力が0%/50%になったとき: 0/10秒間、最大体力に応じた耐久値を持つシールドを獲得する。",
       "activationLevels": [
         {
           "minimumUnits": 2,
@@ -3770,7 +3769,7 @@
       "nameJa": "サモナー",
       "nameEn": "Summoner",
       "image": "tft/images/6e1fcc74ed176503f435269b.png",
-      "descriptionJa": "「サモナー」はそれぞれ異なる方法で自身の召喚ユニットを強化する。\r\n\r\nヨリック: 体力+0%/30%/45%\r\nアジール: ダメージ+0%/20%/30%\r\nママ鳥: ダメージ+0%/45%/67.5%/70%\r\nザイラ: 植物の通常攻撃+0/4/6/4",
+      "descriptionJa": "「サモナー」はそれぞれ異なる方法で自身の召喚ユニットを強化する。\r\n\r\nヨリック: 体力+0%/30%/45%\r\nアジール: ダメージ+0%/45%/67.5%/70%\r\nママ鳥: ダメージ+0%/45%/67.5%/70%\r\nザイラ: 植物の通常攻撃+0/4/6/4",
       "activationLevels": [
         {
           "minimumUnits": 2,
@@ -4183,49 +4182,6 @@
         "DA_Nidalee18_AP"
       ],
       "searchKeywords": "プライマル primal da_primal18"
-    },
-    {
-      "id": "DA_18_Blackthorn",
-      "nameJa": "ブラックソーン",
-      "nameEn": "Blackthorn",
-      "image": "tft/images/fc1d6a32c2ee0eb40aceaee9.png",
-      "descriptionJa": "「ブラックソーン」のマス上の味方が戦闘開始前に生贄となり、味方チャンピオンに体力を付与する。\r\n\r\n「ブラックソーン」のチャンピオンは、生贄の役割、スターレベル、コストに応じて追加ステータスを得る。\r\n\r\n戦闘中の状態に応じて変化",
-      "activationLevels": [
-        {
-          "minimumUnits": 2,
-          "maximumUnits": 3,
-          "style": 1,
-          "variables": {
-            "Health": 175.0
-          }
-        },
-        {
-          "minimumUnits": 4,
-          "maximumUnits": 5,
-          "style": 3,
-          "variables": {
-            "Health": 350.0,
-            "StatMultiplier": 0.2999999523162842
-          }
-        },
-        {
-          "minimumUnits": 6,
-          "maximumUnits": 25000,
-          "style": 5,
-          "variables": {
-            "Health": 600.0,
-            "StatMultiplier": 0.6000000238418579
-          }
-        }
-      ],
-      "championIds": [
-        "DA_18_Veigar",
-        "DA_18_RekSai",
-        "DA_18_Warwick",
-        "DA_18_Azir",
-        "DA_18_Malphite"
-      ],
-      "searchKeywords": "ブラックソーン blackthorn da_18_blackthorn"
     },
     {
       "id": "DA_FloraFatalis18",
@@ -6363,7 +6319,7 @@
       "nameJa": "クラウンガード",
       "nameEn": "Crownguard",
       "image": "tft/images/77e5f4d781477d1a20a3b7cf.png",
-      "descriptionJa": "戦闘開始時: 8秒間、自身の最大体力の25%にあたる耐久値を持つシールドを獲得する。\r\nシールドが消滅すると、魔力が25%増加する。",
+      "descriptionJa": "戦闘開始時: 8秒間、自身の最大体力の25%にあたる耐久値を持つシールドを獲得する。\r\nシールドが消滅すると、魔力が20%増加する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -6986,7 +6942,7 @@
       "nameJa": "ジャガーノートの紋章",
       "nameEn": "Juggernaut Emblem",
       "image": "tft/images/e908281d45a49ade7ad5e689.png",
-      "descriptionJa": "装備者が「ジャガーノート」の特性を獲得する。\r\n\r\n「ジャガーノート」が倒されるたびに15マナを獲得する。",
+      "descriptionJa": "装備者が「ジャガーノート」の特性を獲得する。\r\n\r\n「ジャガーノート」が倒されるたびに10マナを獲得する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -8730,7 +8686,7 @@
       "nameJa": "ハンターの紋章",
       "nameEn": "Hunter Emblem",
       "image": "tft/images/149174cdf8b1eac54e704530.png",
-      "descriptionJa": "装備者が「ハンター」の特性を獲得する。\r\n\r\nキルまたはアシストを獲得すると、攻撃力が18%増加する。",
+      "descriptionJa": "装備者が「ハンター」の特性を獲得する。\r\n\r\nキルまたはアシストを獲得すると、攻撃力が15%増加する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -9506,7 +9462,7 @@
       "nameJa": "ブローラーの紋章",
       "nameEn": "Brawler Emblem",
       "image": "tft/images/a6807473110611964d1b0706.png",
-      "descriptionJa": "装備者が「ブローラー」の特性を獲得する。\r\n\r\n通常攻撃が装備者の最大体力の2%にあたる魔法ダメージを与える。",
+      "descriptionJa": "装備者が「ブローラー」の特性を獲得する。\r\n\r\n通常攻撃が装備者の最大体力の2.5%にあたる魔法ダメージを与える。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -10032,7 +9988,7 @@
       "nameJa": "マナポーション",
       "nameEn": "Mana Potion",
       "image": "tft/images/6fb28ca1630ef68848d6439a.png",
-      "descriptionJa": "装備者のマナが20増加する。スキル使用時、5秒かけて80マナを回復する。\r\n\r\n[1回のみ使用可能 - このアイテムは戦闘中に発動すると破壊される。]",
+      "descriptionJa": "装備者のマナが10増加する。スキル使用時、5秒かけて70マナを回復する。\r\n\r\n[1回のみ使用可能 - このアイテムは戦闘中に発動すると破壊される。]",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -10211,7 +10167,7 @@
     {
       "id": "DA_Artifact_MogulsMail",
       "nameJa": "モーグル メイル",
-      "nameEn": "Mogul'sMail",
+      "nameEn": "Mogul's Mail",
       "image": "tft/images/03d7b11225ccfe5e99adf207.png",
       "descriptionJa": "ダメージを受けた際、物理防御が1、魔法防御が1、体力が5増加する。この効果は35回までスタックする。\r\n\r\n最大スタックになると、ゴールドを獲得し、その後も11秒ごとに1ゴールドを獲得する。\r\n\r\nこの試合で生成されたゴールド: 戦闘中の状態に応じて変化\r\n\r\n重複不可 - チャンピオン1体に1つのみ",
       "stats": {},
@@ -11999,7 +11955,7 @@
       "nameJa": "レディアント マナポーション",
       "nameEn": "Radiant Mana Potion",
       "image": "tft/images/6fb28ca1630ef68848d6439a.png",
-      "descriptionJa": "装備者のマナが20増加する。スキル使用時、5秒かけて装備者は90マナを回復し、味方は10マナを回復する。\r\n\r\n[1回のみ使用可能 - このアイテムは戦闘中に発動すると破壊される。]",
+      "descriptionJa": "装備者のマナが10増加する。スキル使用時、5秒かけて装備者は80マナを回復し、味方は10マナを回復する。\r\n\r\n[1回のみ使用可能 - このアイテムは戦闘中に発動すると破壊される。]",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -12223,7 +12179,7 @@
       "nameJa": "レディアント 巨人の誓い",
       "nameEn": "Radiant Titan's Resolve",
       "image": "tft/images/3e0dafa64a42ea4432629376.png",
-      "descriptionJa": "通常攻撃した際、もしくはダメージを受けた際に、攻撃力が4%と魔力が4%増加する。この効果は25回までスタックする。\r\n\r\n最大スタックになると、20%のダメージ増加効果とアンストッパブルを獲得する。",
+      "descriptionJa": "通常攻撃した際、もしくはダメージを受けた際に、攻撃力が4%、魔力が4%増加する。この効果は25回までスタックする。\r\n\r\n最大スタックになると、20%のダメージ増加効果とアンストッパブルを獲得する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -12427,7 +12383,7 @@
     {
       "id": "DA_WarmogsArmor",
       "nameJa": "ワーモグ アーマー",
-      "nameEn": "Warmogs Armor",
+      "nameEn": "Warmog's Armor",
       "image": "tft/images/c67850612bf64a6a6ef617ee.png",
       "descriptionJa": "最大体力が18%増加する。",
       "stats": {},
@@ -12629,7 +12585,7 @@
       "nameJa": "不滅の協定",
       "nameEn": "Eternal Pact",
       "image": "tft/images/c272a7af490157f0f3b09644.png",
-      "descriptionJa": "戦闘開始時: 最も体力が高い味方チャンピオンと協定を結び、そのチャンピオンが倒されると、マナ自動回復10と魔力40%を獲得する。\r\n\r\nその味方がスキルを発動すると、マナを15獲得する。6秒ごとに、味方に装備者の魔力の200%にあたる耐久値を持つシールドを付与する。",
+      "descriptionJa": "戦闘開始時: 最も体力が高い味方チャンピオンと協定を結び、そのチャンピオンが倒されると、マナ自動回復10と魔力40%を獲得する。\r\n\r\nその味方がスキルを発動すると、マナを10獲得する。6秒ごとに、味方に装備者の魔力の200%にあたる耐久値を持つシールドを付与する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -17263,7 +17219,7 @@
       "nameEn": "Caretaker's Ally",
       "image": "tft/images/ca29d56358f2f85d07f79d60.png",
       "rarity": "シルバー",
-      "descriptionJa": "今すぐランダムなコスト2のチャンピオンを1体獲得する。レベルアップするごとに同じユニットをもう1体獲得する。\r\n\r\nチャンピオン: 戦闘中の状態に応じて変化",
+      "descriptionJa": "今すぐランダムなコスト2のチャンピオンを1体獲得する。レベルアップするごとに同じユニットをもう1体獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17435,7 +17391,7 @@
       "nameEn": "Ones Two Three",
       "image": "tft/images/6e56e4b72bde9703dd34a340.png",
       "rarity": "シルバー",
-      "descriptionJa": "コスト1のチャンピオンを2体、コスト2のチャンピオンを1体、コスト3のチャンピオンを1体獲得する。",
+      "descriptionJa": "コスト1、コスト2、コスト3のチャンピオンを1体ずつ獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17459,7 +17415,7 @@
       "nameEn": "Beast Within",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。今すぐヴァイを1体獲得し、3ラウンド後にニダリーを1体獲得する。",
+      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。ヴァイを1体獲得する。",
       "associatedTraits": [
         "DA_Primal18"
       ],
@@ -17483,11 +17439,11 @@
     },
     {
       "id": "DA_18_PrimalAugmentPlus_Nidalee",
-      "nameJa": "内なる獣+",
+      "nameJa": "内なる獣",
       "nameEn": "Beast Within+",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。ヴァイとニダリーを1体ずつ獲得する。",
+      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。ヴァイを1体獲得する。",
       "associatedTraits": [
         "DA_Primal18"
       ],
@@ -17551,7 +17507,7 @@
       "nameEn": "Omega Riftbeast",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "2体目の「アルファ リフトビースト」を選択できるようになる。スカトルクラブ、シンダーリング、小石を1体ずつ獲得する。",
+      "descriptionJa": "2体目の「アルファ リフトビースト」を選択できるようになる。「アルファ リフトビースト」が10%の最大体力と10%の攻撃速度を獲得する。スカトルクラブ、シンダーリング、小石を1体ずつ獲得する。",
       "associatedTraits": [
         "DA_Riftbeast18"
       ],
@@ -17565,7 +17521,7 @@
       "nameEn": "Unrivaled",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "レンガーとカ＝ジックスを一緒にボードに出してもペナルティを受けない。さらにお互いのスキル発動時にボーナスを獲得する。レンガーとカ＝ジックスを1体ずつ獲得する。",
+      "descriptionJa": "レンガーとカ＝ジックスを一緒にボードに出してもペナルティを受けない。レンガーとカ＝ジックスを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_18_Rival"
       ],
@@ -17578,7 +17534,7 @@
       "nameJa": "太陽の加護と共に",
       "nameEn": "Chosen of the Sun",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
-      "rarity": "ゴールド",
+      "rarity": "シルバー",
       "descriptionJa": "レオナ、ケイル、セジュアニを1体ずつ獲得する。レオナが毎ラウンド70の最大体力を恒久的に獲得する。この効果は配置した種類の異なる★3のチャンピオン1体につき10増加する。",
       "associatedTraits": [
         "DA_18_Solar"
@@ -17593,7 +17549,7 @@
       "nameEn": "Small Furry Friend",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「スプライキン」が発動中は、35%の強さを持つ2体目の「大きなモフモフのお友達」を召喚する。ティーモ、ベイガー、コブコを1体ずつ獲得する。",
+      "descriptionJa": "「スプライキン」が発動中は、45%の強さを持つ2体目の「大きなモフモフのお友達」を召喚する。ティーモ、ベイガー、コブコを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_18_Sprykin"
       ],
@@ -17607,7 +17563,7 @@
       "nameEn": "Weight The Worth",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "最初にチャンピオンを★3にした際、試合終了まで毎ラウンド、そのチャンピオンのコピーを1体獲得する。同じチャンピオンを再度★3にすると、追加でそのチャンピオンを獲得する。「小型チャンピオン複製器」1個、「小さなチャンピオン複製器」1個を獲得する。",
+      "descriptionJa": "最初にチャンピオンを★3にした際、試合終了まで毎ラウンド、そのチャンピオンのコピーを1体獲得する。同じチャンピオンを再度★3にすると、追加でそのチャンピオンを獲得する。「小型チャンピオン複製器」を1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17703,7 +17659,7 @@
       "nameEn": "Backline Blueprint",
       "image": "tft/images/a95e56a4b8f6eb2bbf0f6b25.png",
       "rarity": "ゴールド",
-      "descriptionJa": "タンク以外のコスト3チャンピオン1体と、そのチャンピオンのクラスに対応する「紋章」を1個獲得する。",
+      "descriptionJa": "タンク以外のコスト3チャンピオン1体と、そのチャンピオンの一番最後に記載されている特性の「紋章」を獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17823,7 +17779,7 @@
       "nameEn": "Item Extraction",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「ブラックソーン」のマスでチャンピオンを生贄にしたとき、最初の3回まではそのチャンピオンが装備している素材アイテムのコピーをランダムで1つ獲得する。ベイガーとレク＝サイを1体ずつ獲得する。",
+      "descriptionJa": "「ブラックソーン」のマスでチャンピオンを生贄にしたとき、最初の3回まではそのチャンピオンが装備している素材アイテムのコピーをランダムで1つ獲得する。アジール、ベイガー、レク＝サイを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_18_Blackthorn"
       ],
@@ -17909,7 +17865,7 @@
       "nameEn": "Boxing Lessons",
       "image": "tft/images/4c6bc076cae46ff35dbf6b30.png",
       "rarity": "シルバー",
-      "descriptionJa": "最前列で戦闘を開始したチャンピオン1体ごとに、味方チームの体力が30増加する。",
+      "descriptionJa": "最前列で戦闘を開始した味方1体ごとに、味方チームの体力が30増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17933,7 +17889,7 @@
       "nameEn": "Bronze For Life II",
       "image": "tft/images/7f4b39b551b42716549cb56b.png",
       "rarity": "プリズム",
-      "descriptionJa": "ブロンズティアの特性1つごとに、味方チームが2.5%のダメージ増加効果、および4の物理防御と魔法防御を獲得する。",
+      "descriptionJa": "ブロンズティアの特性1つごとに、味方チームが2.5%のダメージ増加効果、および3の物理防御と魔法防御を獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18073,7 +18029,7 @@
     },
     {
       "id": "DA_ChallengersGrace",
-      "nameJa": "挑戦者の気品",
+      "nameJa": "Challenger's Grace",
       "nameEn": "Challenger's Grace",
       "image": "tft/images/31bc85b08ba418c96ed9a598.png",
       "rarity": "ゴールド",
@@ -18233,7 +18189,7 @@
       "nameEn": "Component Quest",
       "image": "tft/images/504afca14e43a1aa20d30fcf.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムな素材アイテムを1個と1ゴールドを獲得する。対人戦で勝利するたびに、異なるランダムな素材アイテムを1個獲得する（最大7回）。その後、5ゴールドを獲得する。",
+      "descriptionJa": "ランダムな素材アイテムを1個と1ゴールドを獲得する。対人戦で勝利するたびに、異なるランダムな素材アイテムを1個獲得する（最大7回）。その後、1ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18485,7 +18441,7 @@
       "nameEn": "Explosive Growth+",
       "image": "tft/images/baef67f743aa0218bc097a6e.png",
       "rarity": "ゴールド",
-      "descriptionJa": "即座に、および次の3ラウンドに渡って、ラウンド開始時に10XPの経験値を獲得する。",
+      "descriptionJa": "即座に、および次の3ラウンドに渡って、ラウンド開始時に9XPの経験値を獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18581,7 +18537,7 @@
       "nameEn": "Frontline Foundation",
       "image": "tft/images/b9f596390f0a6204b493cf92.png",
       "rarity": "ゴールド",
-      "descriptionJa": "★2のコスト1タンクチャンピオン1体と、そのチャンピオンのクラスに対応する「紋章」を1個獲得する。",
+      "descriptionJa": "★2のコスト1タンクチャンピオン1体と、そのチャンピオンの一番最後に記載されている特性に一致する「紋章」を獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18749,7 +18705,7 @@
       "nameEn": "Group Hug I",
       "image": "tft/images/f7e7c89c2cbb749a36d64065.png",
       "rarity": "シルバー",
-      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に6の物理防御と魔法防御を付与する。この効果はスタックする。",
+      "descriptionJa": "戦闘開始時: 味方は隣接する味方(自身を除く)に6の物理防御と魔法防御を付与する。この効果はスタックする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18761,7 +18717,7 @@
       "nameEn": "Group Hug II",
       "image": "tft/images/bd236c7618c8498cf90427df.png",
       "rarity": "ゴールド",
-      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に9の物理防御と魔法防御を付与する。この効果はスタックする。",
+      "descriptionJa": "戦闘開始時: 味方は隣接する味方(自身を除く)に9の物理防御と魔法防御を付与する。この効果はスタックする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18797,7 +18753,7 @@
       "nameEn": "Healing Orbs I",
       "image": "tft/images/f6831e498a5ea5eaadb00a61.png",
       "rarity": "シルバー",
-      "descriptionJa": "敵が倒されると、近くにいる味方1体の体力が250回復する。",
+      "descriptionJa": "敵ユニットがデスした際に、最も近くにいる味方の体力が250回復する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18809,7 +18765,7 @@
       "nameEn": "Healing Orbs II",
       "image": "tft/images/6aff46dd7e8916ff5f61f54e.png",
       "rarity": "ゴールド",
-      "descriptionJa": "敵が倒されると、近くにいる味方1体の体力が575回復する。",
+      "descriptionJa": "敵ユニットがデスした際に、最も近くにいる味方の体力が575回復する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18821,7 +18777,7 @@
       "nameEn": "Heart of Steel",
       "image": "tft/images/0ab9ad03ae87ac81c4364849.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「揺るがぬ心」を1個獲得する。戦闘で装備者が10秒生存するごとに、「揺るがぬ心」が最大体力を恒久的に16追加で獲得する。",
+      "descriptionJa": "「揺るがぬ心」を1個獲得する。戦闘で装備者が10秒生存するごとに、「揺るがぬ心」が最大体力を恒久的に18追加で獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18941,7 +18897,7 @@
       "nameEn": "Investment Strategy II",
       "image": "tft/images/e1eea85112b844604d2c64a2.png",
       "rarity": "プリズム",
-      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が10恒久的に増加する。最大利子が2増加する。即座に8ゴールドを獲得する。",
+      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が12恒久的に増加する。最大利子が2増加する。10ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18953,7 +18909,7 @@
       "nameEn": "Investment Strategy I",
       "image": "tft/images/b163b4f02ca5231be63adf0d.png",
       "rarity": "ゴールド",
-      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が8恒久的に増加する。即座に4ゴールドを獲得する。",
+      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が9恒久的に増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18989,7 +18945,7 @@
       "nameEn": "It's Me, Baby",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "右下にスポットライトが当たる。スポットライト内にいるチャンピオンは15%のダメージ増加効果と15%の攻撃速度を獲得する。また、キルまたはアシストを5回獲得するごとに1ゴールドをドロップする。\r\n\r\n2026 Lore & Legends Tactician's Crown",
+      "descriptionJa": "右下の角にチャンピオンシップマスを1つ獲得する。スポットライト内にいるチャンピオンは15%のダメージ増加効果と15%の攻撃速度を獲得する。また、キルまたはアシストを5回獲得するごとに1ゴールドをドロップする。\r\n\r\n2026 Lore & Legends Tactician's Crown",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19013,7 +18969,7 @@
       "nameEn": "Jeweled Lotus II",
       "image": "tft/images/252fd7e59d7ac47eb0e16717.png",
       "rarity": "プリズム",
-      "descriptionJa": "味方チームのクリティカル率が25%、クリティカルダメージが10%増加し、「正確無比」を獲得する。\r\n\r\n正確無比: スキルはクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
+      "descriptionJa": "味方チームのクリティカル率が25%、クリティカルダメージが10%増加し、「正確無比」を獲得する。\r\n\r\n正確無比: スキルがクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19109,7 +19065,7 @@
       "nameEn": "Level Up!",
       "image": "tft/images/929bacfae8824ec88cd98076.png",
       "rarity": "プリズム",
-      "descriptionJa": "経験値を購入する際、追加で経験値を2XP獲得する。即座に経験値を6XP獲得する。",
+      "descriptionJa": "経験値を購入する際、追加で経験値を2XP獲得する。即座に経験値を10XP獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19133,7 +19089,7 @@
       "nameEn": "Loaded Dice",
       "image": "tft/images/6e56e4b72bde9703dd34a340.png",
       "rarity": "シルバー",
-      "descriptionJa": "ダイスとコインに幸運が宿っている。\r\n\r\nダイスを振ると、出た目の数と同じ量のゴールドを獲得する。その後コインを投げ、表が出ると1ゴールドを獲得する。",
+      "descriptionJa": "サイコロとコインに幸運が宿っている。\r\n\r\nダイスを振ると、出た目の数と同じ量のゴールドを獲得する。その後コインを投げ、表が出ると1ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19169,7 +19125,7 @@
       "nameEn": "Luxury Subscription",
       "image": "tft/images/dc06eafa62be270dd1e29ba9.png",
       "rarity": "プリズム",
-      "descriptionJa": "コスト5のチャンピオンが1体と、★2のコスト1チャンピオンが1体と、3ゴールドが入ったパックを獲得する。\r\n\r\n次の2ステージの開始時に、そのパックを再び獲得する。",
+      "descriptionJa": "コスト5のチャンピオンが1体と、★2のコスト1チャンピオンが1体と、5ゴールドが入ったパックを獲得する。\r\n\r\n次の2ステージの開始時に、そのパックを再び獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19193,7 +19149,7 @@
       "nameEn": "Makeshift Armor I",
       "image": "tft/images/ab859047905982367eae01c0.png",
       "rarity": "シルバー",
-      "descriptionJa": "アイテムを装備していないチャンピオンの物理防御と魔法防御が30増加する。",
+      "descriptionJa": "アイテムを装備していない味方の物理防御と魔法防御が30増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19205,7 +19161,7 @@
       "nameEn": "Makeshift Armor II",
       "image": "tft/images/2ab1fa077ea4b40b1672791b.png",
       "rarity": "ゴールド",
-      "descriptionJa": "アイテムを装備していないチャンピオンの物理防御と魔法防御が50増加する。",
+      "descriptionJa": "アイテムを装備していない味方の物理防御と魔法防御が50増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19241,7 +19197,7 @@
       "nameEn": "Min-Max",
       "image": "tft/images/318c668df2abcf04616a42ac.png",
       "rarity": "プリズム",
-      "descriptionJa": "「黄金のアイテム除去装置」を1個と、ランダムな素材アイテムを4個獲得する。",
+      "descriptionJa": "「黄金のアイテム除去装置」を1個、ランダムな素材アイテムを4個､4ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19397,7 +19353,7 @@
       "nameEn": "Pandora's Items II",
       "image": "tft/images/aa37deeb7b3cf66c240e4730.png",
       "rarity": "ゴールド",
-      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\r\n\r\nランダムな素材アイテムを2個獲得する。",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\r\n\r\nランダムな素材アイテムを2個と、4ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19661,7 +19617,7 @@
       "nameEn": "Shimmerscale Essence",
       "image": "tft/images/5a32b9c4fd49eadba867ac36.png",
       "rarity": "プリズム",
-      "descriptionJa": "「モーグル メイル」を1個獲得する。対人戦を6回後に「ギャンブラーの剣」を1個獲得する。",
+      "descriptionJa": "「ギャンブラーの剣」を1個獲得する。対人戦を6回後に、「モーグル メイル」を1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19673,7 +19629,7 @@
       "nameEn": "Shopping Spree",
       "image": "tft/images/0101122d224ccc33b5734f45.png",
       "rarity": "プリズム",
-      "descriptionJa": "レベルアップした際、自身のレベル+1と同じ数の無料リロールを獲得する。6ゴールドを獲得する。",
+      "descriptionJa": "レベルアップした際、自身のレベル+1と同じ数のショップのリロールを獲得する。6ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20045,7 +20001,7 @@
       "nameEn": "Trade Sector",
       "image": "tft/images/fff74ecf9ad484828996f2e0.png",
       "rarity": "ゴールド",
-      "descriptionJa": "毎ラウンド、ショップの無料リロール1回分を獲得する。2ゴールドを獲得する。",
+      "descriptionJa": "毎ラウンド、ショップのリロール1回分を獲得する。2ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20057,7 +20013,7 @@
       "nameEn": "Trade Sector+",
       "image": "tft/images/fff74ecf9ad484828996f2e0.png",
       "rarity": "ゴールド",
-      "descriptionJa": "毎ラウンド、ショップの無料リロール1回分を獲得する。8ゴールドを獲得する。",
+      "descriptionJa": "毎ラウンド、ショップのリロール1回分を獲得する。8ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20093,7 +20049,7 @@
       "nameEn": "Upward Mobility",
       "image": "tft/images/d0269437871b116c07b04663.png",
       "rarity": "プリズム",
-      "descriptionJa": "経験値の購入コストが1低下する。レベルアップするたびに体力が2増加し、2回分の無料リロールを獲得する。",
+      "descriptionJa": "経験値の購入コストが1低下する。レベルアップするたびに体力が2増加し、ショップのリロールを2回分獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20141,7 +20097,7 @@
       "nameEn": "Verticality II",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "チャンピオンは、同じ特性を共有する味方1体ごとに攻撃力が2%、魔力が2%、物理防御が2、魔法防御が2増加する。",
+      "descriptionJa": "チャンピオンは、同じ特性を共有する味方1体ごとに攻撃力が2.5%、魔力が2.5%、物理防御が2、魔法防御が2増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20153,7 +20109,7 @@
       "nameEn": "Verticality III",
       "image": "tft/images/504afca14e43a1aa20d30fcf.png",
       "rarity": "プリズム",
-      "descriptionJa": "チャンピオンは、同じ特性を共有する味方1体ごとに攻撃力が3.5%、魔力が3.5%、物理防御が3.5、魔法防御が3.5増加する。",
+      "descriptionJa": "チャンピオンは、同じ特性を共有する味方1体ごとに攻撃力が4%、魔力が4%、物理防御が3.5、魔法防御が3.5増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20201,7 +20157,7 @@
       "nameEn": "Worth the Wait",
       "image": "tft/images/5b09e93db985f89fbc3f1756.png",
       "rarity": "ゴールド",
-      "descriptionJa": "ランダムなコスト1のチャンピオンを1体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。",
+      "descriptionJa": "ランダムなコスト1のチャンピオンを1体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。\r\n戦闘中の状態に応じて変化 戦闘中の状態に応じて変化",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20213,7 +20169,7 @@
       "nameEn": "Worth the Wait II",
       "image": "tft/images/c135c85462ffbb5a4f25331a.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムなコスト2のチャンピオンを2体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。",
+      "descriptionJa": "ランダムなコスト2のチャンピオンを2体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。\r\n戦闘中の状態に応じて変化 戦闘中の状態に応じて変化",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -24349,1277 +24305,7 @@
     }
   ],
   "systemData": {
-    "referenceTables": [
-      {
-        "id": "wisp_tiers",
-        "title": "ウィスプ評価",
-        "setId": "TFTSet18",
-        "patch": "18.3",
-        "state": "READY",
-        "columns": [
-          "強さ評価",
-          "名前"
-        ],
-        "rows": [
-          {
-            "id": "DA_18_LostTravelers",
-            "cells": [
-              "S",
-              "迷える旅人たち"
-            ]
-          },
-          {
-            "id": "DA_18_Mitosis",
-            "cells": [
-              "S",
-              "有糸分裂"
-            ]
-          },
-          {
-            "id": "DA_Apprentice18",
-            "cells": [
-              "S",
-              "見習い"
-            ]
-          },
-          {
-            "id": "DA_ForestTwins18",
-            "cells": [
-              "S",
-              "森の双子"
-            ]
-          },
-          {
-            "id": "DA_Journeyman18",
-            "cells": [
-              "S",
-              "渡り人"
-            ]
-          },
-          {
-            "id": "DA_18_Propagate",
-            "cells": [
-              "S",
-              "伝播"
-            ]
-          },
-          {
-            "id": "DA_ForestGuide18",
-            "cells": [
-              "S",
-              "森のガイド"
-            ]
-          },
-          {
-            "id": "DA_18_BarkArmor",
-            "cells": [
-              "S",
-              "樹皮アーマー"
-            ]
-          },
-          {
-            "id": "DA_BunchOBelts18",
-            "cells": [
-              "S",
-              "たくさんのベルト"
-            ]
-          },
-          {
-            "id": "DA_FoundFriend18",
-            "cells": [
-              "S",
-              "友だち見つけた"
-            ]
-          },
-          {
-            "id": "DA_Bulwark18",
-            "cells": [
-              "S",
-              "ブルワーク"
-            ]
-          },
-          {
-            "id": "DA_HandOfBaron18",
-            "cells": [
-              "S",
-              "バロンの牙"
-            ]
-          },
-          {
-            "id": "DA_18_Tremors",
-            "cells": [
-              "S",
-              "震動"
-            ]
-          },
-          {
-            "id": "DA_Barter18",
-            "cells": [
-              "S",
-              "取引"
-            ]
-          },
-          {
-            "id": "DA_CoinFlip18",
-            "cells": [
-              "S",
-              "コイントス"
-            ]
-          },
-          {
-            "id": "DA_DieRoll18",
-            "cells": [
-              "S",
-              "サイコロ"
-            ]
-          },
-          {
-            "id": "DA_18_Experienced",
-            "cells": [
-              "S",
-              "経験者"
-            ]
-          },
-          {
-            "id": "DA_GrowUp18",
-            "cells": [
-              "S",
-              "成長"
-            ]
-          },
-          {
-            "id": "DA_BloodAndIron18",
-            "cells": [
-              "S",
-              "血と鉄"
-            ]
-          },
-          {
-            "id": "DA_18_AllOnes",
-            "cells": [
-              "S",
-              "オール1"
-            ]
-          },
-          {
-            "id": "DA_DoodadBag18",
-            "cells": [
-              "S",
-              "装置バッグ"
-            ]
-          },
-          {
-            "id": "DA_DoodadJar18",
-            "cells": [
-              "S",
-              "装置瓶"
-            ]
-          },
-          {
-            "id": "DA_18_EarlyFix",
-            "cells": [
-              "S",
-              "早期修正"
-            ]
-          },
-          {
-            "id": "DA_18_ForestMage",
-            "cells": [
-              "S",
-              "森のメイジ"
-            ]
-          },
-          {
-            "id": "DA_Blaze18",
-            "cells": [
-              "S",
-              "炎上"
-            ]
-          },
-          {
-            "id": "DA_KnickKnackBag18",
-            "cells": [
-              "S",
-              "小物バッグ"
-            ]
-          },
-          {
-            "id": "DA_KnickKnackJar18",
-            "cells": [
-              "S",
-              "小物瓶"
-            ]
-          },
-          {
-            "id": "DA_ThingamajigJar18",
-            "cells": [
-              "S",
-              "がらくた瓶"
-            ]
-          },
-          {
-            "id": "DA_ThingamajigBag18",
-            "cells": [
-              "S",
-              "がらくたバッグ"
-            ]
-          },
-          {
-            "id": "DA_Potioncraft18",
-            "cells": [
-              "S",
-              "ポーションクラフト"
-            ]
-          },
-          {
-            "id": "DA_GreaterChaos18",
-            "cells": [
-              "S",
-              "上級カオス"
-            ]
-          },
-          {
-            "id": "DA_AbandonShip18",
-            "cells": [
-              "S",
-              "船を捨てろ"
-            ]
-          },
-          {
-            "id": "DA_18_Freeroller",
-            "cells": [
-              "S",
-              "フリーローラー"
-            ]
-          },
-          {
-            "id": "DA_18_Starfall",
-            "cells": [
-              "S",
-              "流星雨"
-            ]
-          },
-          {
-            "id": "DA_AnimateShop18",
-            "cells": [
-              "S",
-              "元気なショップ"
-            ]
-          },
-          {
-            "id": "DA_RefreshingLight18",
-            "cells": [
-              "S",
-              "癒しの灯火"
-            ]
-          },
-          {
-            "id": "DA_18_HeatedRivalry",
-            "cells": [
-              "S",
-              "過熱するライバル関係"
-            ]
-          },
-          {
-            "id": "DA_IdleCraftsman18",
-            "cells": [
-              "S",
-              "暇な職人"
-            ]
-          },
-          {
-            "id": "DA_18_Fellowship",
-            "cells": [
-              "S",
-              "仲間意識"
-            ]
-          },
-          {
-            "id": "DA_SolitudesCloak18",
-            "cells": [
-              "S",
-              "孤独のクローク"
-            ]
-          },
-          {
-            "id": "DA_Smurfing18",
-            "cells": [
-              "S",
-              "スマーフ"
-            ]
-          },
-          {
-            "id": "DA_ThreeMe18",
-            "cells": [
-              "A",
-              "3を私に"
-            ]
-          },
-          {
-            "id": "DA_BigGuns18",
-            "cells": [
-              "A",
-              "大物"
-            ]
-          },
-          {
-            "id": "DA_Hugify18",
-            "cells": [
-              "A",
-              "巨大化"
-            ]
-          },
-          {
-            "id": "DA_18_LightningStrike",
-            "cells": [
-              "A",
-              "ライトニングストライク"
-            ]
-          },
-          {
-            "id": "DA_TreetopArchers",
-            "cells": [
-              "A",
-              "樹上の弓兵"
-            ]
-          },
-          {
-            "id": "DA_KillersRegret18",
-            "cells": [
-              "A",
-              "殺し屋の後悔"
-            ]
-          },
-          {
-            "id": "DA_PetrifiedDummy18",
-            "cells": [
-              "A",
-              "石化ダミー"
-            ]
-          },
-          {
-            "id": "DA_PetrifyShields18",
-            "cells": [
-              "A",
-              "石化の盾"
-            ]
-          },
-          {
-            "id": "DA_18_Resistant",
-            "cells": [
-              "A",
-              "抵抗"
-            ]
-          },
-          {
-            "id": "DA_18_Counterspell",
-            "cells": [
-              "A",
-              "対抗呪文"
-            ]
-          },
-          {
-            "id": "DA_18_HeroicSacrifice",
-            "cells": [
-              "A",
-              "英雄的犠牲"
-            ]
-          },
-          {
-            "id": "DA_18_AfterShock",
-            "cells": [
-              "A",
-              "アフターショック"
-            ]
-          },
-          {
-            "id": "DA_StandAlone18",
-            "cells": [
-              "A",
-              "背負い立つ者"
-            ]
-          },
-          {
-            "id": "DA_TrainingYard18",
-            "cells": [
-              "A",
-              "訓練場"
-            ]
-          },
-          {
-            "id": "DA_18_Infliction",
-            "cells": [
-              "A",
-              "苦痛"
-            ]
-          },
-          {
-            "id": "DA_18_LightningStorm",
-            "cells": [
-              "A",
-              "ライトニングストーム"
-            ]
-          },
-          {
-            "id": "DA_18_GiantGrowth",
-            "cells": [
-              "A",
-              "巨大化"
-            ]
-          },
-          {
-            "id": "DA_Salvager18",
-            "cells": [
-              "A",
-              "サルベージャー"
-            ]
-          },
-          {
-            "id": "DA_18_BloodMoney",
-            "cells": [
-              "A",
-              "ブラッドマネー"
-            ]
-          },
-          {
-            "id": "DA_18_PocketChange",
-            "cells": [
-              "A",
-              "ポケットの小銭"
-            ]
-          },
-          {
-            "id": "DA_18_BronzeSpoon",
-            "cells": [
-              "A",
-              "ブロンズ スプーン"
-            ]
-          },
-          {
-            "id": "DA_CurioCart18",
-            "cells": [
-              "A",
-              "珍品カート"
-            ]
-          },
-          {
-            "id": "DA_Peddler18",
-            "cells": [
-              "A",
-              "行商人"
-            ]
-          },
-          {
-            "id": "DA_LesserChaos18",
-            "cells": [
-              "A",
-              "下級カオス"
-            ]
-          },
-          {
-            "id": "DA_DoodadSack18",
-            "cells": [
-              "A",
-              "装置袋"
-            ]
-          },
-          {
-            "id": "DA_KnickKnackSack18",
-            "cells": [
-              "A",
-              "小物袋"
-            ]
-          },
-          {
-            "id": "DA_ThingamajigSack18",
-            "cells": [
-              "A",
-              "がらくた袋"
-            ]
-          },
-          {
-            "id": "DA_18_MinorPolymorph",
-            "cells": [
-              "A",
-              "初級変身術"
-            ]
-          },
-          {
-            "id": "DA_18_Polymorph",
-            "cells": [
-              "A",
-              "変身術"
-            ]
-          },
-          {
-            "id": "DA_Cutpurse18",
-            "cells": [
-              "A",
-              "スリ"
-            ]
-          },
-          {
-            "id": "DA_RolyPolys18",
-            "cells": [
-              "A",
-              "ダンゴムシ"
-            ]
-          },
-          {
-            "id": "DA_FlipFrenzy18",
-            "cells": [
-              "A",
-              "コイントス フィーバー"
-            ]
-          },
-          {
-            "id": "DA_MiddlePath18",
-            "cells": [
-              "A",
-              "真ん中の道"
-            ]
-          },
-          {
-            "id": "DA_StartingTown18",
-            "cells": [
-              "A",
-              "はじまりの街"
-            ]
-          },
-          {
-            "id": "DA_Barrier18",
-            "cells": [
-              "A",
-              "バリア"
-            ]
-          },
-          {
-            "id": "DA_Combust18",
-            "cells": [
-              "A",
-              "コンバスト"
-            ]
-          },
-          {
-            "id": "DA_BoosterShot18",
-            "cells": [
-              "A",
-              "ブースターショット"
-            ]
-          },
-          {
-            "id": "DA_SolarGift18",
-            "cells": [
-              "B",
-              "太陽の贈り物"
-            ]
-          },
-          {
-            "id": "DA_Grandmaster18",
-            "cells": [
-              "B",
-              "グランドマスター"
-            ]
-          },
-          {
-            "id": "DA_BigBoom18",
-            "cells": [
-              "B",
-              "大爆発"
-            ]
-          },
-          {
-            "id": "DA_BorrowedGear18",
-            "cells": [
-              "B",
-              "借り物の装備"
-            ]
-          },
-          {
-            "id": "DA_Flow18",
-            "cells": [
-              "B",
-              "流水"
-            ]
-          },
-          {
-            "id": "DA_18_Hummingbird",
-            "cells": [
-              "B",
-              "ハチドリ"
-            ]
-          },
-          {
-            "id": "DA_18_ProlificPower",
-            "cells": [
-              "B",
-              "あふれる力"
-            ]
-          },
-          {
-            "id": "DA_Quicken18",
-            "cells": [
-              "B",
-              "急いで"
-            ]
-          },
-          {
-            "id": "DA_Rain18",
-            "cells": [
-              "B",
-              "雨"
-            ]
-          },
-          {
-            "id": "DA_Ironwood18",
-            "cells": [
-              "B",
-              "アイアンウッド"
-            ]
-          },
-          {
-            "id": "DA_ManaRichSoil18",
-            "cells": [
-              "B",
-              "あふれるマナの地"
-            ]
-          },
-          {
-            "id": "DA_PhantomSplash18",
-            "cells": [
-              "B",
-              "ファントムスプラッシュ"
-            ]
-          },
-          {
-            "id": "DA_LivingSoil18",
-            "cells": [
-              "B",
-              "命ある土"
-            ]
-          },
-          {
-            "id": "DA_18_SunfireSorcery",
-            "cells": [
-              "B",
-              "サンファイア ソーサリー"
-            ]
-          },
-          {
-            "id": "DA_18_TatteredArmor",
-            "cells": [
-              "B",
-              "錆びた鎧"
-            ]
-          },
-          {
-            "id": "DA_18_VerdantVitality",
-            "cells": [
-              "B",
-              "新緑の生命力"
-            ]
-          },
-          {
-            "id": "DA_WrappedInThorns18",
-            "cells": [
-              "B",
-              "茨に包まれて"
-            ]
-          },
-          {
-            "id": "DA_18_CircleofElders",
-            "cells": [
-              "B",
-              "エルダーの集い"
-            ]
-          },
-          {
-            "id": "DA_18_BackrowStar",
-            "cells": [
-              "B",
-              "後衛スター"
-            ]
-          },
-          {
-            "id": "DA_BearsVisit18",
-            "cells": [
-              "B",
-              "クマの来訪"
-            ]
-          },
-          {
-            "id": "DA_Diversified18",
-            "cells": [
-              "B",
-              "分散"
-            ]
-          },
-          {
-            "id": "DA_Downpour18",
-            "cells": [
-              "B",
-              "土砂降り"
-            ]
-          },
-          {
-            "id": "DA_IronCore18",
-            "cells": [
-              "B",
-              "アイアンコア"
-            ]
-          },
-          {
-            "id": "DA_18_KillingFrenzy",
-            "cells": [
-              "B",
-              "キリング フレンジー"
-            ]
-          },
-          {
-            "id": "DA_MarksmensGale18",
-            "cells": [
-              "B",
-              "マークスマンの疾風"
-            ]
-          },
-          {
-            "id": "DA_MarksmensMarks18",
-            "cells": [
-              "B",
-              "マークスマンの印"
-            ]
-          },
-          {
-            "id": "DA_GoldenGoose18",
-            "cells": [
-              "B",
-              "黄金のガチョウ"
-            ]
-          },
-          {
-            "id": "DA_PhantomArmor18",
-            "cells": [
-              "B",
-              "ファントム アーマー"
-            ]
-          },
-          {
-            "id": "DA_18_MercenaryForce",
-            "cells": [
-              "B",
-              "マーセナリーの力"
-            ]
-          },
-          {
-            "id": "DA_PhantomGloves18",
-            "cells": [
-              "B",
-              "幻のグローブ"
-            ]
-          },
-          {
-            "id": "DA_PhantomVest18",
-            "cells": [
-              "B",
-              "幻のベスト"
-            ]
-          },
-          {
-            "id": "DA_PlatedShields18",
-            "cells": [
-              "B",
-              "プレートシールド"
-            ]
-          },
-          {
-            "id": "DA_HeroOfProphecy18",
-            "cells": [
-              "B",
-              "預言の勇者"
-            ]
-          },
-          {
-            "id": "DA_Revenge18",
-            "cells": [
-              "B",
-              "リベンジ"
-            ]
-          },
-          {
-            "id": "DA_Scrappy18",
-            "cells": [
-              "B",
-              "スクラッピー"
-            ]
-          },
-          {
-            "id": "DA_TigersVisit18_Wisp",
-            "cells": [
-              "B",
-              "トラの来訪"
-            ]
-          },
-          {
-            "id": "DA_TurtlesVisit18",
-            "cells": [
-              "B",
-              "カメの来訪"
-            ]
-          },
-          {
-            "id": "DA_CloneCompanion18",
-            "cells": [
-              "B",
-              "コンパニオンを複製"
-            ]
-          },
-          {
-            "id": "DA_18_LifeDebt",
-            "cells": [
-              "B",
-              "命と引き換え"
-            ]
-          },
-          {
-            "id": "DA_Hireling18",
-            "cells": [
-              "B",
-              "傭兵"
-            ]
-          },
-          {
-            "id": "DA_PhantomEmblem18",
-            "cells": [
-              "B",
-              "幻の紋章"
-            ]
-          },
-          {
-            "id": "DA_LateBloomer18",
-            "cells": [
-              "B",
-              "遅咲き"
-            ]
-          },
-          {
-            "id": "DA_18_Radiantize",
-            "cells": [
-              "B",
-              "レディアント化"
-            ]
-          },
-          {
-            "id": "DA_SlowStudy18",
-            "cells": [
-              "B",
-              "スロウスタディ"
-            ]
-          },
-          {
-            "id": "DA_HealthPotion18_Charm",
-            "cells": [
-              "B",
-              "体力ポーション"
-            ]
-          },
-          {
-            "id": "DA_ManaPotion18_Charm",
-            "cells": [
-              "B",
-              "マナ ポーション"
-            ]
-          },
-          {
-            "id": "DA_Terraforming18",
-            "cells": [
-              "B",
-              "テラフォーミング"
-            ]
-          },
-          {
-            "id": "DA_EssenceTheft18",
-            "cells": [
-              "B",
-              "生気吸引"
-            ]
-          },
-          {
-            "id": "DA_18_Payday",
-            "cells": [
-              "B",
-              "ペイデイ"
-            ]
-          },
-          {
-            "id": "DA_18_AllFours",
-            "cells": [
-              "B",
-              "オール4"
-            ]
-          },
-          {
-            "id": "DA_18_AllThrees",
-            "cells": [
-              "B",
-              "オール3"
-            ]
-          },
-          {
-            "id": "DA_18_AllTwos",
-            "cells": [
-              "B",
-              "オール2"
-            ]
-          },
-          {
-            "id": "DA_FlashFire18",
-            "cells": [
-              "B",
-              "火走り"
-            ]
-          },
-          {
-            "id": "DA_SearchParty18",
-            "cells": [
-              "B",
-              "探索パーティー"
-            ]
-          },
-          {
-            "id": "DA_Jungling18",
-            "cells": [
-              "B",
-              "ジャングリング"
-            ]
-          },
-          {
-            "id": "DA_GiantsAura18",
-            "cells": [
-              "B",
-              "巨人のオーラ"
-            ]
-          },
-          {
-            "id": "DA_Lucky718",
-            "cells": [
-              "B",
-              "ラッキー7"
-            ]
-          },
-          {
-            "id": "DA_RollingBones18",
-            "cells": [
-              "B",
-              "ローリングボーン"
-            ]
-          },
-          {
-            "id": "DA_18_AllFives",
-            "cells": [
-              "B",
-              "オール5"
-            ]
-          },
-          {
-            "id": "DA_BorderVillage18",
-            "cells": [
-              "B",
-              "境界の村"
-            ]
-          },
-          {
-            "id": "DA_RideTheWave18",
-            "cells": [
-              "B",
-              "波に乗ってね"
-            ]
-          },
-          {
-            "id": "DA_Artifactinate18",
-            "cells": [
-              "B",
-              "アーティファクティネート"
-            ]
-          },
-          {
-            "id": "DA_HomingFireflies18",
-            "cells": [
-              "B",
-              "ホーミングホタル"
-            ]
-          },
-          {
-            "id": "DA_Stealthy18",
-            "cells": [
-              "B",
-              "ステルス"
-            ]
-          },
-          {
-            "id": "DA_18_Moonrise",
-            "cells": [
-              "B",
-              "月の出"
-            ]
-          },
-          {
-            "id": "DA_NaturesAlly18",
-            "cells": [
-              "B",
-              "自然の味方"
-            ]
-          },
-          {
-            "id": "DA_18_YordleSpirit",
-            "cells": [
-              "B",
-              "ヨードルの精神"
-            ]
-          },
-          {
-            "id": "DA_18_UltraAscension",
-            "cells": [
-              "C",
-              "ウルトラアセンション"
-            ]
-          },
-          {
-            "id": "DA_ImprovedReach18",
-            "cells": [
-              "C",
-              "改良リーチ"
-            ]
-          },
-          {
-            "id": "DA_MoonlightRitual18",
-            "cells": [
-              "C",
-              "月光の儀式"
-            ]
-          },
-          {
-            "id": "DA_HerosEntrance18",
-            "cells": [
-              "C",
-              "英雄降臨"
-            ]
-          },
-          {
-            "id": "DA_NaturesWrath18",
-            "cells": [
-              "C",
-              "大地の激憤"
-            ]
-          },
-          {
-            "id": "DA_BlastPotion18_Charm",
-            "cells": [
-              "C",
-              "ブラストポーション"
-            ]
-          },
-          {
-            "id": "DA_18_Fertilize",
-            "cells": [
-              "C",
-              "肥料"
-            ]
-          },
-          {
-            "id": "DA_Snacktime18",
-            "cells": [
-              "C",
-              "おやつの時間！"
-            ]
-          },
-          {
-            "id": "DA_BeggarsWisp18",
-            "cells": [
-              "C",
-              "おねだりウィスプ"
-            ]
-          },
-          {
-            "id": "DA_Regeneration18",
-            "cells": [
-              "D",
-              "自動回復"
-            ]
-          },
-          {
-            "id": "DA_18_Preppers",
-            "cells": [
-              "D",
-              "準備班"
-            ]
-          },
-          {
-            "id": "DA_PottedStonebark18",
-            "cells": [
-              "D",
-              "鉢植えのストーンバーク"
-            ]
-          },
-          {
-            "id": "DA_PottedLifebloom18",
-            "cells": [
-              "D",
-              "鉢植えのライフブロッサム"
-            ]
-          },
-          {
-            "id": "DA_TrophyHunter18",
-            "cells": [
-              "D",
-              "トロフィー ハンター"
-            ]
-          }
-        ],
-        "sourceName": "MetaTFT 編集評価",
-        "sourceUpdatedAt": "2026-10-01T02:58:24Z",
-        "note": "一部確認済み：提供元175件／現行セット照合160件／無効化1 件を除外／表示159件。編集者の評価で、勝率統計・価格・出現階級ではありません。未確認IDは推測しません。提供元に明示的なパッチ番号はないため、現行セットのID照合とパッチ公開後の評価更新を確認しています。"
-      },
-      {
-        "id": "wisp_reference",
-        "title": "ウィスプ一覧",
-        "setId": "TFTSet18",
-        "patch": "18.3",
-        "state": "READY",
-        "columns": [
-          "名前",
-          "通常／強化",
-          "価格",
-          "効果",
-          "出現時期",
-          "盤面などの条件",
-          "排他オーグメント",
-          "再提示まで"
-        ],
-        "rows": [
-          {
-            "id": "DA_BloodAndIron18",
-            "cells": [
-              "血と鉄",
-              "通常",
-              "4 G",
-              "チャンピオンが合計20体倒されると素材アイテムの金床を獲得。",
-              "中盤前半・中盤",
-              "追加条件なし",
-              "俺だけレベルアップ",
-              "20 ショップ"
-            ]
-          },
-          {
-            "id": "DA_BloodAndIron18_Upgrade",
-            "cells": [
-              "血と鉄",
-              "ブロッサム強化",
-              "4 G",
-              "チャンピオンが合計16体倒されると素材アイテムの金床を獲得。",
-              "序盤",
-              "追加条件なし",
-              "俺だけレベルアップ",
-              "20 ショップ"
-            ]
-          },
-          {
-            "id": "DA_Combust18",
-            "cells": [
-              "コンバスト",
-              "通常",
-              "3 G",
-              "味方チャンピオンが倒されると爆発し、最大体力の15%の魔法ダメージを与える。",
-              "終盤・最終盤",
-              "追加条件なし",
-              "なし",
-              "5 ショップ"
-            ]
-          },
-          {
-            "id": "DA_Combust18_Upgrade",
-            "cells": [
-              "コンバスト",
-              "ブロッサム強化",
-              "3 G",
-              "味方チャンピオンが倒されると爆発し、最大体力の18%の魔法ダメージを与える。",
-              "終盤・最終盤",
-              "追加条件なし",
-              "なし",
-              "5 ショップ"
-            ]
-          },
-          {
-            "id": "DA_ManaRichSoil18",
-            "cells": [
-              "あふれるマナの地",
-              "通常",
-              "2 G",
-              "味方キャスターの最大マナが15%低下する。",
-              "終盤・最終盤",
-              "盤面にキャスター2体以上、装備を持つキャスター1体以上。",
-              "なし",
-              "5 ショップ"
-            ]
-          },
-          {
-            "id": "DA_ManaRichSoil18_Upgrade",
-            "cells": [
-              "あふれるマナの地",
-              "ブロッサム強化",
-              "2 G",
-              "味方キャスターの最大マナが20%低下する。",
-              "終盤・最終盤",
-              "盤面にキャスター2体以上、装備を持つキャスター1体以上。",
-              "なし",
-              "5 ショップ"
-            ]
-          },
-          {
-            "id": "DA_ThreeMe18",
-            "cells": [
-              "3を私に",
-              "通常",
-              "10 G",
-              "ランダムな★2のコスト3チャンピオンを1体獲得。",
-              "中盤前半・中盤",
-              "追加条件なし",
-              "なし",
-              "5 ショップ"
-            ]
-          },
-          {
-            "id": "DA_ThreeMe18_Upgrade",
-            "cells": [
-              "3を私に",
-              "ブロッサム強化",
-              "8 G",
-              "ランダムな★2のコスト3チャンピオンを1体獲得。",
-              "中盤前半・中盤",
-              "追加条件なし",
-              "なし",
-              "5 ショップ"
-            ]
-          }
-        ],
-        "sourceName": "Little Buddy Bot・Riot（現行値照合）",
-        "sourceUpdatedAt": "2026-10-01T09:59:32Z",
-        "note": "一部確認済み：4種類・通常／強化8件。通常モード用で、強さ評価とは別の一覧です。出現時期は提供元の段階区分（ラウンド番号ではありません）。排他オーグメント保有中は提示されません。再提示までは、このウィスプが提示されてから再び出現可能になるまでのウィスプショップ数です。日時はこの表の照合日です。"
-      },
-      {
-        "id": "coven_cashouts",
-        "title": "魔女の解放",
-        "setId": "TFTSet18",
-        "patch": "18.3",
-        "state": "UNAVAILABLE",
-        "columns": [
-          "状態"
-        ],
-        "rows": [],
-        "sourceName": "",
-        "sourceUpdatedAt": "",
-        "note": "現行パッチの報酬表を検証中です。旧版・PBEの報酬で補完しません。"
-      }
-    ],
+    "referenceTables": [],
     "shopOdds": [],
     "experienceTable": [],
     "stageDefinitions": [],

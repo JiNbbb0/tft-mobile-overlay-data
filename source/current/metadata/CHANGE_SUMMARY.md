@@ -1,17 +1,17 @@
 # Change Summary
 
-- Generated: 2026-10-06T19:49:24Z
-- From: tftset18-18.4-r425-m9ee3c6c10f
+- Generated: 2026-10-06T20:10:15Z
+- From: tftset18-18.4-r425-m9f24af8013
 - To: TFTSet18 / patch 18.4 / revision 425
 
 | Category | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| Champions | 65 | 65 | 0 | 0 | 0 |
-| Traits | 35 | 35 | 0 | 0 | 0 |
-| Items | 662 | 662 | 0 | 0 | 0 |
-| Augments | 592 | 592 | 0 | 0 | 0 |
+| Champions | 65 | 65 | 0 | 0 | 36 |
+| Traits | 35 | 34 | 0 | 1 | 3 |
+| Items | 662 | 662 | 0 | 0 | 10 |
+| Augments | 592 | 592 | 0 | 0 | 42 |
 | Compositions | 18 | 18 | 0 | 0 | 18 |
-| Images | 622 | 622 | - | - | 0 delta |
+| Images | 622 | 621 | - | - | -1 delta |
 
 - Tier changes: 0
 - Average-placement changes: 16
@@ -20,7 +20,7 @@
 
 | Rank | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| CHALLENGER | 18 | 18 | 1 | 1 | 15 |
+| CHALLENGER | 18 | 18 | 0 | 0 | 18 |
 | DIAMOND_PLUS | 18 | 18 | 0 | 0 | 18 |
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |

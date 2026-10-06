@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "fetchedAtUtc": "2026-10-06T20:04:53Z",
+  "fetchedAtUtc": "2026-10-06T21:34:39Z",
   "set": {
     "id": "TFTSet18",
     "number": 18,
     "nameJa": "Enchanted Wilds",
     "nameEn": "Enchanted Wilds",
     "tftPatch": "18.4",
-    "dataDragonVersion": "16.19.1",
+    "dataDragonVersion": "16.20.1",
     "modes": [
       "通常",
       "ハイパーロール",
@@ -102,6 +102,7 @@
       "DA_18_Adaptor",
       "DA_18_ApexPredator",
       "DA_18_Battlemage",
+      "DA_18_Blackthorn",
       "DA_18_Blossom",
       "DA_18_Brawler",
       "DA_18_Caustic",
@@ -1439,7 +1440,7 @@
       "ability": {
         "nameJa": "乾坤一擲",
         "nameEn": "Piercing Arrow",
-        "descriptionJa": "力を溜めた後、直線上で最も敵の数が多い方向に矢を放つ。命中した敵に445/670/1070/1815の物理ダメージを与える。このダメージは敵に触れるたびに40%減少する(最低40%まで)。",
+        "descriptionJa": "力を溜めた後、対象と直線上の最も敵の数が多い方向に矢を放つ。命中した敵に445/670/1070/1815の物理ダメージを与える。このダメージは敵に触れるたびに40%減少する(最低40%まで)。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1651,7 +1652,7 @@
       "cost": 1,
       "image": "tft/images/082be800ac6cccdd731db3ea.png",
       "traits": [
-        "エルドリッチ",
+        "ブラックソーン",
         "スプライキン",
         "スペルウィーバー"
       ],
@@ -1674,7 +1675,7 @@
         "magicResist": 25.0,
         "range": 4.0
       },
-      "searchKeywords": "ベイガー veigar da_18_veigar エルドリッチ スプライキン スペルウィーバー"
+      "searchKeywords": "ベイガー veigar da_18_veigar ブラックソーン スプライキン スペルウィーバー"
     },
     {
       "id": "DA_18_Yorick",
@@ -1778,7 +1779,7 @@
       "cost": 1,
       "image": "tft/images/c791238583d1c7c825f428cd.png",
       "traits": [
-        "エルドリッチ",
+        "ブラックソーン",
         "ブローラー"
       ],
       "ability": {
@@ -1800,7 +1801,7 @@
         "magicResist": 40.0,
         "range": 1.0
       },
-      "searchKeywords": "レク＝サイ rek'sai da_18_reksai エルドリッチ ブローラー"
+      "searchKeywords": "レク＝サイ rek'sai da_18_reksai ブラックソーン ブローラー"
     },
     {
       "id": "DA_18_Sentry",
@@ -2001,7 +2002,7 @@
       "ability": {
         "nameJa": "内気功",
         "nameEn": "Ki Barrier",
-        "descriptionJa": "4秒間、シェンと周囲のダメージを負った味方1体に耐久値375/450/575/725のシールドを付与する。両者は次の3回の通常攻撃における攻撃速度が40%増加し、35/55/80/135の追加魔法ダメージを与える。",
+        "descriptionJa": "4秒間、自身に耐久値375/450/575/725のシールドを、周囲のダメージを負った味方1体に耐久値225/300/400/500のシールドを付与する。両者は次の3回の通常攻撃における攻撃速度が40%増加し、35/55/80/135の追加魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2212,7 +2213,7 @@
       "cost": 2,
       "image": "tft/images/fa91b5cc804ddc33f574fdf2.png",
       "traits": [
-        "エルドリッチ",
+        "ブラックソーン",
         "ラヴィジャー"
       ],
       "ability": {
@@ -2234,7 +2235,7 @@
         "magicResist": 45.0,
         "range": 1.0
       },
-      "searchKeywords": "ワーウィック warwick da_18_warwick エルドリッチ ラヴィジャー"
+      "searchKeywords": "ワーウィック warwick da_18_warwick ブラックソーン ラヴィジャー"
     },
     {
       "id": "DA_18_Azir",
@@ -2243,7 +2244,7 @@
       "cost": 3,
       "image": "tft/images/69330491d20dc3d958e816a9.png",
       "traits": [
-        "エルドリッチ",
+        "ブラックソーン",
         "エクセキューショナー",
         "サモナー"
       ],
@@ -2266,7 +2267,7 @@
         "magicResist": 35.0,
         "range": 4.0
       },
-      "searchKeywords": "アジール azir da_18_azir エルドリッチ エクセキューショナー サモナー"
+      "searchKeywords": "アジール azir da_18_azir ブラックソーン エクセキューショナー サモナー"
     },
     {
       "id": "DA_Vi18",
@@ -2469,7 +2470,7 @@
       "ability": {
         "nameJa": "ヨードルグレネード",
         "nameEn": "Explosive Charge",
-        "descriptionJa": "対象に4秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が60%増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを均等に与え、175/265/420/715の物理ダメージ + 詠唱中の通常攻撃1回ごとに10/15/25/42のダメージを与える。\r\n\r\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
+        "descriptionJa": "対象に4秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が60%増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを分散して与え、175/265/420/715の物理ダメージ + 詠唱中の通常攻撃1回ごとに10/15/25/42のダメージを与える。\r\n\r\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": "tft/images/eb56b0d42a0036750ef9fa26.png"
       },
@@ -2563,7 +2564,7 @@
       "ability": {
         "nameJa": "ウージュースタイル",
         "nameEn": "Wuju Style",
-        "descriptionJa": "自動効果: 通常攻撃が3回ごとに、2回攻撃の「ダブルストライク」になる。キルまたはアシストを獲得すると、移動速度が大幅に増加する。\r\n\r\nアダプター [攻撃力]: 「ダブルストライク」を行うたびに、攻撃速度が15%増加するスタックを獲得する。\r\n\r\nアダプター [魔力]: 「ダブルストライク」が追加ダメージを与え、自身の体力を回復する。",
+        "descriptionJa": "自動効果: 通常攻撃が3回ごとに「ダブルストライク」になる。キルまたはアシストを獲得すると、移動速度が大幅に増加する。\r\n\r\nアダプター[攻撃力]: 「ダブルストライク」を行うたびに、攻撃速度が15%増加するスタックを獲得する。\r\n\r\nアダプター[魔力]: 「ダブルストライク」が追加ダメージを与え、自身の体力を回復する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2583,7 +2584,7 @@
     },
     {
       "id": "DA_CrimsonRaptor18",
-      "nameJa": "ラプター",
+      "nameJa": "ママ鳥",
       "nameEn": "Mama Beak",
       "cost": 3,
       "image": "tft/images/350fbcd1ea3a29cef6cb1229.png",
@@ -2593,7 +2594,7 @@
         "ラピッドファイア"
       ],
       "ability": {
-        "nameJa": "仲間の群れ",
+        "nameJa": "フロックファミリー",
         "nameEn": "Flock Family",
         "descriptionJa": "周辺に5秒間、対象指定不可のミニヒナ鳥を4体召喚する。ママ鳥が攻撃するたびにミニヒナ鳥も同じ敵を攻撃し、22/33/52/82の物理ダメージを与える。\r\n\r\nオレンジバフ: 物理ダメージを与えると、敵の物理防御を2低下させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
@@ -2611,7 +2612,7 @@
         "magicResist": 35.0,
         "range": 4.0
       },
-      "searchKeywords": "ラプター mama beak da_crimsonraptor18 リフトビースト サモナー ラピッドファイア"
+      "searchKeywords": "ママ鳥 mama beak da_crimsonraptor18 リフトビースト サモナー ラピッドファイア"
     },
     {
       "id": "DA_18_Rammus",
@@ -2656,7 +2657,7 @@
       "ability": {
         "nameJa": "逆上",
         "nameEn": "Savagery",
-        "descriptionJa": "3マス以内で体力の割合が最も低い敵に跳びかかって突き刺し、255/385/650/1105の物理ダメージを与える。その後、体力を60/90/210回復する。この効果は対象の減少体力に応じて最大120/180/420まで増加する。",
+        "descriptionJa": "3マス以内で体力の割合が最も低い敵に跳びかかって突き刺し、255/385/650/1105の物理ダメージを与える。その後、体力を60/90/210回復する。この効果は対象の減少体力に応じて最大120/180/420まで増加する。戦闘中の状態に応じて変化",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2687,7 +2688,7 @@
       "ability": {
         "nameJa": "スピリットボム",
         "nameEn": "Spirit Bomb",
-        "descriptionJa": "スピリットボムにエネルギーを注ぎ込む1.75敵の大群に投げつける数秒前。 455/685/3500/5000敵に魔法ダメージを与える3-六角形の半径、21%震源地から離れたヘックスごとに（最小）16% )",
+        "descriptionJa": "4マス以内で、周囲に最も多くの敵がいる地点にスピリットボムを放つ。スピリットボムは3マス以内の敵に455/685/3500/5000の魔法ダメージを与える。このダメージは爆発地点から1マス離れるごとに21%ずつ減少する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2718,7 +2719,7 @@
       "ability": {
         "nameJa": "月光の猛攻撃",
         "nameEn": "Moonlight's Onslaught",
-        "descriptionJa": "セヴェラムを装備し、2秒かけて対象を[攻撃速度]回斬りつける。各攻撃は70/105/850/1500 + 最大体力の0%の物理ダメージを与える。\r\n\r\n猛攻撃の終了後、爆風を放ち、半径2マス以内のすべての敵に490/735/5225/9376の物理ダメージを分散して与える。",
+        "descriptionJa": "セヴェラムを装備し、2秒かけて対象を[攻撃速度]回斬りつける。各攻撃は70/105/850/1500の物理ダメージを与える。\r\n\r\n猛攻撃の終了後、爆風を放ち、半径2マス以内のすべての敵に490/735/5225/9376の物理ダメージを分散して与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2842,7 +2843,7 @@
       "ability": {
         "nameJa": "ブーメランブレード",
         "nameEn": "Boomerang Blade",
-        "descriptionJa": "現在の対象に215/320/1150/2250物理ダメージを与える巨大なクロスブレードを投げる。クロスブレードは周囲の敵の間を8回跳ね返り、跳ね返るたびに43/64/460/1350物理ダメージを与える。これで敵をキルすると、追加で1回跳ね返る。",
+        "descriptionJa": "現在の対象に215/320/1150/2250物理ダメージを与える巨大なクロスブレードを投げる。クロスブレードは周囲の敵の間を8回跳ね返り、跳ね返るたびに43/64/460/1350物理ダメージを与える。これで敵をキルすると、追加で3/6/10回跳ね返る。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2991,7 +2992,7 @@
       "cost": 4,
       "image": "tft/images/47b6c74423afd8ce3093fd03.png",
       "traits": [
-        "エルドリッチ",
+        "ブラックソーン",
         "モノリス"
       ],
       "ability": {
@@ -3013,7 +3014,7 @@
         "magicResist": 70.0,
         "range": 1.0
       },
-      "searchKeywords": "マルファイト malphite da_18_malphite エルドリッチ モノリス"
+      "searchKeywords": "マルファイト malphite da_18_malphite ブラックソーン モノリス"
     },
     {
       "id": "DA_18_Morgana",
@@ -3466,7 +3467,7 @@
       "nameJa": "アバター",
       "nameEn": "Avatar",
       "image": "tft/images/93f2464892ad538e14fb35ea.png",
-      "descriptionJa": "ベンチまたはボード上にアバターがいると、自分のショップの他のすべてのアバターがそのアバターの特性に変化する。特定の特性を持つアバターを所持できるのは1人のみ。\r\n\r\n選んだアバターの特性は特性ボーナスにおいて2体分としてカウントされる。",
+      "descriptionJa": "ベンチまたはボード上に「アバター」がいると、自分のショップの他のすべての「アバター」がその「アバター」の特性に変化する。\r\n\r\n「アバター」が選択した特性は、特性ボーナスにおいて2体分としてカウントされる。",
       "activationLevels": [
         {
           "minimumUnits": 1,
@@ -3594,7 +3595,7 @@
       "nameJa": "ヴァンガード",
       "nameEn": "Vanguard",
       "image": "tft/images/5be515a5959a531a2c7dca23.png",
-      "descriptionJa": "戦闘開始時と体力が0%/50%になったとき: 0/10秒間、最大体力に応じた耐久値を持つシールドを獲得する。",
+      "descriptionJa": "戦闘開始時、および体力が0%/50%未満になると、「ヴァンガード」は0/10秒間、自身の最大体力に応じたシールドを獲得する。",
       "activationLevels": [
         {
           "minimumUnits": 2,
@@ -3769,7 +3770,7 @@
       "nameJa": "サモナー",
       "nameEn": "Summoner",
       "image": "tft/images/6e1fcc74ed176503f435269b.png",
-      "descriptionJa": "「サモナー」はそれぞれ異なる方法で自身の召喚ユニットを強化する。\r\n\r\nヨリック: 体力+0%/30%/45%\r\nアジール: ダメージ+0%/45%/67.5%/70%\r\nママ鳥: ダメージ+0%/45%/67.5%/70%\r\nザイラ: 植物の通常攻撃+0/4/6/4",
+      "descriptionJa": "「サモナー」はそれぞれ異なる方法で自身の召喚ユニットを強化する。\r\n\r\nヨリック: 体力+0%/30%/45%\r\nアジール: ダメージ+0%/20%/30%\r\nママ鳥: ダメージ+0%/45%/67.5%/70%\r\nザイラ: 植物の通常攻撃+0/4/6/4",
       "activationLevels": [
         {
           "minimumUnits": 2,
@@ -4182,6 +4183,49 @@
         "DA_Nidalee18_AP"
       ],
       "searchKeywords": "プライマル primal da_primal18"
+    },
+    {
+      "id": "DA_18_Blackthorn",
+      "nameJa": "ブラックソーン",
+      "nameEn": "Blackthorn",
+      "image": "tft/images/fc1d6a32c2ee0eb40aceaee9.png",
+      "descriptionJa": "「ブラックソーン」のマス上の味方が戦闘開始前に生贄となり、味方チャンピオンに体力を付与する。\r\n\r\n「ブラックソーン」のチャンピオンは、生贄の役割、スターレベル、コストに応じて追加ステータスを得る。\r\n\r\n戦闘中の状態に応じて変化",
+      "activationLevels": [
+        {
+          "minimumUnits": 2,
+          "maximumUnits": 3,
+          "style": 1,
+          "variables": {
+            "Health": 175.0
+          }
+        },
+        {
+          "minimumUnits": 4,
+          "maximumUnits": 5,
+          "style": 3,
+          "variables": {
+            "Health": 350.0,
+            "StatMultiplier": 0.2999999523162842
+          }
+        },
+        {
+          "minimumUnits": 6,
+          "maximumUnits": 25000,
+          "style": 5,
+          "variables": {
+            "Health": 600.0,
+            "StatMultiplier": 0.6000000238418579
+          }
+        }
+      ],
+      "championIds": [
+        "DA_18_Veigar",
+        "DA_18_RekSai",
+        "DA_18_Warwick",
+        "DA_18_Azir",
+        "DA_18_Malphite"
+      ],
+      "searchKeywords": "ブラックソーン blackthorn da_18_blackthorn"
     },
     {
       "id": "DA_FloraFatalis18",
@@ -17219,7 +17263,7 @@
       "nameEn": "Caretaker's Ally",
       "image": "tft/images/ca29d56358f2f85d07f79d60.png",
       "rarity": "シルバー",
-      "descriptionJa": "今すぐランダムなコスト2のチャンピオンを1体獲得する。レベルアップするごとに同じユニットをもう1体獲得する。",
+      "descriptionJa": "今すぐランダムなコスト2のチャンピオンを1体獲得する。レベルアップするごとに同じユニットをもう1体獲得する。\r\n\r\nチャンピオン: 戦闘中の状態に応じて変化",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17391,7 +17435,7 @@
       "nameEn": "Ones Two Three",
       "image": "tft/images/6e56e4b72bde9703dd34a340.png",
       "rarity": "シルバー",
-      "descriptionJa": "コスト1、コスト2、コスト3のチャンピオンを1体ずつ獲得する。",
+      "descriptionJa": "コスト1のチャンピオンを2体、コスト2のチャンピオンを1体、コスト3のチャンピオンを1体獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17415,7 +17459,7 @@
       "nameEn": "Beast Within",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。ヴァイを1体獲得する。",
+      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。今すぐヴァイを1体獲得し、3ラウンド後にニダリーを1体獲得する。",
       "associatedTraits": [
         "DA_Primal18"
       ],
@@ -17439,11 +17483,11 @@
     },
     {
       "id": "DA_18_PrimalAugmentPlus_Nidalee",
-      "nameJa": "内なる獣",
+      "nameJa": "内なる獣+",
       "nameEn": "Beast Within+",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。ヴァイを1体獲得する。",
+      "descriptionJa": "「プライマル」がもう1つ「祝福」を付与する。ヴァイとニダリーを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_Primal18"
       ],
@@ -17521,7 +17565,7 @@
       "nameEn": "Unrivaled",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "レンガーとカ＝ジックスを一緒にボードに出してもペナルティを受けない。レンガーとカ＝ジックスを1体ずつ獲得する。",
+      "descriptionJa": "レンガーとカ＝ジックスを一緒にボードに出してもペナルティを受けない。さらにお互いのスキル発動時にボーナスを獲得する。レンガーとカ＝ジックスを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_18_Rival"
       ],
@@ -17659,7 +17703,7 @@
       "nameEn": "Backline Blueprint",
       "image": "tft/images/a95e56a4b8f6eb2bbf0f6b25.png",
       "rarity": "ゴールド",
-      "descriptionJa": "タンク以外のコスト3チャンピオン1体と、そのチャンピオンの一番最後に記載されている特性の「紋章」を獲得する。",
+      "descriptionJa": "タンク以外のコスト3チャンピオン1体と、そのチャンピオンのクラスに対応する「紋章」を1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17865,7 +17909,7 @@
       "nameEn": "Boxing Lessons",
       "image": "tft/images/4c6bc076cae46ff35dbf6b30.png",
       "rarity": "シルバー",
-      "descriptionJa": "最前列で戦闘を開始した味方1体ごとに、味方チームの体力が30増加する。",
+      "descriptionJa": "最前列で戦闘を開始したチャンピオン1体ごとに、味方チームの体力が30増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18537,7 +18581,7 @@
       "nameEn": "Frontline Foundation",
       "image": "tft/images/b9f596390f0a6204b493cf92.png",
       "rarity": "ゴールド",
-      "descriptionJa": "★2のコスト1タンクチャンピオン1体と、そのチャンピオンの一番最後に記載されている特性に一致する「紋章」を獲得する。",
+      "descriptionJa": "★2のコスト1タンクチャンピオン1体と、そのチャンピオンのクラスに対応する「紋章」を1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18705,7 +18749,7 @@
       "nameEn": "Group Hug I",
       "image": "tft/images/f7e7c89c2cbb749a36d64065.png",
       "rarity": "シルバー",
-      "descriptionJa": "戦闘開始時: 味方は隣接する味方(自身を除く)に6の物理防御と魔法防御を付与する。この効果はスタックする。",
+      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に6の物理防御と魔法防御を付与する。この効果はスタックする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18717,7 +18761,7 @@
       "nameEn": "Group Hug II",
       "image": "tft/images/bd236c7618c8498cf90427df.png",
       "rarity": "ゴールド",
-      "descriptionJa": "戦闘開始時: 味方は隣接する味方(自身を除く)に9の物理防御と魔法防御を付与する。この効果はスタックする。",
+      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に9の物理防御と魔法防御を付与する。この効果はスタックする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18753,7 +18797,7 @@
       "nameEn": "Healing Orbs I",
       "image": "tft/images/f6831e498a5ea5eaadb00a61.png",
       "rarity": "シルバー",
-      "descriptionJa": "敵ユニットがデスした際に、最も近くにいる味方の体力が250回復する。",
+      "descriptionJa": "敵が倒されると、近くにいる味方1体の体力が250回復する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18765,7 +18809,7 @@
       "nameEn": "Healing Orbs II",
       "image": "tft/images/6aff46dd7e8916ff5f61f54e.png",
       "rarity": "ゴールド",
-      "descriptionJa": "敵ユニットがデスした際に、最も近くにいる味方の体力が575回復する。",
+      "descriptionJa": "敵が倒されると、近くにいる味方1体の体力が575回復する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18897,7 +18941,7 @@
       "nameEn": "Investment Strategy II",
       "image": "tft/images/e1eea85112b844604d2c64a2.png",
       "rarity": "プリズム",
-      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が12恒久的に増加する。最大利子が2増加する。10ゴールドを獲得する。",
+      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が12恒久的に増加する。最大利子が2増加する。即座に10ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18909,7 +18953,7 @@
       "nameEn": "Investment Strategy I",
       "image": "tft/images/b163b4f02ca5231be63adf0d.png",
       "rarity": "ゴールド",
-      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が9恒久的に増加する。",
+      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が9恒久的に増加する。即座に6ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18969,7 +19013,7 @@
       "nameEn": "Jeweled Lotus II",
       "image": "tft/images/252fd7e59d7ac47eb0e16717.png",
       "rarity": "プリズム",
-      "descriptionJa": "味方チームのクリティカル率が25%、クリティカルダメージが10%増加し、「正確無比」を獲得する。\r\n\r\n正確無比: スキルがクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
+      "descriptionJa": "味方チームのクリティカル率が25%、クリティカルダメージが10%増加し、「正確無比」を獲得する。\r\n\r\n正確無比: スキルはクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19089,7 +19133,7 @@
       "nameEn": "Loaded Dice",
       "image": "tft/images/6e56e4b72bde9703dd34a340.png",
       "rarity": "シルバー",
-      "descriptionJa": "サイコロとコインに幸運が宿っている。\r\n\r\nダイスを振ると、出た目の数と同じ量のゴールドを獲得する。その後コインを投げ、表が出ると1ゴールドを獲得する。",
+      "descriptionJa": "ダイスとコインに幸運が宿っている。\r\n\r\nダイスを振ると、出た目の数と同じ量のゴールドを獲得する。その後コインを投げ、表が出ると1ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19149,7 +19193,7 @@
       "nameEn": "Makeshift Armor I",
       "image": "tft/images/ab859047905982367eae01c0.png",
       "rarity": "シルバー",
-      "descriptionJa": "アイテムを装備していない味方の物理防御と魔法防御が30増加する。",
+      "descriptionJa": "アイテムを装備していないチャンピオンの物理防御と魔法防御が30増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19161,7 +19205,7 @@
       "nameEn": "Makeshift Armor II",
       "image": "tft/images/2ab1fa077ea4b40b1672791b.png",
       "rarity": "ゴールド",
-      "descriptionJa": "アイテムを装備していない味方の物理防御と魔法防御が50増加する。",
+      "descriptionJa": "アイテムを装備していないチャンピオンの物理防御と魔法防御が50増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20157,7 +20201,7 @@
       "nameEn": "Worth the Wait",
       "image": "tft/images/5b09e93db985f89fbc3f1756.png",
       "rarity": "ゴールド",
-      "descriptionJa": "ランダムなコスト1のチャンピオンを1体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。\r\n戦闘中の状態に応じて変化 戦闘中の状態に応じて変化",
+      "descriptionJa": "ランダムなコスト1のチャンピオンを1体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20169,7 +20213,7 @@
       "nameEn": "Worth the Wait II",
       "image": "tft/images/c135c85462ffbb5a4f25331a.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムなコスト2のチャンピオンを2体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。\r\n戦闘中の状態に応じて変化 戦闘中の状態に応じて変化",
+      "descriptionJa": "ランダムなコスト2のチャンピオンを2体獲得する。試合終了まで各ラウンドの開始時にそのユニットのコピーを1体得る。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],

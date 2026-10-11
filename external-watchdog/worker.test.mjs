@@ -24,9 +24,16 @@ const run = (options = {}) => ({ id: 100, path: refresh, event: "schedule", head
 const proofJobs = [{ conclusion: "success", steps: [{ name: `Source verified: ${id}`, conclusion: "success", completed_at: at(20) }] }];
 function fixture(options = {}) {
   let stored = options.state || {};
+  let reservation = null;
   const calls = [];
   const env = { ENABLED: "true", GITHUB_TOKEN: "test-secret-not-for-logs", GITHUB_REPOSITORY: repository, DATA_INDEX_URL: indexUrl,
-    STATE: { get: async () => structuredClone(stored), put: async (_key, value) => { stored = JSON.parse(value); } } };
+    STATE: {
+      get: async key => structuredClone(key === "dispatch-reservation-v1" ? reservation : stored),
+      put: async (key, value) => {
+        if (key === "dispatch-reservation-v1") reservation = JSON.parse(value);
+        else stored = JSON.parse(value);
+      },
+    } };
   const fetcher = async (input, init = {}) => {
     assert.equal(init.redirect, "manual", "workerd rejects redirect:error; redirects must be gated explicitly");
     const url = new URL(input);
@@ -186,6 +193,73 @@ test("ambiguous POST failure cannot hammer dispatch on the next check", async ()
   const second = await runCheck(f.env, { fetcher: f.fetcher, now: now + 5 * minute });
   assert.equal(second.reason, "DISPATCH_COOLDOWN");
   assert.equal(f.calls.filter(c => c.init.method === "POST").length, 1);
+});
+
+test("fast dispatch never writes the same KV key twice inside one second", async () => {
+  const f = fixture();
+  const values = new Map();
+  const writtenKeys = new Set();
+  f.env.STATE = {
+    get: async key => values.has(key) ? JSON.parse(values.get(key)) : null,
+    put: async (key, value) => {
+      assert.ok(!writtenKeys.has(key), "Workers KV allows one write/second/key; instant dispatch must not double-write");
+      writtenKeys.add(key);
+      values.set(key, value);
+    },
+  };
+  const result = await runCheck(f.env, { fetcher: f.fetcher, now });
+  assert.equal(result.status, "CHECKED");
+  assert.equal(result.lastAction, "REFRESH");
+  assert.equal(f.calls.filter(c => c.init.method === "POST").length, 1);
+});
+
+test("reservation survives a failed health write and suppresses another dispatch", async () => {
+  const f = fixture();
+  const values = new Map();
+  let failHealthWrite = true;
+  f.env.STATE = {
+    get: async key => values.has(key) ? JSON.parse(values.get(key)) : null,
+    put: async (key, value) => {
+      if (key === "watchdog-v1" && failHealthWrite) throw new Error("private-storage-message");
+      values.set(key, value);
+    },
+  };
+  await assert.rejects(runCheck(f.env, { fetcher: f.fetcher, now }), /STATE_WRITE_FAILED/);
+  failHealthWrite = false;
+  const recovered = await runCheck(f.env, { fetcher: f.fetcher, now: now + 5 * minute });
+  assert.equal(recovered.reason, "DISPATCH_COOLDOWN");
+  assert.equal(f.calls.filter(c => c.init.method === "POST").length, 1);
+  assert.ok(!JSON.stringify(recovered).includes("private-storage"));
+});
+
+test("failed reservation blocks dispatch and preserves the last source proof", async () => {
+  const f = fixture();
+  const put = f.env.STATE.put;
+  f.env.STATE.put = async (key, value) => {
+    if (key === "dispatch-reservation-v1") throw new Error("private-quota-message");
+    await put(key, value);
+  };
+  const result = await runCheck(f.env, { fetcher: f.fetcher, now });
+  assert.equal(result.status, "CHECK_FAILED");
+  assert.equal(result.reason, "STATE_WRITE_FAILED");
+  assert.equal(result.failureStage, "DISPATCH_RESERVATION");
+  assert.equal(f.calls.filter(c => c.init.method === "POST").length, 0);
+  assert.equal(result.sourceVerifiedAt, at(20));
+});
+
+test("scheduled storage failures emit sanitized diagnostics without marking health green", async () => {
+  const f = fixture();
+  f.env.STATE.get = async () => { throw new Error("private-key-url-must-not-leak"); };
+  let task;
+  const logs = [];
+  const originalError = console.error;
+  console.error = text => logs.push(JSON.parse(text));
+  try {
+    await worker.scheduled({}, f.env, { waitUntil: promise => { task = promise; } });
+    await task;
+  } finally { console.error = originalError; }
+  assert.deepEqual(logs, [{ status: "CHECK_FAILED", action: "NONE", reason: "STATE_READ_FAILED" }]);
+  assert.equal(f.calls.length, 0);
 });
 test("disabled setup makes zero network calls", async () => {
   const f = fixture(); f.env.ENABLED = "false";

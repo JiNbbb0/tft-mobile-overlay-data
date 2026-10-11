@@ -25,12 +25,16 @@ const proofJobs = [{ conclusion: "success", steps: [{ name: `Source verified: ${
 function fixture(options = {}) {
   let stored = options.state || {};
   let reservation = null;
+  let sealedToken = null;
+  let tokenRejection = null;
   const calls = [];
   const env = { ENABLED: "true", GITHUB_TOKEN: "test-secret-not-for-logs", GITHUB_REPOSITORY: repository, DATA_INDEX_URL: indexUrl,
     STATE: {
-      get: async key => structuredClone(key === "dispatch-reservation-v1" ? reservation : stored),
+      get: async key => structuredClone(key === "token-rejection-v1" ? tokenRejection : key === "sealed-installation-token-v1" ? sealedToken : key === "dispatch-reservation-v1" ? reservation : stored),
       put: async (key, value) => {
-        if (key === "dispatch-reservation-v1") reservation = JSON.parse(value);
+        if (key === "token-rejection-v1") tokenRejection = JSON.parse(value);
+        else if (key === "sealed-installation-token-v1") sealedToken = JSON.parse(value);
+        else if (key === "dispatch-reservation-v1") reservation = JSON.parse(value);
         else stored = JSON.parse(value);
       },
     } };
@@ -358,6 +362,42 @@ test("all fixed-root quality readers preserve the cache-busting query", async ()
     const text = await readFile(new URL(`../${name}`, import.meta.url), "utf8");
     assert.match(text, /Get-TftPublicDataQualityUri \$indexUri/);
   }
+});
+
+for (const mode of ["cold", "tampered", "rotated", "identity", "expired", "rejected"]) test(`sealed token cache across Worker isolates: ${mode}`, async () => {
+  const f = fixture();
+  const originalPut = f.env.STATE.put;
+  f.env.STATE.put = async (key, value, options) => {
+    if (key === "sealed-installation-token-v1" && options) assert.ok(options.expirationTtl >= 60 && options.expirationTtl <= 3600);
+    return originalPut(key, value);
+  };
+  delete f.env.GITHUB_TOKEN;
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  Object.assign(f.env, { GITHUB_APP_ID: "8910", GITHUB_INSTALLATION_ID: "1112", GITHUB_APP_PRIVATE_KEY: privateKey.export({ type: "pkcs8", format: "pem" }) });
+  let issued = 0, testNow = now;
+  const fetcher = async (url, init) => String(url).endsWith("/access_tokens")
+    ? (issued++, Response.json({ token: "sealed-fixture-credential", expires_at: new Date(testNow + 60 * minute).toISOString() }))
+    : f.fetcher(url, init);
+  const first = await import(`./worker.mjs?sealed-first-${mode}`);
+  assert.equal((await first.runCheck(f.env, { fetcher, now: testNow })).status, "CHECKED");
+  const saved = await f.env.STATE.get("sealed-installation-token-v1");
+  assert.ok(!JSON.stringify(saved).includes("sealed-fixture-credential"));
+  assert.ok(!JSON.stringify(saved).includes("PRIVATE KEY"));
+  assert.equal(saved.version, 1);
+  if (mode === "tampered") await f.env.STATE.put("sealed-installation-token-v1", JSON.stringify({ ...saved, data: saved.data.slice(0, -5) + "AAAA=" }));
+  if (mode === "rotated") f.env.GITHUB_APP_PRIVATE_KEY = generateKeyPairSync("rsa", { modulusLength: 2048 }).privateKey.export({ type: "pkcs8", format: "pem" });
+  if (mode === "identity") f.env.GITHUB_APP_ID = "8911";
+  if (mode === "rejected") {
+    const result = await first.runCheck(f.env, { now: now + minute, fetcher: async () => new Response(null, { status: 401 }) });
+    assert.equal(result.reason, "HTTP_401");
+    assert.equal((await f.env.STATE.get("token-rejection-v1")).at, new Date(now + minute).toISOString());
+  }
+  testNow += (mode === "expired" ? 60 : 5) * minute;
+  const cold = await import(`./worker.mjs?sealed-next-${mode}`);
+  const result = await cold.runCheck(f.env, { fetcher, now: testNow });
+  assert.notEqual(result.status, "CHECK_FAILED");
+  assert.equal(issued, mode === "cold" ? 1 : 2);
+  assert.ok(!JSON.stringify(f.state()).includes("sealed-fixture-credential"));
 });
 test("source proof step cannot run for SOURCE_NOT_READY", async () => {
   const text = await readFile(new URL("../.github/workflows/refresh-tft-data.yml", import.meta.url), "utf8");

@@ -50,6 +50,9 @@ possible GitHub, Pages, Cloudflare or upstream outage.
 - Existing active publication jobs suppress dispatch. Successful start cadence is
   15 minutes. Failures back off to 15/30/60/120 minutes; an ambiguous POST is reserved
   in state before sending. GitHub's publication concurrency lock remains authoritative.
+- Recent history is bounded to five main runs, excluding PRs. All five active
+  statuses are queried independently; a crowded/truncated active page blocks
+  dispatch rather than hiding an older queued publication behind newer CI.
 - Dispatch reservations use `dispatch-reservation-v1`; the final health record uses
   `watchdog-v1`. Each key is written at most once per check, avoiding KV's one-write
   per second per key limit even when GitHub accepts the dispatch immediately.
@@ -74,8 +77,10 @@ Use **Workers Free**, one Cron and one KV namespace bound as `STATE`. Do not upg
 or attach paid services. Config starts with `ENABLED=false`; change it only after
 credentials, the health endpoint and a live read-only probe have been checked.
 
-Nominal volume: 288 scheduled checks/day, at most 384 KV writes/day with normal
-15-minute dispatch. State stores counters and the last 20 observations, not bundles
+Nominal volume: 288 scheduled checks/day, at most 384 health/reservation writes/day
+with normal 15-minute dispatch, plus approximately 27 encrypted-token renewals/day
+(about 411 total). Failure/rejection events can add writes; this is not a measured
+quota guarantee. State stores counters and the last 20 observations, not bundles
 or unbounded logs. Free quota/CPU errors must be reported as failures, never trigger
 an automatic paid upgrade. Actual Worker CPU usage still needs production verification.
 
@@ -93,6 +98,23 @@ renews them automatically. Store these in Cloudflare configuration:
 for unattended production. Never embed a credential in an APK, config file, URL,
 workflow argument or public repository. User authorization is required at installation
 and before placing the private key in Cloudflare. Never put the key in chat.
+
+Short-lived installation tokens may be reused across Worker isolates using
+`sealed-installation-token-v1` in the existing private STATE namespace. This was
+explicitly approved on 2026-10-12 JST. The record is AES-256-GCM authenticated
+ciphertext, bound to App/installation/repository identity, using a fresh random
+nonce and a domain-separated key derived from the existing high-entropy private
+key secret. Neither the key nor the plaintext token is saved in KV/health/logs.
+KV TTL is at most one hour; expired, tampered, rotated-key or mismatched-identity
+records are never trusted. An HTTP401 records a separate one-hour rejection
+marker, preventing cold isolates from reusing a revoked encrypted token. A valid
+token is renewed five minutes before expiry; no PAT/manual renewal is introduced.
+
+This cache avoids repeated RSA/token exchanges when isolates are evicted. It adds
+bounded KV reads and at most one ciphertext write per renewal; no paid service or
+permission expansion is required. Runtime CPU (cold, cache-hit and renewal) still
+needs measurement: passing fixtures or a successful over-budget burst is not proof
+of Free-tier headroom.
 
 ## Verification and acceptance
 

@@ -9,6 +9,8 @@ const ID = /^[a-z0-9][a-z0-9._-]{0,159}$/;
 const encoder = new TextEncoder();
 const STATE_KEY = "watchdog-v1";
 const RESERVATION_KEY = "dispatch-reservation-v1";
+const TOKEN_KEY = "sealed-installation-token-v1";
+const TOKEN_REJECTION_KEY = "token-rejection-v1";
 const ACTIVE_STATUSES = ["queued", "in_progress", "waiting", "requested", "pending"];
 let tokenCache;
 
@@ -92,13 +94,38 @@ export function privateKeyBytes(pem) {
   // GitHub downloads PKCS#1; Web Crypto imports PKCS#8. DER-wrap the unchanged key.
   return der(0x30, new Uint8Array([0x02, 0x01, 0x00, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, ...der(0x04, decoded)]));
 }
+async function tokenSealingKey(env, identity) {
+  if (typeof env.GITHUB_APP_PRIVATE_KEY !== "string" || env.GITHUB_APP_PRIVATE_KEY.length > 8192) fail("APP_KEY_INVALID");
+  // The high-entropy private key remains only in the encrypted runtime secret.
+  // KV gets authenticated ciphertext, never a plaintext credential or key.
+  const material = await crypto.subtle.digest("SHA-256", encoder.encode(`TFT-WATCHDOG-TOKEN-V1\n${identity}\n${env.GITHUB_APP_PRIVATE_KEY}`));
+  return crypto.subtle.importKey("raw", material, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+const unbase64 = value => Uint8Array.from(atob(value), c => c.charCodeAt(0));
+const base64 = value => btoa(String.fromCharCode(...new Uint8Array(value)));
 async function githubToken(env, fetcher, now, setStage) {
   // A scoped token is supported for bootstrap only. Production should use an
   // installation token renewed automatically, not a PAT with a renewal deadline.
   if (env.GITHUB_TOKEN) return env.GITHUB_TOKEN;
   if (!/^\d+$/.test(env.GITHUB_APP_ID || "") || !/^\d+$/.test(env.GITHUB_INSTALLATION_ID || "")) fail("GITHUB_NOT_CONNECTED");
   const identity = `${env.GITHUB_APP_ID}:${env.GITHUB_INSTALLATION_ID}:${env.GITHUB_REPOSITORY}`;
-  if (tokenCache?.identity === identity && tokenCache.expires > now + 5 * MINUTE) return tokenCache.token;
+  const rejected = await readState(env, TOKEN_REJECTION_KEY);
+  const rejectedThrough = rejected?.identity === identity ? timestamp(rejected.at) : 0;
+  if (rejectedThrough > now + 2 * MINUTE) fail("AUTH_REJECTION_TIME_INVALID");
+  if (tokenCache?.identity === identity && tokenCache.issuedAt > rejectedThrough && tokenCache.expires > now + 5 * MINUTE) return tokenCache.token;
+  const sealed = await readState(env, TOKEN_KEY);
+  const sealingKey = await tokenSealingKey(env, identity);
+  if (sealed?.version === 1 && typeof sealed.iv === "string" && sealed.iv.length === 16 && typeof sealed.data === "string" && sealed.data.length <= 8192) {
+    try {
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unbase64(sealed.iv), additionalData: encoder.encode(identity) }, sealingKey, unbase64(sealed.data));
+      const saved = JSON.parse(decode(new Uint8Array(decrypted)));
+      if (saved.identity === identity && typeof saved.token === "string" && saved.token && saved.token.length <= 2048 && Number.isSafeInteger(saved.issuedAt) && saved.issuedAt > rejectedThrough && saved.issuedAt <= now + 2 * MINUTE && Number.isSafeInteger(saved.expires) && saved.expires > now + 5 * MINUTE && saved.expires <= now + 65 * MINUTE) {
+        setStage("TOKEN_CACHE_HIT");
+        tokenCache = saved;
+        return saved.token;
+      }
+    } catch { /* Expired, rotated or tampered cache: renew from GitHub, never trust it. */ }
+  }
   setStage("APP_KEY_DECODE");
   const keyBytes = privateKeyBytes(env.GITHUB_APP_PRIVATE_KEY);
   setStage("APP_KEY_IMPORT");
@@ -115,8 +142,14 @@ async function githubToken(env, fetcher, now, setStage) {
     headers: { ...githubHeaders(`${signing}.${base64url(new Uint8Array(signature))}`), "Content-Type": "application/json" },
     body: JSON.stringify({ repositories: [env.GITHUB_REPOSITORY.split("/")[1]], permissions: { actions: "write", contents: "read" } }),
   }, 16_384);
-  if (typeof result.token !== "string" || !result.token || timestamp(result.expires_at) <= now) fail("APP_TOKEN_INVALID");
-  tokenCache = { identity, token: result.token, expires: timestamp(result.expires_at) };
+  if (typeof result.token !== "string" || !result.token || result.token.length > 2048 || timestamp(result.expires_at) <= now || timestamp(result.expires_at) > now + 65 * MINUTE) fail("APP_TOKEN_INVALID");
+  tokenCache = { identity, token: result.token, expires: timestamp(result.expires_at), issuedAt: now };
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: encoder.encode(identity) }, sealingKey, encoder.encode(JSON.stringify(tokenCache)));
+  // One extra write per token renewal, not per Cron. KV TTL is bounded and
+  // stale ciphertext cannot extend the authenticated token's actual expiry.
+  try { await env.STATE.put(TOKEN_KEY, JSON.stringify({ version: 1, iv: base64(iv), data: base64(encrypted) }), { expirationTtl: Math.min(3600, Math.max(60, Math.floor((tokenCache.expires - now) / 1000))) }); }
+  catch { tokenCache = undefined; fail("STATE_WRITE_FAILED"); }
   return result.token;
 }
 function githubHeaders(token) {
@@ -254,7 +287,7 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
     try {
       const config = configuration(env);
       stage = "AUTHENTICATION"; onStage(stage);
-      const token = await githubToken(env, fetcher, now, value => { stage = value; });
+      const token = await githubToken(env, fetcher, now, value => { stage = value; onStage(value); });
       const headers = githubHeaders(token);
       stage = "RUN_QUEUE"; onStage(stage);
       const response = await json(fetcher, `${config.api}/actions/runs?branch=main&exclude_pull_requests=true&per_page=5`, { headers });
@@ -309,7 +342,13 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
         if (dispatch.body) await dispatch.body.cancel();
       }
     } catch (error) {
-      if (error instanceof CheckError && /(?:^|_)401$/.test(error.code)) tokenCache = undefined;
+      if (error instanceof CheckError && /(?:^|_)401$/.test(error.code)) {
+        tokenCache = undefined;
+        // Never reuse a revoked ciphertext after a new isolate starts. Use a
+        // separate key so first-issue + rejection cannot double-write TOKEN_KEY.
+        try { await env.STATE.put(TOKEN_REJECTION_KEY, JSON.stringify({ identity: `${env.GITHUB_APP_ID}:${env.GITHUB_INSTALLATION_ID}:${env.GITHUB_REPOSITORY}`, at: iso(now) }), { expirationTtl: 3600 }); }
+        catch { error = new CheckError("STATE_WRITE_FAILED"); stage = "AUTH_CACHE_INVALIDATION"; }
+      }
       status = "CHECK_FAILED";
       state.failureStage = stage;
       // Never expose error.message, stack, URLs, credential text or arbitrary names.

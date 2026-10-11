@@ -38,10 +38,16 @@ possible GitHub, Pages, Cloudflare or upstream outage.
 
 ## Contract
 
-- Cloudflare Cron checks every five minutes. No user's PC or Codex process is involved.
-- It reads the GitHub run queue and one commit-pinned tracked publication, then
-  compares the real HTTPS index, manifest SHA-256 and data-quality identity/content.
-- When due, it dispatches the existing `refresh-tft-data.yml` on **main only**.
+- Production `MODE=CLOCK_ONLY`: Cloudflare Cron ticks every five minutes, enqueuing
+  `independent-refresh-check.yml` on main at most once per UTC fifteen-minute slot. Interval
+  ticks require no network/authentication work. No PC/Codex process is involved.
+- The GitHub inspector reuses this repository's full validation engine: active queue,
+  fifty recent runs in bounded ten-row pages, one commit-pinned tracked publication,
+  real HTTPS index, manifest SHA-256, data-quality identity/content and source proof.
+  These heavier checks run on the GitHub runner, not under a Free Worker CPU limit.
+  UTC slots avoid losing a cycle due to seconds of Cron jitter. The inspector allows
+  at most one minute of healthy start-cadence jitter; failure backoff is unchanged.
+- Only after those checks does it dispatch `refresh-tft-data.yml` on **main only**.
   Source fetching, all seven ranks, Set/Patch/Rank safety, schema/hash gates,
   retention, immutable bundles and last-known-good remain in the existing pipeline.
 - For missing/mismatching public data it instead dispatches `deploy-pages.yml`.
@@ -50,7 +56,8 @@ possible GitHub, Pages, Cloudflare or upstream outage.
 - Existing active publication jobs suppress dispatch. Successful start cadence is
   15 minutes. Failures back off to 15/30/60/120 minutes; an ambiguous POST is reserved
   in state before sending. GitHub's publication concurrency lock remains authoritative.
-- Recent history is bounded to five main runs, excluding PRs. All five active
+- Legacy full Worker mode uses five recent main runs; the GitHub inspector uses fifty.
+  All five active
   statuses are queried independently; a crowded/truncated active page blocks
   dispatch rather than hiding an older queued publication behind newer CI.
 - Dispatch reservations use `dispatch-reservation-v1`; the final health record uses
@@ -70,6 +77,14 @@ possible GitHub, Pages, Cloudflare or upstream outage.
 - GitHub's existing watchdog can check this independent clock through repository
   variable `INDEPENDENT_WATCHDOG_URL`; an unhealthy result uses the existing single
   sanitized automation-health issue. No new email/Slack/Discord service is added.
+
+Clock-only health uses schema2 / CLOCK_ALIVE / dataVerification=GITHUB_WORKFLOW.
+This proves a live clock and recently accepted inspector trigger, NOT fresh data.
+The existing GitHub data-quality/freshness/remote-SHA checks remain separate and
+authoritative. Failed inspector runs also wake the existing automation watchdog.
+Schema1 legacy health remains supported; unknown contracts, old/future clock times,
+failed POSTs and overdue accepted triggers cannot leave a false-green monitor.
+Reservations/health use separate clock-v2 keys, leaving the old full-check state intact.
 
 ## Free-only provisioning
 

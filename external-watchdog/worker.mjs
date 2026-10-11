@@ -11,6 +11,8 @@ const STATE_KEY = "watchdog-v1";
 const RESERVATION_KEY = "dispatch-reservation-v1";
 const TOKEN_KEY = "sealed-installation-token-v1";
 const TOKEN_REJECTION_KEY = "token-rejection-v1";
+const CLOCK_KEY = "clock-v2";
+const CLOCK_RESERVATION_KEY = "clock-reservation-v2";
 const ACTIVE_STATUSES = ["queued", "in_progress", "waiting", "requested", "pending"];
 let tokenCache;
 
@@ -214,7 +216,8 @@ export function sourceProof(run, jobs, versionId, now) {
   }
   return null;
 }
-export function decide({ runs, publication, state, now }) {
+export function decide({ runs, publication, state, now, minimumInterval = 15 * MINUTE }) {
+  minimumInterval = Number.isFinite(minimumInterval) ? Math.max(14 * MINUTE, Math.min(15 * MINUTE, minimumInterval)) : 15 * MINUTE;
   const relevant = runs.filter(r => r.head_branch === "main" && PUBLICATION.has(r.path));
   const active = relevant.filter(r => r.status !== "completed");
   if (active.length) {
@@ -225,12 +228,12 @@ export function decide({ runs, publication, state, now }) {
   const refreshes = relevant.filter(r => r.path === REFRESH).sort((a, b) => timestamp(b.created_at) - timestamp(a.created_at));
   // Use start cadence, not completion time: a 10-minute job must not turn a
   // 15-minute schedule into a 25-minute schedule. This is NOT freshness evidence.
-  if (wanted === "REFRESH" && refreshes[0] && now - timestamp(refreshes[0].created_at) < 15 * MINUTE) return { action: "WAIT", reason: "REFRESH_INTERVAL" };
+  if (wanted === "REFRESH" && refreshes[0] && now - timestamp(refreshes[0].created_at) < minimumInterval) return { action: "WAIT", reason: "REFRESH_INTERVAL" };
   const target = wanted === "REFRESH" ? REFRESH : REDEPLOY;
   const attempts = relevant.filter(r => r.path === target).sort((a, b) => timestamp(b.created_at) - timestamp(a.created_at));
   let failures = 0;
   for (const run of attempts) { if (run.conclusion === "success") break; failures++; }
-  const cooldown = failures ? Math.min(120, 15 * 2 ** Math.min(failures - 1, 3)) * MINUTE : 15 * MINUTE;
+  const cooldown = failures ? Math.min(120, 15 * 2 ** Math.min(failures - 1, 3)) * MINUTE : minimumInterval;
   const lastAttempt = Math.max(attempts[0] ? timestamp(attempts[0].created_at) : 0, state.lastDispatchAt ? timestamp(state.lastDispatchAt) : 0);
   if (now - lastAttempt < cooldown) return { action: "WAIT", reason: failures ? "FAILURE_BACKOFF" : "DISPATCH_COOLDOWN" };
   return { action: wanted, reason: wanted === "REFRESH" ? "REFRESH_DUE" : publication.reason };
@@ -264,9 +267,77 @@ export function publicHealth(state, now = Date.now()) {
     recent: state.recent || [],
   };
 }
+export function publicClockHealth(state, now = Date.now()) {
+  const checked = state.checkedAt ? timestamp(state.checkedAt) : 0;
+  const accepted = state.lastAcceptedAt ? timestamp(state.lastAcceptedAt) : 0;
+  let status = !checked || now - checked > 12 * MINUTE ? "MONITOR_STALE" : state.status || "UNKNOWN";
+  if (checked > now + 2 * MINUTE || accepted > now + 2 * MINUTE) status = "CLOCK_TIME_INVALID";
+  if (status === "CLOCK_ALIVE" && (!accepted || now - accepted > 30 * MINUTE)) status = "CLOCK_TRIGGER_OVERDUE";
+  // Clock evidence is NOT source-freshness or publication-validation evidence.
+  return { schemaVersion: 2, mode: "CLOCK_ONLY", dataVerification: "GITHUB_WORKFLOW", status,
+    checkedAt: state.checkedAt || null, lastAcceptedAt: state.lastAcceptedAt || null,
+    lastDispatchAt: state.lastDispatchAt || null, lastAction: state.action || "NONE",
+    reason: state.reason || "NOT_STARTED", observationCount: state.observationCount || 0,
+    failedChecks: state.failedChecks || 0, recent: state.recent || [] };
+}
+export async function runClockTick(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now(), onStage = (_stage) => {} } = {}) {
+  if (!env.STATE?.get || !env.STATE?.put) fail("STATE_NOT_CONNECTED");
+  const state = await readState(env, CLOCK_KEY) || {};
+  const reserved = await readState(env, CLOCK_RESERVATION_KEY);
+  const slot = Math.floor(now / (15 * MINUTE));
+  if (reserved?.at) {
+    const at = timestamp(reserved.at);
+    if (at > now + 2 * MINUTE) fail("RESERVATION_TIME_IN_FUTURE");
+    if (!state.lastDispatchAt || at > timestamp(state.lastDispatchAt)) state.lastDispatchAt = iso(at);
+    if (Number.isSafeInteger(reserved.slot)) state.lastSlot = Math.max(state.lastSlot ?? -1, reserved.slot);
+  }
+  state.action = "NONE";
+  if (env.ENABLED !== "true") {
+    state.status = "DISABLED"; state.reason = "DISABLED";
+  } else {
+    const failures = state.dispatchFailures || 0;
+    const cooldown = (failures ? Math.min(120, 15 * 2 ** Math.min(failures - 1, 3)) : 15) * MINUTE;
+    const last = Math.max(state.lastDispatchAt ? timestamp(state.lastDispatchAt) : 0, state.lastFailureAt ? timestamp(state.lastFailureAt) : 0);
+    if (failures ? now - last < cooldown : state.lastSlot === slot) {
+      state.action = "WAIT";
+      state.reason = failures ? "CLOCK_FAILURE_BACKOFF" : "CLOCK_TRIGGER_INTERVAL";
+      state.status = failures ? "CHECK_FAILED" : state.lastAcceptedAt ? "CLOCK_ALIVE" : "CLOCK_TRIGGER_UNCONFIRMED";
+    } else {
+      try {
+        const config = configuration(env);
+        const token = await githubToken(env, fetcher, now, onStage);
+        state.lastDispatchAt = iso(now);
+        state.lastSlot = slot;
+        await writeState(env, CLOCK_RESERVATION_KEY, { at: state.lastDispatchAt, slot });
+        // Only enqueue the bounded GitHub inspector. It performs the full queue,
+        // commit-pinned SHA/source checks BEFORE any refresh/redeploy dispatch.
+        const response = await fetcher(`${config.api}/actions/workflows/independent-refresh-check.yml/dispatches`, {
+          method: "POST", redirect: "manual", signal: AbortSignal.timeout(15_000),
+          headers: { ...githubHeaders(token), "Content-Type": "application/json" }, body: JSON.stringify({ ref: "main" }),
+        });
+        if (![200, 204].includes(response.status)) fail(`DISPATCH_HTTP_${response.status}`);
+        if (response.body) await response.body.cancel();
+        Object.assign(state, { status: "CLOCK_ALIVE", action: "TRIGGER_CHECK", reason: "GITHUB_CHECK_ACCEPTED", lastAcceptedAt: iso(now), dispatchFailures: 0, lastFailureAt: null });
+      } catch (error) {
+        if (error instanceof CheckError && /(?:^|_)401$/.test(error.code)) {
+          tokenCache = undefined;
+          try { await env.STATE.put(TOKEN_REJECTION_KEY, JSON.stringify({ identity: `${env.GITHUB_APP_ID}:${env.GITHUB_INSTALLATION_ID}:${env.GITHUB_REPOSITORY}`, at: iso(now) }), { expirationTtl: 3600 }); }
+          catch { error = new CheckError("STATE_WRITE_FAILED"); }
+        }
+        Object.assign(state, { status: "CHECK_FAILED", action: "NONE", reason: error instanceof CheckError ? error.code : "CHECK_UNAVAILABLE", lastFailureAt: iso(now), dispatchFailures: failures + 1, failedChecks: (state.failedChecks || 0) + 1 });
+      }
+    }
+  }
+  state.checkedAt = iso(now);
+  state.observationCount = (state.observationCount || 0) + 1;
+  state.recent = [...(state.recent || []).slice(-19), { at: state.checkedAt, status: state.status, action: state.action, reason: state.reason }];
+  await writeState(env, CLOCK_KEY, state);
+  return publicClockHealth(state, now);
+}
 // Workers native fetch requires its global receiver; Node-only injected mocks do
 // not reveal an unbound-fetch TypeError. Preserve the receiver in production.
 export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now(), onStage = (_stage) => {} } = {}) {
+  if (env.MODE === "CLOCK_ONLY") return runClockTick(env, { fetcher, now, onStage });
   if (!env.STATE?.get || !env.STATE?.put) fail("STATE_NOT_CONNECTED");
   const state = await readState(env, STATE_KEY) || {};
   // KV is limited to one write/second/key. Keep the durable pre-dispatch
@@ -290,8 +361,15 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
       const token = await githubToken(env, fetcher, now, value => { stage = value; onStage(value); });
       const headers = githubHeaders(token);
       stage = "RUN_QUEUE"; onStage(stage);
-      const response = await json(fetcher, `${config.api}/actions/runs?branch=main&exclude_pull_requests=true&per_page=5`, { headers });
-      if (!Array.isArray(response.workflow_runs)) fail("RUNS_INVALID");
+      const history = [];
+      const historyLimit = env.RUN_HISTORY_LIMIT === "50" ? 50 : 5;
+      const pageSize = Math.min(10, historyLimit);
+      for (let page = 1; history.length < historyLimit; page++) {
+        const response = await json(fetcher, `${config.api}/actions/runs?branch=main&exclude_pull_requests=true&per_page=${pageSize}&page=${page}`, { headers });
+        if (!Array.isArray(response.workflow_runs) || response.workflow_runs.length > pageSize) fail("RUNS_INVALID");
+        history.push(...response.workflow_runs);
+        if (response.workflow_runs.length < pageSize) break;
+      }
       // Do not merely truncate the old list: an older queued publication could
       // be hidden behind recent completed CI. Query every active status too.
       // A crowded queue fails closed instead of guessing beyond the page bound.
@@ -301,7 +379,7 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
         if (!Array.isArray(page.workflow_runs) || !Number.isSafeInteger(page.total_count) || page.total_count < 0) fail("RUNS_INVALID");
         if (page.total_count > 10 || page.workflow_runs.length !== page.total_count) fail("ACTIVE_QUEUE_TOO_LARGE");
       }
-      const runs = [...new Map([...response.workflow_runs, ...activePages.flatMap(page => page.workflow_runs)].map(run => [run.id, run])).values()];
+      const runs = [...new Map([...history, ...activePages.flatMap(page => page.workflow_runs)].map(run => [run.id, run])).values()];
       // If GitHub's queue cannot be inspected, never issue speculative writes.
       for (const r of runs) {
         if (!r.path || !r.status || !Number.isSafeInteger(r.id)) fail("RUNS_INVALID");
@@ -323,7 +401,7 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
         if (proof) state.sourceProof = proof;
       }
       stage = "DECISION"; onStage(stage);
-      decision = decide({ runs, publication, state, now });
+      decision = decide({ runs, publication, state, now, minimumInterval: env.CLOCK_JITTER_TOLERANCE === "true" ? 14 * MINUTE : 15 * MINUTE });
       status = !publication.aligned ? "PUBLICATION_DELAYED" : "CHECKED";
       if (decision.reason === "RUN_STALLED") status = "NEEDS_ATTENTION";
       if (decision.action === "REFRESH" || decision.action === "REDEPLOY") {
@@ -385,9 +463,10 @@ export default {
     // There is deliberately no public refresh/dispatch endpoint.
     if (request.method !== "GET" || new URL(request.url).pathname !== "/health") return new Response("Not found", { status: 404 });
     try {
-      const state = await readState(env, STATE_KEY) || {};
-      const result = publicHealth(state);
-      return Response.json(result, { status: ["CHECKED"].includes(result.status) ? 200 : 503, headers: { "Cache-Control": "no-store" } });
+      const clockOnly = env.MODE === "CLOCK_ONLY";
+      const state = await readState(env, clockOnly ? CLOCK_KEY : STATE_KEY) || {};
+      const result = clockOnly ? publicClockHealth(state) : publicHealth(state);
+      return Response.json(result, { status: ["CHECKED", "CLOCK_ALIVE"].includes(result.status) ? 200 : 503, headers: { "Cache-Control": "no-store" } });
     } catch {
       return Response.json({ status: "MONITOR_UNAVAILABLE" }, { status: 503, headers: { "Cache-Control": "no-store" } });
     }

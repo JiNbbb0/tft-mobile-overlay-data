@@ -23,11 +23,9 @@ try {
         $uri.Host -notmatch '^[a-z0-9.-]+\.workers\.dev$') { throw 'Invalid monitor endpoint.' }
     $reply = Invoke-WebRequest -Uri $uri -TimeoutSec 20 -SkipHttpErrorCheck -MaximumRedirection 0
     $health = $reply.Content | ConvertFrom-Json
-    if ([int]$health.schemaVersion -ne 1) { throw 'Invalid health contract.' }
     . (Join-Path $PSScriptRoot '../../tools/automation-health-policy.ps1')
-    $checkedAt = ConvertTo-AutomationTimestamp $health.checkedAt
-    $age = ([DateTimeOffset]::UtcNow - $checkedAt).TotalMinutes
-    $attention = $age -lt -2 -or $age -gt 12 -or [string]$health.status -ne 'CHECKED'
+    . (Join-Path $PSScriptRoot 'independent-clock-health.ps1')
+    $attention = -not (Test-IndependentClockHealth -Health $health -HttpStatus ([int]$reply.StatusCode))
     $reason = if ($attention) { 'INDEPENDENT_MONITOR_REQUIRES_ATTENTION' } else { 'INDEPENDENT_MONITOR_CHECKED' }
 } catch {
     # Only stable diagnostic codes are exposed, never exception/endpoint text.

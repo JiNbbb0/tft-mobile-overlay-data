@@ -7,6 +7,8 @@ const PUBLICATION = new Set([REFRESH, REDEPLOY, ".github/workflows/rollback-late
 const HASH = /^[0-9a-f]{64}$/;
 const ID = /^[a-z0-9][a-z0-9._-]{0,159}$/;
 const encoder = new TextEncoder();
+const STATE_KEY = "watchdog-v1";
+const RESERVATION_KEY = "dispatch-reservation-v1";
 let tokenCache;
 
 class CheckError extends Error {
@@ -14,6 +16,14 @@ class CheckError extends Error {
 }
 const fail = code => { throw new CheckError(code); };
 const iso = value => new Date(value).toISOString();
+async function readState(env, key) {
+  try { return await env.STATE.get(key, "json"); }
+  catch { fail("STATE_READ_FAILED"); }
+}
+async function writeState(env, key, value) {
+  try { await env.STATE.put(key, JSON.stringify(value)); }
+  catch { fail("STATE_WRITE_FAILED"); }
+}
 export function timestamp(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value)) fail("INVALID_TIMESTAMP");
   const ms = Date.parse(value);
@@ -50,7 +60,23 @@ async function bytes(fetcher, url, options = {}, maximum = 1_048_576) {
   return result;
 }
 const decode = data => new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(data).replace(/^\uFEFF/, "");
-const json = async (...args) => JSON.parse(decode(await bytes(...args)));
+// GitHub run lists are large. Keep the size gate, but let the runtime decode
+// and parse JSON without JS chunk concatenation + UTF-8 decoding copies.
+async function json(fetcher, url, options = {}, maximum = 1_048_576) {
+  const response = await fetcher(url, { ...options, redirect: "manual", signal: AbortSignal.timeout(15_000) });
+  if (!response.ok) fail(`HTTP_${response.status}`);
+  if (Number(response.headers.get("content-length")) > maximum) fail("RESPONSE_TOO_LARGE");
+  if (!response.body) fail("EMPTY_RESPONSE");
+  let size = 0;
+  const limited = response.body.pipeThrough(new TransformStream({
+    transform(chunk, controller) {
+      size += chunk.byteLength;
+      if (size > maximum) fail("RESPONSE_TOO_LARGE");
+      controller.enqueue(chunk);
+    },
+  }));
+  return new Response(limited).json();
+}
 const sha256 = async data => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", data)), n => n.toString(16).padStart(2, "0")).join("");
 const base64url = data => btoa(String.fromCharCode(...data)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
 function der(tag, body) {
@@ -206,9 +232,18 @@ export function publicHealth(state, now = Date.now()) {
 }
 // Workers native fetch requires its global receiver; Node-only injected mocks do
 // not reveal an unbound-fetch TypeError. Preserve the receiver in production.
-export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now() } = {}) {
+export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now(), onStage = (_stage) => {} } = {}) {
   if (!env.STATE?.get || !env.STATE?.put) fail("STATE_NOT_CONNECTED");
-  const state = await env.STATE.get("watchdog-v1", "json") || {};
+  const state = await readState(env, STATE_KEY) || {};
+  // KV is limited to one write/second/key. Keep the durable pre-dispatch
+  // reservation separate from the final health record, with no artificial sleep.
+  // A failed final health write must not erase the ambiguous-POST cooldown.
+  const reservation = await readState(env, RESERVATION_KEY);
+  if (reservation?.lastDispatchAt) {
+    const reservedAt = timestamp(reservation.lastDispatchAt);
+    if (reservedAt > now + 2 * MINUTE) fail("RESERVATION_TIME_IN_FUTURE");
+    if (!state.lastDispatchAt || reservedAt > timestamp(state.lastDispatchAt)) state.lastDispatchAt = iso(reservedAt);
+  }
   let decision = { action: "NONE", reason: "DISABLED" };
   let status = "DISABLED";
   let stage = "CONFIGURATION";
@@ -217,10 +252,10 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
   if (env.ENABLED === "true") {
     try {
       const config = configuration(env);
-      stage = "AUTHENTICATION";
+      stage = "AUTHENTICATION"; onStage(stage);
       const token = await githubToken(env, fetcher, now, value => { stage = value; });
       const headers = githubHeaders(token);
-      stage = "RUN_QUEUE";
+      stage = "RUN_QUEUE"; onStage(stage);
       const response = await json(fetcher, `${config.api}/actions/runs?branch=main&per_page=50`, { headers });
       if (!Array.isArray(response.workflow_runs)) fail("RUNS_INVALID");
       const runs = response.workflow_runs;
@@ -229,22 +264,22 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
         if (!r.path || !r.status || !Number.isSafeInteger(r.id)) fail("RUNS_INVALID");
         timestamp(r.created_at);
       }
-      stage = "TRACKED_HEAD";
+      stage = "TRACKED_HEAD"; onStage(stage);
       const head = await json(fetcher, `${config.api}/git/ref/heads/main`, { headers }, 16_384);
       // Pin control-file comparisons to one commit; main can advance while the
       // independent check is reading Pages. Never compare two different commits.
-      stage = "PUBLICATION";
+      stage = "PUBLICATION"; onStage(stage);
       const publication = await readPublication({ ...config, commitSha: head.object?.sha }, fetcher, now);
       state.publication = publication;
       const successful = runs.find(r => r.path === REFRESH && r.head_branch === "main" && r.status === "completed" && r.conclusion === "success");
       if (successful && String(successful.id) !== state.sourceProof?.runId) {
-        stage = "SOURCE_PROOF";
+        stage = "SOURCE_PROOF"; onStage(stage);
         const jobs = await json(fetcher, `${config.api}/actions/runs/${successful.id}/jobs?per_page=100`, { headers });
         if (!Array.isArray(jobs.jobs)) fail("JOBS_INVALID");
         const proof = sourceProof(successful, jobs.jobs, publication.versionId, now);
         if (proof) state.sourceProof = proof;
       }
-      stage = "DECISION";
+      stage = "DECISION"; onStage(stage);
       decision = decide({ runs, publication, state, now });
       status = !publication.aligned ? "PUBLICATION_DELAYED" : "CHECKED";
       if (decision.reason === "RUN_STALLED") status = "NEEDS_ATTENTION";
@@ -253,7 +288,7 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
         // dispatch every five minutes. GitHub concurrency remains the final lock.
         state.lastDispatchAt = iso(now);
         stage = "DISPATCH_RESERVATION";
-        await env.STATE.put("watchdog-v1", JSON.stringify(state));
+        await writeState(env, RESERVATION_KEY, { lastDispatchAt: state.lastDispatchAt });
         stage = "DISPATCH";
         const workflow = decision.action === "REFRESH" ? "refresh-tft-data.yml" : "deploy-pages.yml";
         const dispatch = await fetcher(`${config.api}/actions/workflows/${workflow}/dispatches`, {
@@ -281,21 +316,27 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
   const health = publicHealth(state, now);
   if (health.sourceVerificationAgeMinutes !== null) state.maximumVerifiedAgeMinutes = Math.max(state.maximumVerifiedAgeMinutes || 0, health.sourceVerificationAgeMinutes);
   state.recent = [...(state.recent || []).slice(-19), { at: iso(now), status, action: decision.action, reason: decision.reason }];
-  await env.STATE.put("watchdog-v1", JSON.stringify(state));
+  await writeState(env, STATE_KEY, state);
   return publicHealth(state, now);
 }
 
 export default {
   async scheduled(_event, env, ctx) {
-    ctx.waitUntil(runCheck(env).then(result => {
+    ctx.waitUntil(runCheck(env, { onStage: stage => console.log(JSON.stringify({ stage })) }).then(result => {
       console.log(JSON.stringify({ status: result.status, action: result.lastAction, reason: result.reason }));
+    }).catch(error => {
+      // Storage failure happens outside the API-check catch. Preserve an aged
+      // health record (not false green), and log only an allowlisted code.
+      const reason = error instanceof CheckError && ["STATE_READ_FAILED", "STATE_WRITE_FAILED", "STATE_NOT_CONNECTED", "RESERVATION_TIME_IN_FUTURE"].includes(error.code)
+        ? error.code : "CHECK_UNAVAILABLE";
+      console.error(JSON.stringify({ status: "CHECK_FAILED", action: "NONE", reason }));
     }));
   },
   async fetch(request, env) {
     // There is deliberately no public refresh/dispatch endpoint.
     if (request.method !== "GET" || new URL(request.url).pathname !== "/health") return new Response("Not found", { status: 404 });
     try {
-      const state = await env.STATE.get("watchdog-v1", "json") || {};
+      const state = await readState(env, STATE_KEY) || {};
       const result = publicHealth(state);
       return Response.json(result, { status: ["CHECKED"].includes(result.status) ? 200 : 503, headers: { "Cache-Control": "no-store" } });
     } catch {

@@ -50,6 +50,12 @@ possible GitHub, Pages, Cloudflare or upstream outage.
 - Existing active publication jobs suppress dispatch. Successful start cadence is
   15 minutes. Failures back off to 15/30/60/120 minutes; an ambiguous POST is reserved
   in state before sending. GitHub's publication concurrency lock remains authoritative.
+- Dispatch reservations use `dispatch-reservation-v1`; the final health record uses
+  `watchdog-v1`. Each key is written at most once per check, avoiding KV's one-write
+  per second per key limit even when GitHub accepts the dispatch immediately.
+  The next check reads both records so a failed health write cannot erase a reserved
+  cooldown. Storage-read failure prevents speculative dispatch; scheduled failures
+  emit sanitized codes rather than private exception messages or falsely green health.
 - A run older than 70 minutes that is still active is reported, not cancelled blindly.
 - A successful run is not source-freshness proof. Only a successful whole main run
   with the matching successful `Source verified: <versionId>` step qualifies.

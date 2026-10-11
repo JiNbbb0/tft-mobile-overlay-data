@@ -57,6 +57,16 @@ function fixture(options = {}) {
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
 
+for (const declared of [true, false]) test(`native JSON size limit blocks oversized response (${declared ? "declared" : "streamed"})`, async () => {
+  const f = fixture();
+  const result = await runCheck(f.env, { now, fetcher: async () => new Response('"' + 'x'.repeat(1_048_576) + '"', {
+    headers: declared ? { "content-length": "1048578" } : {},
+  }) });
+  assert.equal(result.reason, "RESPONSE_TOO_LARGE");
+  assert.equal(result.failureStage, "RUN_QUEUE");
+  assert.equal(result.lastAction, "NONE");
+});
+
 test("redirects are refused before credentials can reach another host", async () => {
   const f = fixture();
   let calls = 0;

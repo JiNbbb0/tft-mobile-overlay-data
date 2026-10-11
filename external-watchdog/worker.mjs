@@ -9,6 +9,7 @@ const ID = /^[a-z0-9][a-z0-9._-]{0,159}$/;
 const encoder = new TextEncoder();
 const STATE_KEY = "watchdog-v1";
 const RESERVATION_KEY = "dispatch-reservation-v1";
+const ACTIVE_STATUSES = ["queued", "in_progress", "waiting", "requested", "pending"];
 let tokenCache;
 
 class CheckError extends Error {
@@ -256,9 +257,18 @@ export async function runCheck(env, { fetcher = (input, init) => globalThis.fetc
       const token = await githubToken(env, fetcher, now, value => { stage = value; });
       const headers = githubHeaders(token);
       stage = "RUN_QUEUE"; onStage(stage);
-      const response = await json(fetcher, `${config.api}/actions/runs?branch=main&per_page=50`, { headers });
+      const response = await json(fetcher, `${config.api}/actions/runs?branch=main&exclude_pull_requests=true&per_page=5`, { headers });
       if (!Array.isArray(response.workflow_runs)) fail("RUNS_INVALID");
-      const runs = response.workflow_runs;
+      // Do not merely truncate the old list: an older queued publication could
+      // be hidden behind recent completed CI. Query every active status too.
+      // A crowded queue fails closed instead of guessing beyond the page bound.
+      const activePages = await Promise.all(ACTIVE_STATUSES.map(status =>
+        json(fetcher, `${config.api}/actions/runs?branch=main&exclude_pull_requests=true&status=${status}&per_page=10`, { headers })));
+      for (const page of activePages) {
+        if (!Array.isArray(page.workflow_runs) || !Number.isSafeInteger(page.total_count) || page.total_count < 0) fail("RUNS_INVALID");
+        if (page.total_count > 10 || page.workflow_runs.length !== page.total_count) fail("ACTIVE_QUEUE_TOO_LARGE");
+      }
+      const runs = [...new Map([...response.workflow_runs, ...activePages.flatMap(page => page.workflow_runs)].map(run => [run.id, run])).values()];
       // If GitHub's queue cannot be inspected, never issue speculative writes.
       for (const r of runs) {
         if (!r.path || !r.status || !Number.isSafeInteger(r.id)) fail("RUNS_INVALID");

@@ -232,7 +232,7 @@ export function publicHealth(state, now = Date.now()) {
 }
 // Workers native fetch requires its global receiver; Node-only injected mocks do
 // not reveal an unbound-fetch TypeError. Preserve the receiver in production.
-export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now(), onStage = () => {} } = {}) {
+export async function runCheck(env, { fetcher = (input, init) => globalThis.fetch(input, init), now = Date.now(), onStage = (_stage) => {} } = {}) {
   if (!env.STATE?.get || !env.STATE?.put) fail("STATE_NOT_CONNECTED");
   const state = await readState(env, STATE_KEY) || {};
   // KV is limited to one write/second/key. Keep the durable pre-dispatch

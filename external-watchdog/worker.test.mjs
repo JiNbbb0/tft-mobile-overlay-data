@@ -42,7 +42,11 @@ function fixture(options = {}) {
     if (url.hostname !== "api.github.com") assert.equal(init.headers?.Authorization, undefined, "credentials must never leave the GitHub API host");
     const value = (body, status = 200) => new Response(typeof body === "string" ? body : JSON.stringify(body), { status });
     if (url.pathname.endsWith("/dispatches")) return new Response(null, { status: options.dispatchStatus || 204 });
-    if (url.pathname.endsWith("/actions/runs")) return value({ workflow_runs: options.runs || [run()] });
+    if (url.pathname.endsWith("/actions/runs")) {
+      const status = url.searchParams.get("status");
+      const rows = status ? (options.activeRuns || []).filter(r => r.status === status) : options.runs || [run()];
+      return value({ total_count: status ? options.activeTotal ?? rows.length : rows.length, workflow_runs: rows });
+    }
     if (url.pathname.endsWith("/git/ref/heads/main")) return value({ object: { sha: "a".repeat(40) } });
     if (url.pathname.endsWith("/jobs")) return value({ jobs: options.jobs || proofJobs });
     if (url.pathname.endsWith("/manifest.json")) return value(options.manifestText ?? manifestText);
@@ -56,6 +60,24 @@ function fixture(options = {}) {
   return { env, fetcher, calls, state: () => stored };
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
+
+test("bounded history still detects an older active publication", async () => {
+  const f = fixture({ runs: [run()], activeRuns: [run({ id: 99, status: "queued", conclusion: null, created_at: at(40) })] });
+  const result = await runCheck(f.env, { now, fetcher: f.fetcher });
+  assert.equal(result.lastAction, "WAIT");
+  assert.equal(result.reason, "RUN_IN_PROGRESS");
+  assert.equal(f.calls.filter(c => c.init.method === "POST").length, 0);
+  assert.equal(f.calls.filter(c => c.url.includes('/actions/runs?')).length, 6);
+  assert.ok(f.calls.filter(c => c.url.includes('/actions/runs?')).every(c => ["5", "10"].includes(new URL(c.url).searchParams.get("per_page"))));
+});
+
+test("active queue beyond the page bound cannot dispatch", async () => {
+  const f = fixture({ activeTotal: 11 });
+  const result = await runCheck(f.env, { now, fetcher: f.fetcher });
+  assert.equal(result.reason, "ACTIVE_QUEUE_TOO_LARGE");
+  assert.equal(result.lastAction, "NONE");
+  assert.equal(f.calls.filter(c => c.init.method === "POST").length, 0);
+});
 
 for (const declared of [true, false]) test(`native JSON size limit blocks oversized response (${declared ? "declared" : "streamed"})`, async () => {
   const f = fixture();

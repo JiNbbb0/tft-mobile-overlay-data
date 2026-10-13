@@ -13,9 +13,15 @@ function Set-ActionOutput([string]$Name, [string]$Value) {
 }
 
 function Get-WebText([string]$Url) {
-    $lines = & curl.exe -L --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors --max-time 120 -A $userAgent $Url
-    if ($LASTEXITCODE -ne 0) { throw "Request failed ($LASTEXITCODE): $Url" }
-    return ($lines -join "`n")
+    # Native file output is rewound between curl retries; piped stdout is not.
+    $responsePath = [IO.Path]::GetTempFileName()
+    try {
+        & curl.exe -L --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors --max-time 120 -A $userAgent --output $responsePath $Url
+        if ($LASTEXITCODE -ne 0) { throw "Request failed ($LASTEXITCODE): $Url" }
+        return [IO.File]::ReadAllText($responsePath, [Text.Encoding]::UTF8)
+    } finally {
+        Remove-Item -LiteralPath $responsePath -Force -ErrorAction SilentlyContinue
+    }
 }
 
 function Get-ObjectPropertyValue {

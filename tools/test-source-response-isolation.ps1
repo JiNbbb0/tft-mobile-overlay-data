@@ -10,6 +10,7 @@ $userAgent = 'isolated-test'
 $script:responseBody = '{"name":"魔女","value":7}'
 $script:transportFails = $false
 $script:downloadPath = ''
+$previousExitCode = if (Test-Path Variable:\global:LASTEXITCODE) { $global:LASTEXITCODE } else { 0 }
 function curl.exe {
     $outputIndex = [Array]::IndexOf($args, '--output')
     $global:LASTEXITCODE = if ($script:transportFails) { 28 } else { 0 }
@@ -52,6 +53,8 @@ try {
     Write-Output 'Source response isolation PASS: both production paths, retry, UTF-8, hash, failure and cleanup'
 } finally {
     Remove-Item Function:\curl.exe
+    # The injected failure must not become the enclosing pwsh job's exit code.
+    $global:LASTEXITCODE = $previousExitCode
     # Only the GUID-named fixture directory created above is disposable.
     if ([IO.Path]::GetFullPath($testRoot).StartsWith([IO.Path]::GetFullPath([IO.Path]::GetTempPath()), [StringComparison]::OrdinalIgnoreCase)) {
         Remove-Item -LiteralPath $testRoot -Recurse -Force

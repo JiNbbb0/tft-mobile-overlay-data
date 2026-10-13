@@ -24,9 +24,17 @@ function Set-ActionOutput([string]$Name, [string]$Value) {
 }
 
 function Get-WebText([string]$Url) {
-    $lines = & curl.exe -L --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors --max-time 120 -A $userAgent $Url
-    if ($LASTEXITCODE -ne 0) { throw "Request failed ($LASTEXITCODE): $Url" }
-    $text = ($lines -join "`n")
+    # curl cannot rewind piped stdout on retry. A partial first response would
+    # be concatenated with the successful response even when exit code is zero.
+    # Its native output file is rewound; consume only after successful exit.
+    $responsePath = [IO.Path]::GetTempFileName()
+    try {
+        & curl.exe -L --fail --silent --show-error --retry 2 --retry-delay 5 --retry-all-errors --max-time 120 -A $userAgent --output $responsePath $Url
+        if ($LASTEXITCODE -ne 0) { throw "Request failed ($LASTEXITCODE): $Url" }
+        $text = [IO.File]::ReadAllText($responsePath, [Text.Encoding]::UTF8)
+    } finally {
+        Remove-Item -LiteralPath $responsePath -Force -ErrorAction SilentlyContinue
+    }
     New-Item -ItemType Directory -Force -Path $observationRoot | Out-Null
     $sha = [Security.Cryptography.SHA256]::Create()
     try {

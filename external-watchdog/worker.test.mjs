@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createHash, generateKeyPairSync, verify } from "node:crypto";
-import worker, { decide, latestEntry, privateKeyBytes, publicHealth, readPublication, runCheck, sourceProof, timestamp } from "./worker.mjs";
+import worker, { decide, latestEntry, privateKeyBytes, publicHealth, publicClockHealth, readPublication, runCheck, sourceProof, timestamp } from "./worker.mjs";
+import { checkFromGitHub } from "./check-from-github.mjs";
 
 const now = Date.parse("2026-10-07T00:00:00Z");
 const minute = 60_000;
@@ -27,15 +28,17 @@ function fixture(options = {}) {
   let reservation = null;
   let sealedToken = null;
   let tokenRejection = null;
+  const extraRecords = new Map();
   const calls = [];
   const env = { ENABLED: "true", GITHUB_TOKEN: "test-secret-not-for-logs", GITHUB_REPOSITORY: repository, DATA_INDEX_URL: indexUrl,
     STATE: {
-      get: async key => structuredClone(key === "token-rejection-v1" ? tokenRejection : key === "sealed-installation-token-v1" ? sealedToken : key === "dispatch-reservation-v1" ? reservation : stored),
+      get: async key => structuredClone(key === "token-rejection-v1" ? tokenRejection : key === "sealed-installation-token-v1" ? sealedToken : key === "dispatch-reservation-v1" ? reservation : key === "watchdog-v1" ? stored : extraRecords.get(key) || null),
       put: async (key, value) => {
         if (key === "token-rejection-v1") tokenRejection = JSON.parse(value);
         else if (key === "sealed-installation-token-v1") sealedToken = JSON.parse(value);
         else if (key === "dispatch-reservation-v1") reservation = JSON.parse(value);
-        else stored = JSON.parse(value);
+        else if (key === "watchdog-v1") stored = JSON.parse(value);
+        else extraRecords.set(key, JSON.parse(value));
       },
     } };
   const fetcher = async (input, init = {}) => {
@@ -64,6 +67,97 @@ function fixture(options = {}) {
   return { env, fetcher, calls, state: () => stored };
 }
 const decision = (runs = [], changes = {}) => decide({ runs, publication, state: {}, now, ...changes });
+
+test("clock mode only triggers the GitHub inspector and never reads data/runs", async () => {
+  const f = fixture(); f.env.MODE = "CLOCK_ONLY";
+  const result = await runCheck(f.env, { fetcher: f.fetcher, now });
+  assert.equal(result.status, "CLOCK_ALIVE");
+  assert.equal(result.schemaVersion, 2);
+  assert.equal(result.lastAction, "TRIGGER_CHECK");
+  assert.equal(result.publicVersionId, undefined);
+  assert.equal(result.dataVerification, "GITHUB_WORKFLOW");
+  assert.equal(f.calls.length, 1);
+  assert.ok(f.calls[0].url.endsWith("/independent-refresh-check.yml/dispatches"));
+  assert.deepEqual(JSON.parse(f.calls[0].init.body), { ref: "main" });
+  assert.equal(f.state().checkedAt, undefined, "legacy full-check record remains untouched");
+});
+
+test("clock cooldown does zero network/auth work and bounds triggers to 15 minutes", async () => {
+  const f = fixture(); f.env.MODE = "CLOCK_ONLY";
+  await runCheck(f.env, { fetcher: f.fetcher, now });
+  assert.equal((await runCheck(f.env, { fetcher: f.fetcher, now: now + 5 * minute })).lastAction, "WAIT");
+  assert.equal(f.calls.length, 1);
+  await runCheck(f.env, { fetcher: f.fetcher, now: now + 15 * minute });
+  assert.equal(f.calls.length, 2);
+});
+
+test("UTC clock slots tolerate early seconds without losing a whole cycle", async () => {
+  const f = fixture(); f.env.MODE = "CLOCK_ONLY";
+  await runCheck(f.env, { fetcher: f.fetcher, now: now + 2 * minute + 10_000 });
+  await runCheck(f.env, { fetcher: f.fetcher, now: now + 17 * minute + 2_000 });
+  assert.equal(f.calls.length, 2);
+});
+
+test("GitHub clock jitter allowance is bounded and never erases failure backoff", () => {
+  assert.equal(decision([run({ created_at: at(14.5) })]).action, "WAIT");
+  assert.equal(decision([run({ created_at: at(14.5) })], { minimumInterval: 14 * minute }).action, "REFRESH");
+  assert.equal(decision([run({ created_at: at(13) })], { minimumInterval: 0 }).action, "WAIT");
+  assert.equal(decision([run({ created_at: at(14.5), conclusion: "failure" })], { minimumInterval: 14 * minute }).action, "WAIT");
+});
+
+test("clock ambiguous POST backs off without a falsely healthy cooldown", async () => {
+  const f = fixture({ dispatchStatus: 500 }); f.env.MODE = "CLOCK_ONLY";
+  assert.equal((await runCheck(f.env, { fetcher: f.fetcher, now })).status, "CHECK_FAILED");
+  const waited = await runCheck(f.env, { fetcher: f.fetcher, now: now + 5 * minute });
+  assert.equal(waited.status, "CHECK_FAILED");
+  assert.equal(waited.reason, "CLOCK_FAILURE_BACKOFF");
+  assert.equal(f.calls.length, 1);
+  const recovered = await runCheck(f.env, { fetcher: fixture().fetcher, now: now + 15 * minute });
+  assert.equal(recovered.status, "CLOCK_ALIVE");
+});
+
+test("clock disabled provisioning makes zero network calls", async () => {
+  const f = fixture(); Object.assign(f.env, { MODE: "CLOCK_ONLY", ENABLED: "false" });
+  assert.equal((await runCheck(f.env, { fetcher: f.fetcher, now })).status, "DISABLED");
+  assert.equal(f.calls.length, 0);
+});
+
+test("clock failed health persistence preserves reservation and prevents duplicate trigger", async () => {
+  const f = fixture(); f.env.MODE = "CLOCK_ONLY";
+  const save = f.env.STATE.put;
+  f.env.STATE.put = async (key, value) => { if (key === "clock-v2") throw new Error("private"); return save(key, value); };
+  await assert.rejects(runCheck(f.env, { fetcher: f.fetcher, now }), /STATE_WRITE_FAILED/);
+  f.env.STATE.put = save;
+  const result = await runCheck(f.env, { fetcher: f.fetcher, now: now + 5 * minute });
+  assert.equal(result.status, "CLOCK_TRIGGER_UNCONFIRMED");
+  assert.equal(f.calls.length, 1);
+});
+
+test("clock cannot remain green after timer or accepted triggers stop", () => {
+  const state = { status: "CLOCK_ALIVE", checkedAt: at(0), lastAcceptedAt: at(5) };
+  assert.equal(publicClockHealth(state, now).status, "CLOCK_ALIVE");
+  assert.equal(publicClockHealth(state, now + 13 * minute).status, "MONITOR_STALE");
+  assert.equal(publicClockHealth({ ...state, lastAcceptedAt: at(31) }, now).status, "CLOCK_TRIGGER_OVERDUE");
+  assert.equal(publicClockHealth({ ...state, checkedAt: new Date(now + 3 * minute).toISOString() }, now).status, "CLOCK_TIME_INVALID");
+});
+
+test("clock live health is distinct from data freshness and has no public write endpoint", async () => {
+  const f = fixture(); f.env.MODE = "CLOCK_ONLY";
+  await runCheck(f.env, { fetcher: f.fetcher, now: Date.now() });
+  const response = await worker.fetch(new Request("https://watch.invalid/health"), f.env);
+  assert.equal(response.status, 200);
+  const health = await response.json();
+  assert.equal(health.mode, "CLOCK_ONLY");
+  assert.equal(health.sourceVerifiedAt, undefined);
+  assert.equal((await worker.fetch(new Request("https://watch.invalid/trigger", { method: "POST" }), f.env)).status, 404);
+});
+
+for (const scenario of ["due", "active", "public-mismatch", "api-failed"]) test(`GitHub inspector retains full safety: ${scenario}`, async () => {
+  const f = fixture(scenario === "active" ? { activeRuns: [run({ status: "queued", conclusion: null })] } : scenario === "public-mismatch" ? { publicStatus: 404 } : scenario === "api-failed" ? { fetchFailure: () => true } : {});
+  const result = await checkFromGitHub(f.env, { fetcher: f.fetcher, now });
+  assert.equal(result.lastAction, { due: "REFRESH", active: "WAIT", "public-mismatch": "REDEPLOY", "api-failed": "NONE" }[scenario]);
+  if (scenario === "api-failed") assert.equal(result.status, "CHECK_FAILED");
+});
 
 test("bounded history still detects an older active publication", async () => {
   const f = fixture({ runs: [run()], activeRuns: [run({ id: 99, status: "queued", conclusion: null, created_at: at(40) })] });

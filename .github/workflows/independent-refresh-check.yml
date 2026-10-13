@@ -1,0 +1,27 @@
+name: Independent TFT refresh check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: tft-independent-clock-check
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Inspect queue and verified publication before bounded recovery
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DATA_INDEX_URL: https://jinbbb0.github.io/tft-mobile-overlay-data/data-index.json
+        run: node external-watchdog/check-from-github.mjs

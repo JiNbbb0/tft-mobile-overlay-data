@@ -8,6 +8,8 @@ on:
       - ".github/workflows/refresh-tft-data.yml"
       - ".github/scripts/check-refresh-freshness.ps1"
       - ".github/scripts/check-independent-watchdog.ps1"
+      - ".github/scripts/independent-clock-health.ps1"
+      - ".github/workflows/independent-refresh-check.yml"
       - ".github/workflows/automation-watchdog.yml"
       - "tools/reconcile-publication.ps1"
   push:
@@ -18,6 +20,8 @@ on:
       - ".github/workflows/refresh-tft-data.yml"
       - ".github/scripts/check-refresh-freshness.ps1"
       - ".github/scripts/check-independent-watchdog.ps1"
+      - ".github/scripts/independent-clock-health.ps1"
+      - ".github/workflows/independent-refresh-check.yml"
       - ".github/workflows/automation-watchdog.yml"
       - "tools/reconcile-publication.ps1"
   workflow_dispatch:
@@ -41,3 +45,4 @@ jobs:
           ./tools/test-publication-state.ps1
           ./tools/test-autonomous-recovery.ps1
           ./tools/test-workflow-concurrency-policy.ps1
+          ./tools/test-independent-clock-health.ps1

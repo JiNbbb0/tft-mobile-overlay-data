@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-10-16T13:36:58Z
-- From: tftset18-18.4-r426-m1a4b5622a6
+- Generated: 2026-10-16T14:51:42Z
+- From: tftset18-18.4-r426-m9664d61398
 - To: TFTSet18 / patch 18.4 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -24,7 +24,7 @@
 | DIAMOND_PLUS | 18 | 18 | 0 | 0 | 18 |
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |
-| GRANDMASTER_PLUS | 18 | 18 | 1 | 1 | 17 |
-| MASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
+| GRANDMASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
+| MASTER_PLUS | 18 | 18 | 0 | 0 | 17 |
 | PLATINUM_PLUS | 18 | 18 | 0 | 0 | 18 |
 

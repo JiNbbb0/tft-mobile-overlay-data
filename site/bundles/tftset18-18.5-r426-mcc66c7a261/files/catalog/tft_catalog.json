@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "fetchedAtUtc": "2026-10-21T05:48:10Z",
+  "fetchedAtUtc": "2026-10-21T07:48:10Z",
   "set": {
     "id": "TFTSet18",
     "number": 18,
@@ -162,7 +162,7 @@
       "DA_18_Counterspell_Prismatic",
       "DA_18_Counterspell_Upgrade",
       "DA_18_Drizzle",
-      "DA_18_Drizzle_Upgrade",
+      "DA_18_DrizzleUpgrade",
       "DA_18_EarlyFix",
       "DA_18_EarlyFix_Upgrade",
       "DA_18_EmblemBlackthorn",
@@ -199,7 +199,7 @@
       "DA_18_GiantGrowth",
       "DA_18_GiantGrowth_Upgrade",
       "DA_18_GroveArmor",
-      "DA_18_GroveArmor_Upgrade",
+      "DA_18_GroveArmorUpgrade",
       "DA_18_HeatedRivalry",
       "DA_18_HeatedRivalry_Upgrade",
       "DA_18_HeroicSacrifice",
@@ -401,8 +401,6 @@
       "DA_ForestGuide18_Upgrade",
       "DA_ForestTwins18",
       "DA_ForestTwinsUpgrade18",
-      "DA_FoundBigFriend18",
-      "DA_FoundBigFriend18_Upgrade",
       "DA_FoundFriend18",
       "DA_FoundFriend18_Upgrade",
       "DA_GargoyleStoneplate",
@@ -551,6 +549,8 @@
       "DA_RefreshingLight18_Upgrade",
       "DA_Regeneration18",
       "DA_Regeneration18_Upgrade",
+      "DA_ReturningFriend",
+      "DA_ReturningFriendUpgrade",
       "DA_Revenge18",
       "DA_RevengeUpgrade18",
       "DA_RideTheWave18",
@@ -559,6 +559,8 @@
       "DA_RollingBones18_Upgrade",
       "DA_RolyPolys18",
       "DA_RolyPolysUpgrade18",
+      "DA_RoomForAShroom",
+      "DA_RoomForAShroomUpgrade",
       "DA_Salvager18",
       "DA_SalvagerUpgrade18",
       "DA_Scrappy18",
@@ -620,8 +622,6 @@
       "DA_TreetopArchers_Upgrade",
       "DA_TrophyHunter18",
       "DA_TrophyHunter18_Upgrade",
-      "DA_TrueFriendship18",
-      "DA_TrueFriendship18_Upgrade",
       "DA_TurtlesVisit18",
       "DA_TurtlesVisit18_Upgrade",
       "DA_VoidStaff",
@@ -890,6 +890,7 @@
       "DA_CommerceCore",
       "DA_ComponentBuffet",
       "DA_ComponentQuest",
+      "DA_ConstructACompanion",
       "DA_CookingPot",
       "DA_Coronation",
       "DA_Corrosion",
@@ -899,7 +900,6 @@
       "DA_CyberneticUplink_Gold",
       "DA_DeadlierBlades",
       "DA_DeadlierCaps",
-      "DA_DoubleTrouble",
       "DA_Dummify",
       "DA_EarlyLearnings",
       "DA_ElectrochargeI",
@@ -918,6 +918,7 @@
       "DA_Flexible",
       "DA_FlowingTears",
       "DA_FocusedFire",
+      "DA_ForgeAFriend",
       "DA_ForgedInStrength",
       "DA_FrontlineFoundation",
       "DA_FutureFocused",
@@ -985,8 +986,10 @@
       "DA_OneBuffTwoBuff",
       "DA_PandorasBench",
       "DA_PandorasItemsI",
-      "DA_PandorasItemsII",
       "DA_PandorasItemsIII",
+      "DA_PandorasItemsIIMinus",
+      "DA_PandorasItemsIIPlus",
+      "DA_PandorasItemsIIPlusPlus",
       "DA_PartialAscension",
       "DA_PatienceIsAVirtue",
       "DA_PatientStudy",
@@ -1451,13 +1454,13 @@
         "icon": ""
       },
       "mana": {
-        "initial": 30,
-        "maximum": 120
+        "initial": 20,
+        "maximum": 110
       },
       "stats": {
         "hp": 500.0,
         "attackDamage": 40.0,
-        "attackSpeed": 0.699999988079071,
+        "attackSpeed": 0.75,
         "armor": 25.0,
         "magicResist": 25.0,
         "range": 4.0
@@ -2482,7 +2485,7 @@
       },
       "mana": {
         "initial": 0,
-        "maximum": 60
+        "maximum": 50
       },
       "stats": {
         "hp": 650.0,
@@ -2544,7 +2547,7 @@
         "icon": ""
       },
       "mana": {
-        "initial": 30,
+        "initial": 50,
         "maximum": 110
       },
       "stats": {
@@ -2580,7 +2583,7 @@
       },
       "stats": {
         "hp": 850.0,
-        "attackDamage": 60.0,
+        "attackDamage": 63.0,
         "attackSpeed": 0.800000011920929,
         "armor": 55.0,
         "magicResist": 55.0,
@@ -2612,7 +2615,7 @@
       },
       "stats": {
         "hp": 650.0,
-        "attackDamage": 55.0,
+        "attackDamage": 60.0,
         "attackSpeed": 0.75,
         "armor": 35.0,
         "magicResist": 35.0,
@@ -3202,7 +3205,7 @@
       "stats": {
         "hp": 900.0,
         "attackDamage": 40.0,
-        "attackSpeed": 0.800000011920929,
+        "attackSpeed": 0.8500000238418579,
         "armor": 45.0,
         "magicResist": 45.0,
         "range": 4.0
@@ -3290,14 +3293,14 @@
       },
       "mana": {
         "initial": 0,
-        "maximum": 65
+        "maximum": 70
       },
       "stats": {
         "hp": 1300.0,
         "attackDamage": 55.0,
         "attackSpeed": 0.75,
         "armor": 65.0,
-        "magicResist": 65.0,
+        "magicResist": 70.0,
         "range": 1.0
       },
       "searchKeywords": "タリック taric da_taric18 エメラルドの神髄 ヴァンガード"
@@ -3830,7 +3833,7 @@
           "maximumUnits": 5,
           "style": 3,
           "variables": {
-            "{6eab9c5e}": 0.32999998331069946,
+            "{6eab9c5e}": 0.30000001192092896,
             "{f8c73243}": 0.06000000238418579
           }
         },
@@ -3886,8 +3889,8 @@
           "maximumUnits": 25000,
           "style": 5,
           "variables": {
-            "AttackSpeedIncrease": 0.4500000476837158,
-            "HealthIncrease": 0.4500000476837158,
+            "AttackSpeedIncrease": 0.5499999523162842,
+            "HealthIncrease": 0.5499999523162842,
             "{aa3fad66}": 1.0
           }
         }
@@ -3967,7 +3970,7 @@
             "ShieldRatio": 0.05000000074505806,
             "{092e2b2b}": 3.0,
             "{0a2e2cbe}": 5.0,
-            "{0b2e2e51}": 7.0,
+            "{0b2e2e51}": 8.0,
             "{5cfe766f}": 0.4000000059604645,
             "{617a160e}": 0.1499999761581421,
             "{7e77da03}": 12.0,
@@ -4140,7 +4143,7 @@
           "style": 1,
           "variables": {
             "ADAP": 4.5,
-            "Heal": 2.5,
+            "Heal": 3.0,
             "HealThreshold": 0.5
           }
         },
@@ -4150,7 +4153,7 @@
           "style": 5,
           "variables": {
             "ADAP": 7.0,
-            "Heal": 4.0,
+            "Heal": 5.0,
             "HealThreshold": 0.5
           }
         }
@@ -4220,7 +4223,7 @@
           "style": 5,
           "variables": {
             "Health": 600.0,
-            "StatMultiplier": 0.6000000238418579
+            "StatMultiplier": 0.5
           }
         }
       ],
@@ -4253,7 +4256,7 @@
           "maximumUnits": 25000,
           "style": 5,
           "variables": {
-            "PercentHeal": 0.07999999821186066
+            "PercentHeal": 0.07000000029802322
           }
         }
       ],
@@ -4514,7 +4517,7 @@
           "maximumUnits": 4,
           "style": 3,
           "variables": {
-            "ASperAttack": 0.08000004291534424,
+            "ASperAttack": 0.0700000524520874,
             "MaxStacks": 10.0,
             "{1d98dcec}": 0.10000002384185791
           }
@@ -4524,7 +4527,7 @@
           "maximumUnits": 25000,
           "style": 5,
           "variables": {
-            "ASperAttack": 0.12000000476837158,
+            "ASperAttack": 0.10000002384185791,
             "MaxStacks": 10.0,
             "{1d98dcec}": 0.10000002384185791
           }
@@ -4619,8 +4622,8 @@
           "maximumUnits": 3,
           "style": 3,
           "variables": {
-            "AbilityPower": 0.10000000149011612,
-            "AttackSpeed": 0.12000000476837158,
+            "AbilityPower": 0.11999999731779099,
+            "AttackSpeed": 0.10000002384185791,
             "{6d27fbd4}": 1.0
           }
         },
@@ -4629,8 +4632,8 @@
           "maximumUnits": 4,
           "style": 3,
           "variables": {
-            "AbilityPower": 0.14000000059604645,
-            "AttackSpeed": 0.15999996662139893,
+            "AbilityPower": 0.1599999964237213,
+            "AttackSpeed": 0.13999998569488525,
             "{6d27fbd4}": 1.0
           }
         },
@@ -4639,8 +4642,8 @@
           "maximumUnits": 25000,
           "style": 5,
           "variables": {
-            "AbilityPower": 0.18000000715255737,
-            "AttackSpeed": 0.20000004768371582,
+            "AbilityPower": 0.20000000298023224,
+            "AttackSpeed": 0.1799999475479126,
             "{6d27fbd4}": 1.0
           }
         }
@@ -4687,7 +4690,7 @@
           "style": 4,
           "variables": {
             "DamageAmp": 0.07000000029802322,
-            "Durability": 0.06999999284744263
+            "Durability": 0.050000011920928955
           }
         }
       ],
@@ -4886,159 +4889,13 @@
       "searchKeywords": "b.f.ソード b.f. sword tft_item_bfsword"
     },
     {
-      "id": "DA_18_Drizzle",
-      "nameJa": "TFT18_Charm_Drizzle_Name",
-      "nameEn": "Drizzle",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_Drizzle_Description",
-      "stats": {
-        "Delay": 8.0,
-        "{2d7e43a8}": 10.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_drizzle_name drizzle da_18_drizzle"
-    },
-    {
-      "id": "DA_18_Drizzle_Upgrade",
-      "nameJa": "TFT18_Charm_Drizzle_Upgrade_Name",
-      "nameEn": "Drizzle",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_Drizzle_Upgrade_Description",
-      "stats": {
-        "Delay": 8.0,
-        "{6d8ce3e4}": 15.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_drizzle_upgrade_name drizzle da_18_drizzle_upgrade"
-    },
-    {
-      "id": "DA_FoundBigFriend18",
-      "nameJa": "TFT18_Charm_FoundBigFriend_Name",
-      "nameEn": "Returning Friend",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_FoundBigFriend_Description",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_foundbigfriend_name returning friend da_foundbigfriend18"
-    },
-    {
-      "id": "DA_FoundBigFriend18_Upgrade",
-      "nameJa": "TFT18_Charm_FoundBigFriend_Upgrade_Name",
-      "nameEn": "Returning Friend",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_FoundBigFriend_Upgrade_Description",
-      "stats": {},
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_foundbigfriend_upgrade_name returning friend da_foundbigfriend18_upgrade"
-    },
-    {
-      "id": "DA_18_GroveArmor",
-      "nameJa": "TFT18_Charm_GroveArmor_Name",
-      "nameEn": "Grove Armor",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_GroveArmor_Description",
-      "stats": {
-        "BonusArmor": 15.0,
-        "BonusMR": 15.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_grovearmor_name grove armor da_18_grovearmor"
-    },
-    {
-      "id": "DA_18_GroveArmor_Upgrade",
-      "nameJa": "TFT18_Charm_GroveArmor_Upgrade_Name",
-      "nameEn": "Grove Armor",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_GroveArmor_Upgrade_Description",
-      "stats": {
-        "{18e2f9a9}": 25.0,
-        "{ac3cc501}": 25.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_grovearmor_upgrade_name grove armor da_18_grovearmor_upgrade"
-    },
-    {
-      "id": "DA_TrueFriendship18",
-      "nameJa": "TFT18_Charm_TrueFriendship_Name",
-      "nameEn": "True Friendship",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_TrueFriendship_Description",
-      "stats": {
-        "{a25a87df}": 2.0,
-        "{b82ea48a}": 2.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_truefriendship_name true friendship da_truefriendship18"
-    },
-    {
-      "id": "DA_TrueFriendship18_Upgrade",
-      "nameJa": "TFT18_Charm_TrueFriendship_Upgrade_Name",
-      "nameEn": "True Friendship",
-      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "TFT18_Charm_TrueFriendship_Upgrade_Description",
-      "stats": {
-        "{943e91b5}": 3.0,
-        "{c77056bc}": 2.0
-      },
-      "recipe": [],
-      "restrictions": {
-        "unique": false,
-        "composition": [],
-        "incompatibleTraits": []
-      },
-      "category": "その他",
-      "searchKeywords": "tft18_charm_truefriendship_upgrade_name true friendship da_truefriendship18_upgrade"
-    },
-    {
       "id": "DA_ManaRichSoil18",
       "nameJa": "あふれるマナの地",
       "nameEn": "Mana-Rich Soil",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "味方のキャスターの最大マナが可変値%低下する。",
       "stats": {
-        "{24a482c1}": 0.18000000715255737
+        "{24a482c1}": 0.1499999761581421
       },
       "recipe": [],
       "restrictions": {
@@ -5056,7 +4913,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "味方のキャスターの最大マナが可変値%低下する。",
       "stats": {
-        "{e475c01b}": 0.25
+        "{e475c01b}": 0.19999998807907104
       },
       "recipe": [],
       "restrictions": {
@@ -6310,6 +6167,42 @@
       "searchKeywords": "カメの来訪 turtle's visit da_turtlesvisit18_upgrade"
     },
     {
+      "id": "DA_RoomForAShroom",
+      "nameJa": "キノコスペース",
+      "nameEn": "Room for a Shroom",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "ランダムなキノコを可変値個獲得する。",
+      "stats": {
+        "{f2956f6f}": 2.0
+      },
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "キノコスペース room for a shroom da_roomforashroom"
+    },
+    {
+      "id": "DA_RoomForAShroomUpgrade",
+      "nameJa": "キノコスペース",
+      "nameEn": "Room for a Shroom",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "ランダムなキノコを可変値個獲得する。",
+      "stats": {
+        "{6cddf9fd}": 3.0
+      },
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "キノコスペース room for a shroom da_roomforashroomupgrade"
+    },
+    {
       "id": "DA_Artifact_GamblersBlade",
       "nameJa": "ギャンブラーの剣",
       "nameEn": "Gambler's Blade",
@@ -6333,7 +6226,7 @@
       "descriptionJa": "ファイターは体力が12%未満の対象にとどめを刺す。キル時に攻撃速度が可変値%増加する。",
       "stats": {
         "ExecuteThreshold": 12.0,
-        "{a074cdeb}": 0.1499999761581421
+        "{a074cdeb}": 0.2999999523162842
       },
       "recipe": [],
       "restrictions": {
@@ -6352,7 +6245,7 @@
       "descriptionJa": "ファイターは体力が15%未満の対象にとどめを刺す。キル時に攻撃速度が可変値%増加する。",
       "stats": {
         "UpgradeExecuteThreshold": 15.0,
-        "{c2df5b31}": 0.3999999761581421
+        "{c2df5b31}": 0.6000000238418579
       },
       "recipe": [],
       "restrictions": {
@@ -6588,6 +6481,44 @@
       "searchKeywords": "グランドマスター grandmaster da_grandmaster18_upgrade"
     },
     {
+      "id": "DA_18_GroveArmor",
+      "nameJa": "グローブ アーマー",
+      "nameEn": "Grove Armor",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "最も体力が高いチャンピオンが 15の物理防御と 15の魔法防御を獲得する。",
+      "stats": {
+        "BonusArmor": 15.0,
+        "BonusMR": 15.0
+      },
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "グローブ アーマー grove armor da_18_grovearmor"
+    },
+    {
+      "id": "DA_18_GroveArmorUpgrade",
+      "nameJa": "グローブ アーマー",
+      "nameEn": "Grove Armor",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "最も体力が高いチャンピオンが 可変値の物理防御と 可変値の魔法防御を獲得する。",
+      "stats": {
+        "{18e2f9a9}": 25.0,
+        "{ac3cc501}": 25.0
+      },
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "グローブ アーマー grove armor da_18_grovearmorupgrade"
+    },
+    {
       "id": "DA_Artifact_GoldCollector",
       "nameJa": "ゴールド コレクター",
       "nameEn": "Gold Collector",
@@ -6704,7 +6635,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "チャンピオンが倒されると爆発し、最大体力の可変値%にあたる魔法ダメージを与える。",
       "stats": {
-        "{8e1bf27f}": 0.11999999731779099
+        "{8e1bf27f}": 0.15000000596046448
       },
       "recipe": [],
       "restrictions": {
@@ -7428,10 +7359,10 @@
       "nameJa": "ステルス",
       "nameEn": "Stealthy",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "最も強いファイターまたはアサシン3体が6秒間対象指定不可になる。",
+      "descriptionJa": "最も強いファイターまたはアサシン3体が8秒間対象指定不可になる。",
       "stats": {
         "NumChampions": 3.0,
-        "UntargetableDuration": 6.0
+        "UntargetableDuration": 8.0
       },
       "recipe": [],
       "restrictions": {
@@ -7449,7 +7380,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "後列にいる可変値体のランダムなチャンピオンが可変値秒間、対象指定不可になる。",
       "stats": {
-        "{38788569}": 10.0,
+        "{38788569}": 12.0,
         "{3f2cae9b}": 3.0
       },
       "recipe": [],
@@ -8576,6 +8507,44 @@
       },
       "category": "その他",
       "searchKeywords": "ナッシャー トゥース nashor's tooth tft_item_leviathan"
+    },
+    {
+      "id": "DA_18_Drizzle",
+      "nameJa": "にわか雨",
+      "nameEn": "Drizzle",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "戦闘開始から8秒経過すると、味方チームが可変値のマナを獲得する。",
+      "stats": {
+        "Delay": 8.0,
+        "{2d7e43a8}": 10.0
+      },
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "にわか雨 drizzle da_18_drizzle"
+    },
+    {
+      "id": "DA_18_DrizzleUpgrade",
+      "nameJa": "にわか雨",
+      "nameEn": "Drizzle",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "戦闘開始から8秒経過すると、味方チームが可変値のマナを獲得する。",
+      "stats": {
+        "Delay": 8.0,
+        "{6d8ce3e4}": 15.0
+      },
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "にわか雨 drizzle da_18_drizzleupgrade"
     },
     {
       "id": "DA_Component_NegatronCloak",
@@ -14244,7 +14213,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "体力が最も多いユニットが巨大化し、体力が可変値増加する。",
       "stats": {
-        "{e26d6f9e}": 750.0
+        "{e26d6f9e}": 800.0
       },
       "recipe": [],
       "restrictions": {
@@ -14262,7 +14231,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "最も体力が高いユニット可変値体が巨大化し、体力が可変値増加する。",
       "stats": {
-        "{58332efe}": 750.0,
+        "{58332efe}": 800.0,
         "{6d8a71ae}": 2.0
       },
       "recipe": [],
@@ -14490,10 +14459,10 @@
       "nameJa": "後衛スター",
       "nameEn": "Backrow Star",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "7秒間、後列のランダムなチャンピオン1体の攻撃速度が85%増加する。",
+      "descriptionJa": "7秒間、後列のランダムなチャンピオン1体の攻撃速度が100%増加する。",
       "stats": {
         "ASDuration": 7.0,
-        "ASMultiplier": 0.8500000238418579
+        "ASMultiplier": 1.0
       },
       "recipe": [],
       "restrictions": {
@@ -14511,7 +14480,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "可変値秒間、後列のランダムなチャンピオン1体の攻撃速度が可変値%増加する。",
       "stats": {
-        "{6c71691e}": 1.1500000953674316,
+        "{6c71691e}": 1.2999999523162842,
         "{707d81f7}": 8.0
       },
       "recipe": [],
@@ -14522,6 +14491,38 @@
       },
       "category": "その他",
       "searchKeywords": "後衛スター backrow star da_18_backrowstar_upgrade"
+    },
+    {
+      "id": "DA_ReturningFriend",
+      "nameJa": "復帰するフレンド",
+      "nameEn": "Returning Friend",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "「ジャイアント ベルト」を2個装備した一時的なダミーを1体獲得する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "復帰するフレンド returning friend da_returningfriend"
+    },
+    {
+      "id": "DA_ReturningFriendUpgrade",
+      "nameJa": "復帰するフレンド",
+      "nameEn": "Returning Friend",
+      "image": "tft/images/bad268e1bdeb3c399ba89951.png",
+      "descriptionJa": "「ジャイアント ベルト」を3個装備したダミーを1体獲得する。",
+      "stats": {},
+      "recipe": [],
+      "restrictions": {
+        "unique": false,
+        "composition": [],
+        "incompatibleTraits": []
+      },
+      "category": "その他",
+      "searchKeywords": "復帰するフレンド returning friend da_returningfriendupgrade"
     },
     {
       "id": "TFT_Item_Artifact_InnervatingLocket",
@@ -16996,7 +16997,7 @@
       "nameJa": "鉢植えのライフブロッサム",
       "nameEn": "Potted Lifebloom",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "一時的に「ライフブロッサム」を1本獲得する。",
+      "descriptionJa": "一時的に「ライフブルーム」を1本獲得する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -17012,7 +17013,7 @@
       "nameJa": "鉢植えのライフブロッサム",
       "nameEn": "Potted Lifebloom",
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
-      "descriptionJa": "一時的に「ライフブロッサム」を1本獲得する。",
+      "descriptionJa": "一時的に「ライフブルーム」を1本獲得する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -18372,6 +18373,18 @@
       "searchKeywords": "素材アイテムクエスト component quest da_componentquest"
     },
     {
+      "id": "DA_ConstructACompanion",
+      "nameJa": "コンパニオン作成",
+      "nameEn": "Construct a Companion",
+      "image": "tft/images/ef91438723f27ec2d426a89e.png",
+      "rarity": "ゴールド",
+      "descriptionJa": "次に購入するコスト1チャンピオンが★3になる。2ゴールドを獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "コンパニオン作成 construct a companion da_constructacompanion"
+    },
+    {
       "id": "DA_CookingPot",
       "nameJa": "料理鍋",
       "nameEn": "Cooking Pot",
@@ -18478,18 +18491,6 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "もっと怖いキャップ deadlier caps da_deadliercaps"
-    },
-    {
-      "id": "DA_DoubleTrouble",
-      "nameJa": "ダブルトラブル",
-      "nameEn": "Double Trouble",
-      "image": "tft/images/320cd3203acbb342413bf9d8.png",
-      "rarity": "分類未取得",
-      "descriptionJa": "フィールド上にまったく同じチャンピオンを2体配置すると、両者の攻撃力と魔力が可変値%、物理防御と魔法防御が可変値増加する。★3にアップグレードすると、★2のコピーを1体獲得する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "ダブルトラブル double trouble da_doubletrouble"
     },
     {
       "id": "DA_Dummify",
@@ -18706,6 +18707,18 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "集中砲火 focused fire da_focusedfire"
+    },
+    {
+      "id": "DA_ForgeAFriend",
+      "nameJa": "友を鍛える",
+      "nameEn": "Forge A Friend",
+      "image": "tft/images/ef91438723f27ec2d426a89e.png",
+      "rarity": "シルバー",
+      "descriptionJa": "次に購入するコスト1チャンピオンが★3になる。5ゴールドを獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "友を鍛える forge a friend da_forgeafriend"
     },
     {
       "id": "DA_ForgedInStrength",
@@ -19512,18 +19525,6 @@
       "searchKeywords": "パンドラのアイテム i pandora's items i da_pandorasitemsi"
     },
     {
-      "id": "DA_PandorasItemsII",
-      "nameJa": "パンドラのアイテム II",
-      "nameEn": "Pandora's Items II",
-      "image": "tft/images/aa37deeb7b3cf66c240e4730.png",
-      "rarity": "ゴールド",
-      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\r\n\r\nランダムな素材アイテムを2個と、4ゴールドを獲得する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "パンドラのアイテム ii pandora's items ii da_pandorasitemsii"
-    },
-    {
       "id": "DA_PandorasItemsIII",
       "nameJa": "パンドラのアイテム III",
       "nameEn": "Pandora's Items III",
@@ -19534,6 +19535,42 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "パンドラのアイテム iii pandora's items iii da_pandorasitemsiii"
+    },
+    {
+      "id": "DA_PandorasItemsIIMinus",
+      "nameJa": "パンドラのアイテム II",
+      "nameEn": "Pandora's Items II",
+      "image": "tft/images/aa37deeb7b3cf66c240e4730.png",
+      "rarity": "ゴールド",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\n\nランダムな素材アイテムを可変値個と、可変値ゴールドを獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "パンドラのアイテム ii pandora's items ii da_pandorasitemsiiminus"
+    },
+    {
+      "id": "DA_PandorasItemsIIPlus",
+      "nameJa": "パンドラのアイテム II+",
+      "nameEn": "Pandora's Items II+",
+      "image": "tft/images/c1c81a6ee6cb937003099b76.png",
+      "rarity": "ゴールド",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\n\nランダムな素材アイテムを可変値個と、可変値ゴールドを獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "パンドラのアイテム ii+ pandora's items ii+ da_pandorasitemsiiplus"
+    },
+    {
+      "id": "DA_PandorasItemsIIPlusPlus",
+      "nameJa": "パンドラのアイテム II++",
+      "nameEn": "Pandora's Items II++",
+      "image": "tft/images/c1c81a6ee6cb937003099b76.png",
+      "rarity": "ゴールド",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\n\nランダムな素材アイテムを可変値個と、可変値ゴールドを獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "パンドラのアイテム ii++ pandora's items ii++ da_pandorasitemsiiplusplus"
     },
     {
       "id": "DA_PartialAscension",

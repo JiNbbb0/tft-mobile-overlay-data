@@ -1,41 +1,95 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-21T05:51:49Z",
-  "fromVersionId": "tftset18-18.5-r426-m4b39efb227",
+  "generatedAt": "2026-10-21T07:51:54Z",
+  "fromVersionId": "tftset18-18.5-r426-m1bd836f93c",
   "toSetId": "TFTSet18",
   "toPatch": "18.5",
   "toRevision": "426",
   "champions": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_Alune",
+      "DA_18_Hecarim",
+      "DA_18_MasterYi_AD",
+      "DA_18_Tristana",
+      "DA_18_Varus",
+      "DA_CrimsonRaptor18",
+      "DA_Taric18"
+    ]
   },
   "traits": {
     "added": [],
     "removed": [],
-    "changed": []
+    "changed": [
+      "DA_18_Blackthorn",
+      "DA_18_Fae",
+      "DA_18_Lunar",
+      "DA_18_Rapidfire",
+      "DA_18_Solar",
+      "DA_18_Sprykin",
+      "DA_AluneUniqueTrait18",
+      "DA_FloraFatalis18",
+      "DA_Juggernaut18"
+    ]
   },
   "items": {
-    "added": [],
-    "removed": [],
-    "changed": []
+    "added": [
+      "DA_18_DrizzleUpgrade",
+      "DA_18_GroveArmorUpgrade",
+      "DA_ReturningFriend",
+      "DA_ReturningFriendUpgrade",
+      "DA_RoomForAShroom",
+      "DA_RoomForAShroomUpgrade"
+    ],
+    "removed": [
+      "DA_18_Drizzle_Upgrade",
+      "DA_18_GroveArmor_Upgrade",
+      "DA_FoundBigFriend18",
+      "DA_FoundBigFriend18_Upgrade",
+      "DA_TrueFriendship18",
+      "DA_TrueFriendship18_Upgrade"
+    ],
+    "changed": [
+      "DA_18_BackrowStar",
+      "DA_18_BackrowStar_Upgrade",
+      "DA_18_Drizzle",
+      "DA_18_GiantGrowth",
+      "DA_18_GiantGrowth_Upgrade",
+      "DA_18_GroveArmor",
+      "DA_18_KillingFrenzy",
+      "DA_18_KillingFrenzy_Upgrade",
+      "DA_Combust18",
+      "DA_ManaRichSoil18",
+      "DA_ManaRichSoil18_Upgrade",
+      "DA_PottedLifebloom18",
+      "DA_PottedLifebloom18_Upgrade",
+      "DA_Stealthy18",
+      "DA_Stealthy18_Upgrade"
+    ]
   },
   "augments": {
-    "added": [],
-    "removed": [],
+    "added": [
+      "DA_ConstructACompanion",
+      "DA_ForgeAFriend",
+      "DA_PandorasItemsIIMinus",
+      "DA_PandorasItemsIIPlus",
+      "DA_PandorasItemsIIPlusPlus"
+    ],
+    "removed": [
+      "DA_DoubleTrouble",
+      "DA_PandorasItemsII"
+    ],
     "changed": []
   },
   "compositions": {
-    "added": [
-      "426025"
-    ],
-    "removed": [
-      "426004"
-    ],
+    "added": [],
+    "removed": [],
     "changed": [
       "426000",
       "426002",
       "426003",
+      "426004",
       "426006",
       "426007",
       "426008",
@@ -59,24 +113,31 @@
       "current": 18,
       "changes": {
         "added": [
-          "426003",
-          "426007",
-          "426010",
-          "426022"
+          "426011",
+          "426033",
+          "426049"
         ],
         "removed": [
-          "426009",
-          "426036",
-          "426051",
-          "426059"
+          "426003",
+          "426010",
+          "426038"
         ],
         "changed": [
+          "426000",
+          "426001",
           "426002",
+          "426007",
           "426012",
           "426014",
+          "426018",
+          "426019",
+          "426021",
+          "426022",
+          "426023",
           "426025",
           "426029",
-          "426032"
+          "426046",
+          "426051"
         ]
       }
     },
@@ -85,16 +146,13 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [
-          "426025"
-        ],
-        "removed": [
-          "426004"
-        ],
+        "added": [],
+        "removed": [],
         "changed": [
           "426000",
           "426002",
           "426003",
+          "426004",
           "426006",
           "426007",
           "426008",
@@ -137,7 +195,7 @@
           "426027",
           "426029",
           "426030",
-          "426036"
+          "426037"
         ]
       }
     },
@@ -146,27 +204,30 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [],
-        "removed": [],
+        "added": [
+          "426037"
+        ],
+        "removed": [
+          "426013"
+        ],
         "changed": [
           "426000",
           "426002",
           "426003",
           "426004",
+          "426005",
           "426006",
           "426007",
           "426008",
           "426010",
           "426011",
           "426012",
-          "426013",
           "426014",
           "426021",
           "426022",
           "426023",
           "426027",
-          "426029",
-          "426048"
+          "426029"
         ]
       }
     },
@@ -175,9 +236,14 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [],
-        "removed": [],
+        "added": [
+          "426053"
+        ],
+        "removed": [
+          "426038"
+        ],
         "changed": [
+          "426000",
           "426001",
           "426002",
           "426007",
@@ -187,11 +253,12 @@
           "426012",
           "426014",
           "426015",
+          "426019",
           "426022",
+          "426023",
           "426025",
           "426026",
           "426029",
-          "426038",
           "426051"
         ]
       }
@@ -202,16 +269,17 @@
       "current": 18,
       "changes": {
         "added": [
-          "426027"
+          "426013",
+          "426036"
         ],
         "removed": [
-          "426032"
+          "426004",
+          "426038"
         ],
         "changed": [
           "426000",
           "426002",
           "426003",
-          "426004",
           "426006",
           "426007",
           "426008",
@@ -224,7 +292,7 @@
           "426023",
           "426029",
           "426030",
-          "426038"
+          "426035"
         ]
       }
     },
@@ -233,12 +301,8 @@
       "previous": 18,
       "current": 18,
       "changes": {
-        "added": [
-          "426030"
-        ],
-        "removed": [
-          "426013"
-        ],
+        "added": [],
+        "removed": [],
         "changed": [
           "426000",
           "426002",
@@ -256,103 +320,103 @@
           "426023",
           "426027",
           "426029",
+          "426030",
           "426037"
         ]
       }
     }
   ],
-  "tierChanges": [
-    {
-      "id": "426027",
-      "before": "A",
-      "after": "S"
-    }
-  ],
+  "tierChanges": [],
   "averagePlacementChanges": [
     {
-      "id": "426000",
-      "before": 4.1473988439306355,
-      "after": 4.134048257372654
-    },
-    {
       "id": "426007",
-      "before": 4.169186652763295,
-      "after": 4.148931000971817
+      "before": 4.154448398576513,
+      "after": 4.166162227602905
     },
     {
-      "id": "426012",
-      "before": 4.169014084507042,
-      "after": 4.173134328358209
-    },
-    {
-      "id": "426037",
-      "before": 4.220779220779221,
-      "after": 4.189873417721519
+      "id": "426000",
+      "before": 4.192982456140351,
+      "after": 4.173841059602649
     },
     {
       "id": "426002",
-      "before": 4.190071848465055,
-      "after": 4.197062423500612
+      "before": 4.173817863397548,
+      "after": 4.185976752905887
     },
     {
-      "id": "426027",
-      "before": 4.253191489361702,
-      "after": 4.245019920318725
+      "id": "426012",
+      "before": 4.207764505119454,
+      "after": 4.207985480943739
     },
     {
-      "id": "426008",
-      "before": 4.265939597315437,
-      "after": 4.286271450858035
-    },
-    {
-      "id": "426006",
-      "before": 4.319218241042345,
-      "after": 4.303490136570561
+      "id": "426037",
+      "before": 4.212962962962963,
+      "after": 4.21875
     },
     {
       "id": "426029",
-      "before": 4.3452115812917596,
-      "after": 4.313807531380753
+      "before": 4.285935085007728,
+      "after": 4.27682119205298
     },
     {
-      "id": "426014",
-      "before": 4.33492471538744,
-      "after": 4.3348153214774285
-    },
-    {
-      "id": "426023",
-      "before": 4.318181818181818,
-      "after": 4.346534653465347
+      "id": "426027",
+      "before": 4.295264623955432,
+      "after": 4.29066985645933
     },
     {
       "id": "426022",
-      "before": 4.386725663716814,
-      "after": 4.358147229114971
+      "before": 4.320399764844209,
+      "after": 4.319506172839506
     },
     {
-      "id": "426011",
-      "before": 4.398044009779951,
-      "after": 4.387903592542065
+      "id": "426008",
+      "before": 4.315340909090909,
+      "after": 4.322377960367327
+    },
+    {
+      "id": "426023",
+      "before": 4.336842105263158,
+      "after": 4.329866270430906
+    },
+    {
+      "id": "426014",
+      "before": 4.3149938042131355,
+      "after": 4.332415254237288
+    },
+    {
+      "id": "426006",
+      "before": 4.352876106194691,
+      "after": 4.35260663507109
     },
     {
       "id": "426003",
-      "before": 4.41587037806398,
-      "after": 4.402396598376498
+      "before": 4.364480720517872,
+      "after": 4.3662142510906445
+    },
+    {
+      "id": "426011",
+      "before": 4.360103626943006,
+      "after": 4.368888888888889
     },
     {
       "id": "426010",
-      "before": 4.424862705941089,
-      "after": 4.416940403566401
+      "before": 4.4049037970372895,
+      "after": 4.4170643528561095
     },
     {
-      "id": "426021",
-      "before": 4.402578796561604,
-      "after": 4.437917222963952
+      "id": "426004",
+      "before": 4.448675496688741,
+      "after": 4.448173122157755
     },
     {
       "id": "426030",
-      "before": 4.429543245869777,
-      "after": 4.438301178298588
+      "before": 4.454588279630676,
+      "after": 4.452490886998785
+    },
+    {
+      "id": "426021",
+      "before": 4.464828897338403,
+      "after": 4.454032258064516
     }
   ],
   "imageChanges": {
@@ -387,7 +451,7 @@
     },
     "augments": {
       "previous": 592,
-      "current": 592
+      "current": 595
     },
     "compositions": {
       "previous": 18,

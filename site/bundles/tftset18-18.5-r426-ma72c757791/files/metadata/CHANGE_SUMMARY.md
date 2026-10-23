@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-10-22T23:51:40Z
-- From: tftset18-18.5-r426-m975c3a49ca
+- Generated: 2026-10-23T01:07:11Z
+- From: tftset18-18.5-r426-m73c44ccb40
 - To: TFTSet18 / patch 18.5 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -10,21 +10,21 @@
 | Traits | 35 | 35 | 0 | 0 | 0 |
 | Items | 668 | 668 | 0 | 0 | 0 |
 | Augments | 595 | 595 | 0 | 0 | 0 |
-| Compositions | 18 | 18 | 4 | 4 | 14 |
+| Compositions | 18 | 18 | 1 | 1 | 17 |
 | Images | 622 | 622 | - | - | 0 delta |
 
-- Tier changes: 4
-- Average-placement changes: 14
+- Tier changes: 3
+- Average-placement changes: 17
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
 
 | Rank | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| CHALLENGER | 18 | 18 | 1 | 1 | 8 |
-| DIAMOND_PLUS | 18 | 18 | 4 | 4 | 14 |
+| CHALLENGER | 18 | 18 | 1 | 1 | 6 |
+| DIAMOND_PLUS | 18 | 18 | 1 | 1 | 17 |
 | EMERALD_PLUS | 18 | 18 | 1 | 1 | 17 |
 | GOLD_PLUS | 18 | 18 | 2 | 2 | 16 |
-| GRANDMASTER_PLUS | 18 | 18 | 4 | 4 | 12 |
-| MASTER_PLUS | 18 | 18 | 3 | 3 | 15 |
-| PLATINUM_PLUS | 18 | 18 | 2 | 2 | 16 |
+| GRANDMASTER_PLUS | 18 | 18 | 4 | 4 | 10 |
+| MASTER_PLUS | 18 | 18 | 1 | 1 | 17 |
+| PLATINUM_PLUS | 18 | 18 | 1 | 1 | 17 |
 

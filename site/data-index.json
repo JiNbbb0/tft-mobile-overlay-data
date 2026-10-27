@@ -1,16 +1,56 @@
 {
   "schemaVersion": 1,
-  "latestVersionId": "tftset18-18.5-r426-mbfc149aee0",
-  "latestStableVersionId": "tftset18-18.5-r426-mbfc149aee0",
-  "latestAvailableVersionId": "tftset18-18.5-r426-mbfc149aee0",
-  "generatedAtUtc": "2026-10-27T18:21:39Z",
-  "sourceCheckedAtUtc": "2026-10-27T18:21:39Z",
-  "latestObservedSourceTimestampUtc": "2026-10-27T18:18:11Z",
+  "latestVersionId": "tftset18-18.5-r426-maa12de9031",
+  "latestStableVersionId": "tftset18-18.5-r426-maa12de9031",
+  "latestAvailableVersionId": "tftset18-18.5-r426-maa12de9031",
+  "generatedAtUtc": "2026-10-27T18:36:35Z",
+  "sourceCheckedAtUtc": "2026-10-27T18:36:35Z",
+  "latestObservedSourceTimestampUtc": "2026-10-27T18:31:31Z",
   "freshnessPolicy": {
     "warningAfterSeconds": 21600,
     "criticalAfterSeconds": 86400
   },
   "versions": [
+    {
+      "id": "tftset18-18.5-r426-maa12de9031",
+      "setId": "TFTSet18",
+      "setNumber": 18,
+      "setName": "Enchanted Wilds",
+      "patch": "18.5",
+      "revision": "426",
+      "updateKind": "META_UPDATE",
+      "generatedAtUtc": "2026-10-27T18:33:55Z",
+      "sourceTimestampUtc": "2026-10-27T18:31:31Z",
+      "metaFingerprint": "aa12de90317fc755b2d762b2c77f919690db5bb01d90e96775fe8578162613cd",
+      "manifestSha256": "98b7736933f0d6ffce8ce625f42478b34a387ac5a36c7d84e587fd56a3f9b809",
+      "sourceQueryHash": "4d9697ba91ddac4354bb4889fc1fde8c44351affcbbeed3d9c7c8806b824809f",
+      "readiness": "META_COLLECTING",
+      "releaseState": "STABLE",
+      "validationStatus": "PASS",
+      "sourceAlignment": "VERIFIED",
+      "validatedAtUtc": "2026-10-27T18:36:35Z",
+      "featureReadiness": {
+        "catalog": "READY",
+        "champions": "READY",
+        "traits": "READY",
+        "items": "READY",
+        "augments": "READY",
+        "compositions": "READY",
+        "boards": "READY",
+        "recommendedItems": "READY",
+        "compositionAugments": "PARTIAL"
+      },
+      "levelBoardReadiness": {
+        "lv4": "NOT_PROVIDED",
+        "lv5": "NOT_PROVIDED",
+        "lv6": "NOT_PROVIDED",
+        "lv7": "READY",
+        "lv8": "READY",
+        "lv9": "READY"
+      },
+      "manifestUrl": "bundles/tftset18-18.5-r426-maa12de9031/manifest.json",
+      "hidden": false
+    },
     {
       "id": "tftset18-18.5-r426-mbfc149aee0",
       "setId": "TFTSet18",
@@ -19,8 +59,6 @@
       "patch": "18.5",
       "revision": "426",
       "updateKind": "META_UPDATE",
-      "generatedAtUtc": "2026-10-27T18:18:48Z",
-      "sourceTimestampUtc": "2026-10-27T18:18:11Z",
       "metaFingerprint": "bfc149aee068f49810f30047c421c62c2a738f814cd08644df31daa3d0a94c08",
       "manifestSha256": "d5c81b1f8902cd41231f94e1086bcf353d6d20e8c3b1a62eb23bb702c4c2e8cf",
       "sourceQueryHash": "9a1709f8081f74d099dd37b81ab948a5442320be83fe54282651e0d50fcf008f",
@@ -49,7 +87,9 @@
         "lv9": "READY"
       },
       "manifestUrl": "bundles/tftset18-18.5-r426-mbfc149aee0/manifest.json",
-      "hidden": false
+      "hidden": false,
+      "generatedAtUtc": "2026-10-27T18:18:48Z",
+      "sourceTimestampUtc": "2026-10-27T18:18:11Z"
     },
     {
       "id": "tftset18-18.5-r426-m29ad077a2e",
@@ -170,46 +210,6 @@
       "hidden": false,
       "generatedAtUtc": "2026-10-27T17:33:46Z",
       "sourceTimestampUtc": "2026-10-27T17:33:09Z"
-    },
-    {
-      "id": "tftset18-18.5-r426-m5167c39fdd",
-      "setId": "TFTSet18",
-      "setNumber": 18,
-      "setName": "Enchanted Wilds",
-      "patch": "18.5",
-      "revision": "426",
-      "updateKind": "META_UPDATE",
-      "metaFingerprint": "5167c39fdd4c8b31ecc31a79e7fcec3119c71663370bc6f96db752bc8febaff3",
-      "manifestSha256": "d7d98ae60d38df18b53c9cb49f9dc23891c3ea85e2e35046688156309601b341",
-      "sourceQueryHash": "f03e20b2546497e383a5ea9601449f84bda81264325a3a93b0948619af6fe728",
-      "readiness": "META_COLLECTING",
-      "releaseState": "STABLE",
-      "validationStatus": "PASS",
-      "sourceAlignment": "VERIFIED",
-      "validatedAtUtc": "2026-10-27T17:21:58Z",
-      "featureReadiness": {
-        "catalog": "READY",
-        "champions": "READY",
-        "traits": "READY",
-        "items": "READY",
-        "augments": "READY",
-        "compositions": "READY",
-        "boards": "READY",
-        "recommendedItems": "READY",
-        "compositionAugments": "PARTIAL"
-      },
-      "levelBoardReadiness": {
-        "lv4": "NOT_PROVIDED",
-        "lv5": "NOT_PROVIDED",
-        "lv6": "NOT_PROVIDED",
-        "lv7": "READY",
-        "lv8": "READY",
-        "lv9": "READY"
-      },
-      "manifestUrl": "bundles/tftset18-18.5-r426-m5167c39fdd/manifest.json",
-      "hidden": false,
-      "generatedAtUtc": "2026-10-27T17:18:57Z",
-      "sourceTimestampUtc": "2026-10-27T17:18:15Z"
     }
   ]
 }

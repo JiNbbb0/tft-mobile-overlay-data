@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-10-29T12:07:36Z
-- From: tftset18-18.5-r426-m0552e5e325
+- Generated: 2026-10-29T12:22:39Z
+- From: tftset18-18.5-r426-m12c4a2853a
 - To: TFTSet18 / patch 18.5 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -20,10 +20,10 @@
 
 | Rank | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| CHALLENGER | 18 | 18 | 0 | 0 | 15 |
+| CHALLENGER | 18 | 18 | 1 | 1 | 14 |
 | DIAMOND_PLUS | 18 | 18 | 0 | 0 | 18 |
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
-| GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |
+| GOLD_PLUS | 18 | 18 | 1 | 1 | 17 |
 | GRANDMASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
 | MASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
 | PLATINUM_PLUS | 18 | 18 | 0 | 0 | 18 |

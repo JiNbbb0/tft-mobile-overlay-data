@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-11-01T14:07:30Z
-- From: tftset18-18.5-r426-m7f39418418
+- Generated: 2026-11-01T15:22:11Z
+- From: tftset18-18.5-r426-m319be4c701
 - To: TFTSet18 / patch 18.5 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -14,7 +14,7 @@
 | Images | 622 | 622 | - | - | 0 delta |
 
 - Tier changes: 0
-- Average-placement changes: 15
+- Average-placement changes: 16
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
 

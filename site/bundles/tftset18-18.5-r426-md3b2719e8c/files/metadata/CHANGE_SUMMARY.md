@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-11-03T07:06:48Z
-- From: tftset18-18.5-r426-mdd920e8213
+- Generated: 2026-11-03T08:22:20Z
+- From: tftset18-18.5-r426-m389595c5db
 - To: TFTSet18 / patch 18.5 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |

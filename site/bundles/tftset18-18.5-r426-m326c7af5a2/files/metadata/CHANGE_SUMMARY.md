@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-11-03T02:07:05Z
-- From: tftset18-18.5-r426-mdebd980b85
+- Generated: 2026-11-03T03:21:57Z
+- From: tftset18-18.5-r426-m773c2e8a7c
 - To: TFTSet18 / patch 18.5 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -14,13 +14,13 @@
 | Images | 622 | 622 | - | - | 0 delta |
 
 - Tier changes: 0
-- Average-placement changes: 16
+- Average-placement changes: 17
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
 
 | Rank | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| CHALLENGER | 18 | 18 | 0 | 0 | 17 |
+| CHALLENGER | 18 | 18 | 0 | 0 | 15 |
 | DIAMOND_PLUS | 18 | 18 | 0 | 0 | 18 |
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |

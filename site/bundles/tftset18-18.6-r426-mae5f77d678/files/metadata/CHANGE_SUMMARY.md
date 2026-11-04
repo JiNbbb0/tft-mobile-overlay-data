@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-11-04T07:07:38Z
-- From: tftset18-18.6-r426-m567b78154d
+- Generated: 2026-11-04T08:15:59Z
+- From: tftset18-18.6-r426-mfbd517751c
 - To: TFTSet18 / patch 18.6 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -9,7 +9,7 @@
 | Champions | 65 | 65 | 0 | 0 | 0 |
 | Traits | 35 | 35 | 0 | 0 | 0 |
 | Items | 668 | 668 | 0 | 0 | 0 |
-| Augments | 595 | 595 | 0 | 0 | 0 |
+| Augments | 594 | 594 | 0 | 0 | 0 |
 | Compositions | 18 | 18 | 0 | 0 | 18 |
 | Images | 622 | 622 | - | - | 0 delta |
 
@@ -20,7 +20,7 @@
 
 | Rank | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| CHALLENGER | 18 | 18 | 0 | 0 | 13 |
+| CHALLENGER | 18 | 18 | 1 | 1 | 14 |
 | DIAMOND_PLUS | 18 | 18 | 0 | 0 | 18 |
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |

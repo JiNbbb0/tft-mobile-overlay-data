@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "fetchedAtUtc": "2026-11-04T13:48:26Z",
+  "fetchedAtUtc": "2026-11-21T21:33:49Z",
   "set": {
     "id": "TFTSet18",
     "number": 18,
     "nameJa": "Enchanted Wilds",
     "nameEn": "Enchanted Wilds",
-    "tftPatch": "18.6",
-    "dataDragonVersion": "16.22.1",
+    "tftPatch": "18.7",
+    "dataDragonVersion": "16.23.1",
     "modes": [
       "通常",
       "ハイパーロール",
@@ -806,10 +806,7 @@
       "TFT9_Item_OrnnTrickstersGlass"
     ],
     "augmentIds": [
-      "DA_18_BigGrabBag",
       "DA_18_BlossomTraitAugment",
-      "DA_18_BranchingOut",
-      "DA_18_BranchingOutPlus",
       "DA_18_CaretakersAlly",
       "DA_18_CovenTraitAugment",
       "DA_18_CovenTraitAugment_LootToAP",
@@ -818,13 +815,11 @@
       "DA_18_FaeTraitAugment",
       "DA_18_FloraFatalisAugment",
       "DA_18_FOURcing",
-      "DA_18_GoodForSomethingI",
       "DA_18_InfernoTraitAugment",
       "DA_18_LunarTraitAugment",
       "DA_18_LunarTraitAugmentPlus",
       "DA_18_LuxAugmentII",
       "DA_18_OnesTwosThree",
-      "DA_18_OneTwoFive",
       "DA_18_PrimalAugment_Nidalee",
       "DA_18_PrimalAugment_Sivir",
       "DA_18_PrimalAugmentPlus_Nidalee",
@@ -852,6 +847,7 @@
       "DA_BandOfThievesIIPlusPlus",
       "DA_BaronsLair",
       "DA_BeltOverflow",
+      "DA_BigGrabBag",
       "DA_BirthdayPresent",
       "DA_BirthdayReunion",
       "DA_BlackthornTraitAugment",
@@ -862,6 +858,8 @@
       "DA_BoosterPackPlus",
       "DA_BoosterPackPlusPlus",
       "DA_BoxingLessons",
+      "DA_BranchingOut",
+      "DA_BranchingOutPlus",
       "DA_BronzeForLifeI",
       "DA_BronzeForLifeII",
       "DA_BuildABud",
@@ -934,6 +932,7 @@
       "DA_GoldenGamble",
       "DA_GoldenGamblePlus",
       "DA_GoldenGamblePlusPlus",
+      "DA_GoodForSomethingI",
       "DA_GroupHugI",
       "DA_GroupHugII",
       "DA_HardBargain",
@@ -983,6 +982,7 @@
       "DA_NestingAnvilsPlus",
       "DA_NoScoutNoPivot",
       "DA_OneBuffTwoBuff",
+      "DA_OneTwoFive",
       "DA_PandorasBench",
       "DA_PandorasItemsI",
       "DA_PandorasItemsIII",
@@ -1510,7 +1510,7 @@
       "ability": {
         "nameJa": "ディフェンシブスイープ",
         "nameEn": "Defensive Sweep",
-        "descriptionJa": "対象を切り裂いて160/240/400/705の物理ダメージを与え、2秒間、耐久値60/90/200/310のシールドを獲得する。",
+        "descriptionJa": "対象を切り裂いて160/240/425/705の物理ダメージを与え、2秒間、耐久値60/90/200/310のシールドを獲得する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1572,7 +1572,7 @@
       "ability": {
         "nameJa": "命のダンス",
         "nameEn": "Dance of Life",
-        "descriptionJa": "2秒間かけて体力を334/384/529/644回復する。次の通常攻撃がバッシュになり、140/175/220/70の魔法ダメージを与える。",
+        "descriptionJa": "2秒間かけて体力を349/399/599/644回復する。次の通常攻撃がバッシュになり、185/225/285/405の魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1635,7 +1635,7 @@
       "ability": {
         "nameJa": "鋭葉カッター",
         "nameEn": "Razor Leaves",
-        "descriptionJa": "鋭い刃のような葉を5枚召喚して現在の対象に収束させ、合計340/510/770/1315の物理ダメージを与え、4秒間、20%の負傷と1%の燃焼を付与する。\r\n\r\nスカーレットバフ: スキルを使用するたびにシンダーリングの攻撃力が22%増加する。\r\n\r\n負傷: 受ける回復効果を低下させる。\r\n燃焼: 毎秒、対象の最大体力の一定割合にあたる確定ダメージを与える。",
+        "descriptionJa": "鋭い刃のような葉を5枚召喚して現在の対象に収束させ、合計360/540/815/1380の物理ダメージを与え、4秒間、20%の負傷と1%の燃焼を付与する。\r\n\r\nスカーレットバフ: スキルを使用するたびにシンダーリングの攻撃力が22%増加する。\r\n\r\n負傷: 受ける回復効果を低下させる。\r\n燃焼: 毎秒、対象の最大体力の一定割合にあたる確定ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1762,7 +1762,7 @@
       "ability": {
         "nameJa": "シールドバッシュ",
         "nameEn": "Shield Bash",
-        "descriptionJa": "自動効果: 戦闘開始時に60/80/100/130の追加物理防御と魔法防御を獲得する。この効果は12秒かけて減衰する。\r\n\r\n発動効果: 現在の対象をバッシュして60/108/162/320の魔法ダメージを与え、1.5秒間スタンさせる。",
+        "descriptionJa": "自動効果: 戦闘開始時に60/80/100/130の追加物理防御と魔法防御を獲得する。この効果は12秒かけて減衰する。\r\n\r\n発動効果: 現在の対象をバッシュして72/120/174.4/320の魔法ダメージを与え、1.5秒間スタンさせる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1793,7 +1793,7 @@
       "ability": {
         "nameJa": "抜根",
         "nameEn": "Uproot",
-        "descriptionJa": "自動効果: 体力を毎秒17/21/27/33回復する。スキル使用後3秒間は回復量が3倍になる。\r\n\r\n発動効果: 地面から飛び出して隣接する敵を1秒間スタンさせ、70/105/160/270の魔法ダメージを与える。",
+        "descriptionJa": "自動効果: 体力を毎秒17/23/31/39回復する。スキル使用後3秒間は回復量が3倍になる。\r\n\r\n発動効果: 地面から飛び出して隣接する敵を1秒間スタンさせ、70/105/160/270の魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1824,7 +1824,7 @@
       "ability": {
         "nameJa": "蒼き光線",
         "nameEn": "Azure Laser",
-        "descriptionJa": "毎秒最大マナの35%を消費し始めて、対象に向けてレーザーを詠唱する。詠唱中は毎秒、対象に160/240/360/615の魔法ダメージを与え、魔法防御を3低下させる。\r\n\r\nティールバフ: 詠唱4秒ごとに、2のマナ自動回復を獲得する。",
+        "descriptionJa": "毎秒最大マナの35%を消費し始めて、対象に向けてレーザーを詠唱する。詠唱中は毎秒、対象に170/255/385/655の魔法ダメージを与え、魔法防御を3低下させる。\r\n\r\nティールバフ: 詠唱4秒ごとに、2のマナ自動回復を獲得する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1855,7 +1855,7 @@
       "ability": {
         "nameJa": "戦士の咆哮",
         "nameEn": "Triumphant Roar",
-        "descriptionJa": "咆哮をあげて体力を276/336/396/456回復し、行動妨害効果を取り除き、最も残り体力の割合が低い味方2体を80/105/130/155回復させる。その後現在の対象を強打して100/150/225/385の魔法ダメージを与え、1.5秒間スタンさせる。",
+        "descriptionJa": "咆哮をあげて体力を306/376/476/576回復し、行動妨害効果を取り除き、最も残り体力の割合が低い味方2体を80/105/130/155回復させる。その後現在の対象を強打して180/270/420/715の魔法ダメージを与え、1.5秒間スタンさせる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1886,7 +1886,7 @@
       "ability": {
         "nameJa": "蜘蛛の女帝",
         "nameEn": "Spider Queen",
-        "descriptionJa": "蜘蛛に変身し、最大体力が375/475/725/975増加する。蜘蛛形態での通常攻撃は35/50/80/110の追加魔法ダメージを与え、自身を55/90/170/250回復させる。その後の発動で、4秒間、攻撃速度が175%増加する。この効果は徐々に減衰する。",
+        "descriptionJa": "蜘蛛に変身し、最大体力が375/475/725/975増加する。蜘蛛形態での通常攻撃は40/60/90/130の追加魔法ダメージを与え、自身を55/90/170/250回復させる。その後の発動で、4秒間、攻撃速度が175%増加する。この効果は徐々に減衰する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1917,7 +1917,7 @@
       "ability": {
         "nameJa": "ベルチーバブル",
         "nameEn": "Belchy Bubble",
-        "descriptionJa": "アダプター [魔力]: 現在の対象に向かって有毒な泡を吐き出す。泡は最初の敵に命中した時点で爆発し、225/340/535/910の魔法ダメージを与える。爆発の1マス以内にいる敵は3秒かけて160/240/375/625の魔法ダメージを受ける。\r\n\r\nアダプター [攻撃力]: 対象に強力なスロウ効果を付与する。\r\n\r\nパープルバフ: 5秒ごとに魔力が30%増加する。",
+        "descriptionJa": "アダプター [魔力]: 現在の対象に向かって有毒な泡を吐き出す。泡は最初の敵に命中した時点で爆発し、225/340/535/910の魔法ダメージを与える。爆発の1マス以内にいる敵は3秒かけて180/270/435/740の魔法ダメージを受ける。\r\n\r\nアダプター [攻撃力]: 対象に強力なスロウ効果を付与する。\r\n\r\nパープルバフ: 5秒ごとに魔力が30%増加する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1948,7 +1948,7 @@
       "ability": {
         "nameJa": "ヘッドショット",
         "nameEn": "Headshot",
-        "descriptionJa": "自動効果: 通常攻撃が3回ごとに「ヘッドショット」に置き換わり、210/315/515/875の物理ダメージを与える。",
+        "descriptionJa": "自動効果: 通常攻撃が3回ごとに「ヘッドショット」に置き換わり、220/330/535/910の物理ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -1979,7 +1979,7 @@
       "ability": {
         "nameJa": "太陽の審判",
         "nameEn": "Solar Judgement",
-        "descriptionJa": "自動効果: 自身のスターレベルに応じて「超越」し、スタックするボーナスを獲得する。\r\n\r\n1回目の超越: 通常攻撃が65/97/110/115の追加魔法ダメージを与える。\r\n2回目の超越: 通常攻撃が命中した敵に2秒間、20%の細断を付与する。\r\n3回目の超越: 通常攻撃が波動を放ち、命中した他の全ユニットに35/45の魔法ダメージを与える。\r\n4回目の超越: 射程が無限になる。3回おきに波動が大幅に広がる。\r\n\r\n細断: 魔法防御を低下させる。",
+        "descriptionJa": "自動効果: 自身のスターレベルに応じて「超越」し、スタックするボーナスを獲得する。\r\n\r\n1回目の超越: 通常攻撃が68/102/115/120の追加魔法ダメージを与える。\r\n2回目の超越: 通常攻撃が命中した敵に2秒間、20%の細断を付与する。\r\n3回目の超越: 通常攻撃が波動を放ち、命中した他の全ユニットに35/45の魔法ダメージを与える。\r\n4回目の超越: 射程が無限になる。3回おきに波動が大幅に広がる。\r\n\r\n細断: 魔法防御を低下させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2041,7 +2041,7 @@
       "ability": {
         "nameJa": "掘り起こせるか？",
         "nameEn": "Can You Dig It?",
-        "descriptionJa": "自動効果: 通常攻撃がダンスに変化し、隣接するすべての敵に50/75/112.5/168.75の物理ダメージを与える。\r\n\r\n発動効果: 地下に潜り、3秒間、耐久力が15%増加し、効果時間中325/400/675/850の体力を回復する。\r\n\r\nグリーンバフ: 体力が50%を下回った味方は、最大体力の15%にあたる体力を回復する。",
+        "descriptionJa": "自動効果: 通常攻撃がダンスに変化し、隣接するすべての敵に60/90/135/202.5の物理ダメージを与える。\r\n\r\n発動効果: 地下に潜り、3秒間、耐久力が15%増加し、効果時間中325/400/675/850の体力を回復する。\r\n\r\nグリーンバフ: 体力が50%を下回った味方は、最大体力の15%にあたる体力を回復する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2103,7 +2103,7 @@
       "ability": {
         "nameJa": "ファンガス アマング アス",
         "nameEn": "Fungus Among Us",
-        "descriptionJa": "最も近くにいる敵3体に、55/82/155/240の魔法ダメージを与えるキノコの塊を2つ投げつける。その後、巨大なキノコを投げつけ、対象に135/200/310/515の魔法ダメージを与える。\r\n\r\nスキルを使用するたびに10%/12%/15%/20%の確率で追加のキノコを採集でき、拾うとボーナス効果を獲得する。\r\n\r\n赤: リロール1回(赤キノコ: 戦闘中の状態に応じて変化個)\r\n緑: タクティシャンの体力1(緑キノコ: 個)\r\n黄: 2XP(黄キノコ: 個)",
+        "descriptionJa": "最も近くにいる敵3体に、55/82/155/240の魔法ダメージを与えるキノコの塊を2つ投げつける。その後、巨大なキノコを投げつけ、対象に135/200/310/515の魔法ダメージを与える。\r\n\r\nスキルを使用するたびに12%/15%/18%/20%の確率で追加のキノコを採集でき、拾うとボーナス効果を獲得する。\r\n\r\n赤: リロール1回(赤キノコ: 戦闘中の状態に応じて変化個)\r\n緑: タクティシャンの体力1(緑キノコ: 個)\r\n黄: 2XP(黄キノコ: 個)",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2134,7 +2134,7 @@
       "ability": {
         "nameJa": "引き裂く爪",
         "nameEn": "Rending Claws",
-        "descriptionJa": "3マス以内で最も体力の低い敵に跳びかかり、500/1050/2250/6005の物理ダメージを与える。次の2回の通常攻撃の攻撃速度が175%増加し、60/90/135/230の追加物理ダメージを与える。\r\n\r\nグレーバフ: 「正確無比」を獲得し、クリティカル率が25%増加する。この効果は減少体力に応じて最大75%まで増加する。",
+        "descriptionJa": "3マス以内で最も体力の低い敵に跳びかかり、500/1050/2250/6005の物理ダメージを与える。次の2回の通常攻撃の攻撃速度が175%増加し、65/100/180/305の追加物理ダメージを与える。\r\n\r\nグレーバフ: 「正確無比」を獲得し、クリティカル率が25%増加する。この効果は減少体力に応じて最大75%まで増加する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2227,7 +2227,7 @@
       "ability": {
         "nameJa": "野獣の牙",
         "nameEn": "Jaws of The Beast",
-        "descriptionJa": "現在の対象に噛みつき、215/325/500/850の物理ダメージを与え、与えたダメージの20% にあたる体力を回復する。戦闘終了まで攻撃速度が20%増加する。",
+        "descriptionJa": "現在の対象に噛みつき、230/345/560/950の物理ダメージを与え、与えたダメージの25% にあたる体力を回復する。戦闘終了まで攻撃速度が20%増加する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2259,7 +2259,7 @@
       "ability": {
         "nameJa": "目覚めよ！",
         "nameEn": "Arise!",
-        "descriptionJa": "攻撃速度が150%増加し、次の通常攻撃6回の間、兵士を2体召喚する。これらの通常攻撃は、各兵士にそれぞれ46/69/110/185の魔法ダメージを与えさせる命令に変わる。",
+        "descriptionJa": "攻撃速度が150%増加し、次の通常攻撃6回の間、兵士を2体召喚する。これらの通常攻撃は、各兵士にそれぞれ43/65/105/180の魔法ダメージを与えさせる命令に変わる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2320,7 +2320,7 @@
       "ability": {
         "nameJa": "甘美なる恐怖",
         "nameEn": "Taste Their Fear",
-        "descriptionJa": "3マス以内で最も遠い敵に飛びかかり、265/370/535/860の魔法ダメージを与える。隣接する味方がいない場合、代わりに285/410/605/1060の魔法ダメージを与え、マナを10獲得する。戦闘中の状態に応じて変化",
+        "descriptionJa": "3マス以内で最も遠い敵に飛びかかり、240/325/480/875の魔法ダメージを与える。隣接する味方がいない場合、代わりに260/360/540/1060の魔法ダメージを与え、マナを10獲得する。戦闘中の状態に応じて変化",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2377,12 +2377,13 @@
       "image": "tft/images/b6a90f7f8cf51520bc5514af.png",
       "traits": [
         "リフトビースト",
-        "ブローラー"
+        "ブローラー",
+        "サモナー"
       ],
       "ability": {
         "nameJa": "ロック＆リロール",
         "nameEn": "Rock and Roll",
-        "descriptionJa": "自動効果: 倒されると、体力182/232/312/432のクルーグレット2体に分裂し、即座に敵を挑発して自身に攻撃させる。\r\n\r\n発動効果: 最大体力を175/225/325/425獲得し、対象に向かって転がって223/288/423/588ダメージを与える。\r\n\r\nスレートバフ: 倒されると、クルーグとクルーグレットが味方に最大体力8%分の耐久値を持つシールドを付与する。",
+        "descriptionJa": "自動効果: 倒されると、体力182/207/282/432のクルーグレット2体に分裂し、即座に敵を挑発して自身に攻撃させる。\r\n\r\n発動効果: 最大体力を175/225/325/425獲得し、対象に向かって転がって223/288/423/588ダメージを与える。\r\n\r\nスレートバフ: 倒されると、クルーグとクルーグレットが味方に最大体力8%分の耐久値を持つシールドを付与する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2398,7 +2399,7 @@
         "magicResist": 40.0,
         "range": 1.0
       },
-      "searchKeywords": "クルーグ krug da_krug18 リフトビースト ブローラー"
+      "searchKeywords": "クルーグ krug da_krug18 リフトビースト ブローラー サモナー"
     },
     {
       "id": "DA_KogMaw18_AD",
@@ -2478,7 +2479,7 @@
       "ability": {
         "nameJa": "ヨードルグレネード",
         "nameEn": "Explosive Charge",
-        "descriptionJa": "対象に4秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が60%増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを分散して与え、175/265/420/715の物理ダメージ + 詠唱中の通常攻撃1回ごとに10/15/25/42のダメージを与える。\r\n\r\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
+        "descriptionJa": "対象に4秒間持続する「ヨードルグレネード」を貼り付ける。発動中は射程が無限になり、攻撃速度が60%増加する。効果時間が終了するとグレネードが爆発し、2マス以内のすべての敵にダメージを分散して与え、175/265/420/715の物理ダメージ + 詠唱中の通常攻撃1回ごとに12/18/28/50のダメージを与える。\r\n\r\n「ヨードルグレネード」が付与された敵が倒されると、トリスターナの新たな対象に付着する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": "tft/images/eb56b0d42a0036750ef9fa26.png"
       },
@@ -2604,7 +2605,7 @@
       "ability": {
         "nameJa": "フロックファミリー",
         "nameEn": "Flock Family",
-        "descriptionJa": "周辺に5秒間、対象指定不可のミニヒナ鳥を4体召喚する。ママ鳥が攻撃するたびにミニヒナ鳥も同じ敵を攻撃し、22/33/52/82の物理ダメージを与える。\r\n\r\nオレンジバフ: 物理ダメージを与えると、敵の物理防御を2低下させる。",
+        "descriptionJa": "周辺に5秒間、対象指定不可のミニヒナ鳥を4体召喚する。ママ鳥が攻撃するたびにミニヒナ鳥も同じ敵を攻撃し、20/30/50/82の物理ダメージを与える。\r\n\r\nオレンジバフ: 物理ダメージを与えると、敵の物理防御を2低下させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2727,7 +2728,7 @@
       "ability": {
         "nameJa": "月光の猛攻撃",
         "nameEn": "Moonlight's Onslaught",
-        "descriptionJa": "セヴェラムを装備し、2秒かけて対象を[攻撃速度]回斬りつける。各攻撃は70/105/850/1500の物理ダメージを与える。\r\n\r\n猛攻撃の終了後、爆風を放ち、半径2マス以内のすべての敵に490/735/5225/9376の物理ダメージを分散して与える。",
+        "descriptionJa": "セヴェラムを装備し、2秒かけて対象を[攻撃速度]回斬りつける。各攻撃は70/105/850/1500の物理ダメージを与える。\r\n\r\n猛攻撃の終了後、爆風を放ち、半径2マス以内のすべての敵に540/810/5225/9376の物理ダメージを分散して与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2851,7 +2852,7 @@
       "ability": {
         "nameJa": "ブーメランブレード",
         "nameEn": "Boomerang Blade",
-        "descriptionJa": "現在の対象に215/320/1150/2250物理ダメージを与える巨大なクロスブレードを投げる。クロスブレードは周囲の敵の間を8回跳ね返り、跳ね返るたびに43/64/460/1350物理ダメージを与える。これで敵をキルすると、追加で3/6/10回跳ね返る。",
+        "descriptionJa": "現在の対象に235/350/1150/2250物理ダメージを与える巨大なクロスブレードを投げる。クロスブレードは周囲の敵の間を8回跳ね返り、跳ね返るたびに42.3/63/460/1350物理ダメージを与える。これで敵をキルすると、追加で3/6/10回跳ね返る。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2882,7 +2883,7 @@
       "ability": {
         "nameJa": "ヘイメイカー",
         "nameEn": "Haymaker",
-        "descriptionJa": "自動効果: 各戦闘で初めて体力が最大体力の40%を下回った際、マナを100獲得する。\r\n\r\n発動効果: 強烈なパンチをため、体力を急速に369/419/2144/2644回復してから、扇状の広範囲に222/297/5072/9072物理ダメージを与える。",
+        "descriptionJa": "自動効果: 各戦闘で初めて体力が最大体力の40%を下回った際、マナを100獲得する。\r\n\r\n発動効果: 強烈なパンチをため、体力を急速に394/444/2144/2644回復してから、扇状の広範囲に222/297/5072/9072物理ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2913,7 +2914,7 @@
       "ability": {
         "nameJa": "星のささやき",
         "nameEn": "Starcall",
-        "descriptionJa": "現在の対象に星を降らせ、225/335/1000/2200の魔法ダメージを与える。その対象にすでに星が降っていた場合は追加で星を3個降らせ、それぞれ100/150/1000/1150の魔法ダメージを与える。",
+        "descriptionJa": "現在の対象に星を降らせ、235/355/1000/2200の魔法ダメージを与える。その対象にすでに星が降っていた場合は追加で星を3個降らせ、それぞれ110/165/1000/1150の魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2944,7 +2945,7 @@
       "ability": {
         "nameJa": "槍投げ",
         "nameEn": "Javelin Toss",
-        "descriptionJa": "アダプター [魔力]: 次の通常攻撃3/99回の間、攻撃速度を150%獲得する。これらの通常攻撃は槍に変化し、185/275/2000/3000の魔法ダメージを与える。3回目の通常攻撃はアイテム数が最も少ない最も遠くの敵を狙うようになり、330/500/3000/5000の魔法ダメージを与える。\r\n\r\nアダプター[攻撃力]: 敵を薙ぎ払う近接型のクーガーアサシン形態に変身する。",
+        "descriptionJa": "アダプター [魔力]: 次の通常攻撃3/99回の間、攻撃速度を150%獲得する。これらの通常攻撃は槍に変化し、195/295/2000/3000の魔法ダメージを与える。3回目の通常攻撃はアイテム数が最も少ない最も遠くの敵を狙うようになり、350/525/3000/5000の魔法ダメージを与える。\r\n\r\nアダプター[攻撃力]: 敵を薙ぎ払う近接型のクーガーアサシン形態に変身する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -2975,7 +2976,7 @@
       "ability": {
         "nameJa": "深紅の憤怒",
         "nameEn": "Crimson Fury",
-        "descriptionJa": "自動効果: 対象を倒すと次の対象に跳びかかり、135/205/1000/1500の物理ダメージを与える。\r\n\r\n発動効果: 8秒間、攻撃力が100%/300%/400%増加する。この効果時間中は45%/90%/100%の物理防御を無視する。\r\n\r\nレッドバフ: 通常攻撃が敵に1%の燃焼を付与し、最大体力の4%を回復する。",
+        "descriptionJa": "自動効果: 対象を倒すと次の対象に跳びかかり、135/205/1000/1500の物理ダメージを与える。\r\n\r\n発動効果: 8秒間、攻撃力が100%/300%/400%増加する。この効果時間中は40%/100%/110%の物理防御を無視する。\r\n\r\nレッドバフ: 通常攻撃が敵に1%の燃焼を付与し、最大体力の4%を回復する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3006,7 +3007,7 @@
       "ability": {
         "nameJa": "石化した樹皮",
         "nameEn": "Petrified Bark",
-        "descriptionJa": "4秒間、耐久値700/850/2000/3500のシールドを獲得して石化状態になる。シールドが破壊されると闇の気の波を放ち、2/3マス以内の敵に82/123/3398.6/6400の魔法ダメージを与える。",
+        "descriptionJa": "4秒間、耐久値750/925/2000/3500のシールドを獲得して石化状態になる。シールドが破壊されると闇の気の波を放ち、2/3マス以内の敵に142/213/3398.6/6400の魔法ダメージを与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3037,7 +3038,7 @@
       "ability": {
         "nameJa": "衰弱の呪い",
         "nameEn": "Withering Curse",
-        "descriptionJa": "自動効果: 25%のオムニヴァンプを獲得する。\r\n\r\n発動効果: 付近の敵3体に闇の波動を放ち、60/90/500/375の魔法ダメージを与えて、4秒間呪いをかける。その後、同じ時間、2マスの衰弱ゾーンを発生させ、毎秒33/50/500/800の魔法ダメージを与える。呪われた敵は、呪われるたびに受けるダメージが22/33/240/400増加する。",
+        "descriptionJa": "自動効果: 25%のオムニヴァンプを獲得する。\r\n\r\n発動効果: 付近の敵3体に闇の波動を放ち、70/105/500/375の魔法ダメージを与えて、4秒間呪いをかける。その後、同じ時間、2マスの衰弱ゾーンを発生させ、毎秒33/50/500/800の魔法ダメージを与える。呪われた敵は、呪われるたびに受けるダメージが25/38/240/400増加する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3100,7 +3101,7 @@
       "ability": {
         "nameJa": "蒼き衝撃波",
         "nameEn": "Azure Shockwave",
-        "descriptionJa": "4秒間、耐久値480/580/2130/5130のシールドを獲得する。地面を叩きつけ、最も多くの敵がいる方向に地割れを発生させる。命中した敵は短時間ノックアップされ、100/150/3500/9999の魔法ダメージを受け、10のマナリーヴを付与される。\r\n\r\nブルーバフ: 守護神がスキルを使用するたび、味方のマナ自動回復が2増加する。\r\n\r\nマナリーヴ: 次に使用するスキルのマナコストを増加させる。",
+        "descriptionJa": "4秒間、耐久値531/631/2156/5156のシールドを獲得する。地面を叩きつけ、最も多くの敵がいる方向に地割れを発生させる。命中した敵は短時間ノックアップされ、100/150/3500/9999の魔法ダメージを受け、10のマナリーヴを付与される。\r\n\r\nブルーバフ: 守護神がスキルを使用するたび、味方のマナ自動回復が2増加する。\r\n\r\nマナリーヴ: 次に使用するスキルのマナコストを増加させる。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3125,7 +3126,8 @@
       "cost": 5,
       "image": "tft/images/2db7f7a414b690610f25c70a.png",
       "traits": [
-        "翠の父"
+        "翠の父",
+        "エルダーウッド"
       ],
       "ability": {
         "nameJa": "タネバクダン",
@@ -3146,7 +3148,7 @@
         "magicResist": 55.0,
         "range": 3.0
       },
-      "searchKeywords": "アイバーン ivern da_18_ivern 翠の父"
+      "searchKeywords": "アイバーン ivern da_18_ivern 翠の父 エルダーウッド"
     },
     {
       "id": "DA_18_Ashe",
@@ -3161,7 +3163,7 @@
       "ability": {
         "nameJa": "精霊の裂け目",
         "nameEn": "Spirit Rift",
-        "descriptionJa": "最も敵が多い一直線上に貫通する矢を放ち、465/700/1000の物理ダメージを与える。このダメージは敵に命中するたびに80%/40%ずつ減少する(最小20%)。敵に命中しなかった場合、消費したマナの70%を返還する。\r\n\r\n矢が3/20秒間軌跡を残す。軌跡の中の敵に11/17/220 + 最大体力の1.5%/10%にあたる物理ダメージを毎秒与え、20%のスロウ効果を付与する。\r\n\r\nスロウ効果: 攻撃速度が低下する。",
+        "descriptionJa": "最も敵が多い一直線上に貫通する矢を放ち、465/700/1000の物理ダメージを与える。このダメージは敵に命中するたびに80%/40%ずつ減少する(最小20%)。敵に命中しなかった場合、消費したマナの70%を返還する。\r\n\r\n矢が3/20秒間軌跡を残す。軌跡の中の敵に13/19/220 + 最大体力の1.5%/10%にあたる物理ダメージを毎秒与え、20%のスロウ効果を付与する。\r\n\r\nスロウ効果: 攻撃速度が低下する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3193,7 +3195,7 @@
       "ability": {
         "nameJa": "崩月",
         "nameEn": "Moonfall",
-        "descriptionJa": "最も近くにいる3体の敵に9個の月の破片を降らせ、それぞれに55/83/500/9999の魔法ダメージを与える。\r\n\r\n満月の場合、代わりに月を盤上に落とし、すべての敵に2350/3600/7500/12750の魔法ダメージを分散して与える。",
+        "descriptionJa": "最も近くにいる3体の敵に9個の月の破片を降らせ、それぞれに58/88/500/9999の魔法ダメージを与える。\r\n\r\n満月の場合、代わりに月を盤上に落とし、すべての敵に2350/3600/7500/12750の魔法ダメージを分散して与える。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3250,7 +3252,8 @@
       "image": "tft/images/e854f94e8b3778f897dedfa1.png",
       "traits": [
         "インフェルノ",
-        "エクセキューショナー"
+        "エクセキューショナー",
+        "スプライキン"
       ],
       "ability": {
         "nameJa": "ファイアストーム",
@@ -3271,7 +3274,7 @@
         "magicResist": 60.0,
         "range": 2.0
       },
-      "searchKeywords": "ケネン kennen da_18_kennen インフェルノ エクセキューショナー"
+      "searchKeywords": "ケネン kennen da_18_kennen インフェルノ エクセキューショナー スプライキン"
     },
     {
       "id": "DA_Taric18",
@@ -3286,7 +3289,7 @@
       "ability": {
         "nameJa": "エメラルド レディアンス",
         "nameEn": "Emerald Radiance",
-        "descriptionJa": "自動効果: タリックか、そのペアになった味方の体力が初めて50%を下回ると、両者からエメラルドの気が放たれ、3マス以内の味方に3/99秒間、耐久値270/345/11300のシールドを付与する。\r\n\r\n発動効果: 体力を 275/450/3000/9000回復する。タリックおよびそのペアになった味方は、次の通常攻撃2回の間、100/150/1000の追加魔法ダメージを獲得する。",
+        "descriptionJa": "自動効果: タリックか、そのペアになった味方の体力が初めて50%を下回ると、両者からエメラルドの気が放たれ、3マス以内の味方に3/99秒間、耐久値270/345/11300のシールドを付与する。\r\n\r\n発動効果: 体力を 275/450/3000/9000回復する。タリックおよびそのペアになった味方は、次の通常攻撃2回の間、130/200/1000の追加魔法ダメージを獲得する。",
         "valuesSource": "MetaTFT current-set Japanese lookup",
         "icon": ""
       },
@@ -3769,6 +3772,7 @@
         "DA_18_LeBlanc",
         "DA_18_Hecarim",
         "DA_18_Ezreal",
+        "DA_18_Ivern",
         "DA_18_GnarSmall"
       ],
       "searchKeywords": "エルダーウッド elderwood da_18_elderwood"
@@ -3778,7 +3782,7 @@
       "nameJa": "サモナー",
       "nameEn": "Summoner",
       "image": "tft/images/6e1fcc74ed176503f435269b.png",
-      "descriptionJa": "「サモナー」はそれぞれ異なる方法で自身の召喚ユニットを強化する。\r\n\r\nヨリック: 体力+0%/30%/45%\r\nアジール: ダメージ+0%/20%/30%\r\nママ鳥: ダメージ+0%/45%/67.5%/70%\r\nザイラ: 植物の通常攻撃+0/4/6/4",
+      "descriptionJa": "「サモナー」はそれぞれ異なる方法で自身の召喚ユニットを強化する。\r\n\r\nヨリック: 体力+0%/30%/45%\r\nアジール: ダメージ+0%/20%/30%\r\nママ鳥: ダメージ+0%/45%/67.5%/70%\r\nザイラ: 植物の通常攻撃力+0/4/6/4\r\nクルーグ: 体力+0%/15%/30%",
       "activationLevels": [
         {
           "minimumUnits": 2,
@@ -3806,6 +3810,7 @@
       "championIds": [
         "DA_18_Yorick",
         "DA_18_Azir",
+        "DA_Krug18",
         "DA_CrimsonRaptor18",
         "DA_18_Zyra"
       ],
@@ -3900,6 +3905,7 @@
         "DA_18_Teemo",
         "DA_18_Tristana",
         "DA_18_Rammus",
+        "DA_18_Kennen",
         "DA_18_GnarSmall"
       ],
       "searchKeywords": "スプライキン sprykin da_18_sprykin"
@@ -4340,7 +4346,7 @@
           "maximumUnits": 8,
           "style": 5,
           "variables": {
-            "ADAP": 0.5,
+            "ADAP": 0.550000011920929,
             "BonusHealth": 0.10000002384185791,
             "{91925b8e}": 4.0
           }
@@ -4350,7 +4356,7 @@
           "maximumUnits": 10,
           "style": 5,
           "variables": {
-            "ADAP": 0.550000011920929,
+            "ADAP": 0.6499999761581421,
             "BonusHealth": 0.10000002384185791
           }
         },
@@ -4681,7 +4687,7 @@
       "nameJa": "同調",
       "nameEn": "Attuned",
       "image": "tft/images/2b1301d35ce6bd7faa6cd912.png",
-      "descriptionJa": "発動するたび、最も強力なアルーンが月の満ち欠けにおける次の段階へと移行する。月が半月以下の間は、味方チームの耐久力が7%増加する。半月より大きい場合、味方チームが7%のダメージ増加効果を獲得する。\n戦闘中の状態に応じて変化",
+      "descriptionJa": "発動するたび、最も強力なアルーンが月の満ち欠けにおける次の段階へと移行する。月が半月以下の間は、味方チームの耐久力が5%増加する。半月より大きい場合、味方チームが7%のダメージ増加効果を獲得する。\n戦闘中の状態に応じて変化",
       "activationLevels": [
         {
           "minimumUnits": 1,
@@ -4894,7 +4900,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "味方のキャスターの最大マナが可変値%低下する。",
       "stats": {
-        "{24a482c1}": 0.1499999761581421
+        "{24a482c1}": 0.18000000715255737
       },
       "recipe": [],
       "restrictions": {
@@ -4912,7 +4918,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "味方のキャスターの最大マナが可変値%低下する。",
       "stats": {
-        "{e475c01b}": 0.19999998807907104
+        "{e475c01b}": 0.25
       },
       "recipe": [],
       "restrictions": {
@@ -5162,7 +5168,7 @@
       "nameJa": "アダプティブ ヘルム",
       "nameEn": "Adaptive Helm",
       "image": "tft/images/54496199fdd6694bba007b74.png",
-      "descriptionJa": "あらゆるソースから獲得するマナが追加で15%増加する。装備者は役割に応じて追加ボーナスを獲得する。\r\n\r\nタンクおよびファイター: 物理防御と魔法防御が80増加する。\r\n\r\nその他の役割: 攻撃力と魔力が10%増加する。",
+      "descriptionJa": "あらゆるソースから獲得するマナが追加で15%増加する。装備者は役割に応じて追加ボーナスを獲得する。\r\n\r\nタンクおよびファイター: 物理防御と魔法防御が30増加する。\r\n\r\nその他の役割: 攻撃力と魔力が10%増加する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -6634,7 +6640,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "チャンピオンが倒されると爆発し、最大体力の可変値%にあたる魔法ダメージを与える。",
       "stats": {
-        "{8e1bf27f}": 0.15000000596046448
+        "{8e1bf27f}": 0.11999999731779099
       },
       "recipe": [],
       "restrictions": {
@@ -8837,7 +8843,7 @@
       "nameJa": "ハンド オブ ジャスティス",
       "nameEn": "Hand Of Justice",
       "image": "tft/images/f60b443854598ec75e97c1e8.png",
-      "descriptionJa": "2つの効果を獲得する:\r\n• 攻撃力が18%、魔力が18%増加する。\r\n• オムニヴァンプが15%増加する。\r\n\r\n体力が50%以上の場合は、攻撃力と魔力の増加量が2倍になる。体力が50%未満の場合は、オムニヴァンプの増加量が2倍になる。",
+      "descriptionJa": "2つの効果を獲得する:\r\n• 攻撃力が18%、魔力が18%増加する。\r\n• オムニヴァンプが12%増加する。\r\n\r\n体力が50%以上の場合は、攻撃力と魔力の増加量が2倍になる。体力が50%未満の場合は、オムニヴァンプの増加量が2倍になる。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -9556,7 +9562,7 @@
       "nameJa": "フローラ・ファターリスの紋章",
       "nameEn": "Flora Fatalis Emblem",
       "image": "tft/images/6c04c560abbc9d222a0903cf.png",
-      "descriptionJa": "装備者が「フローラ・ファターリス」の特性を獲得する。\r\n\r\n「フローラ・ファターリス」から得られる効果が50%増加する。",
+      "descriptionJa": "装備者が「フローラ・ファターリス」の特性を獲得する。\r\n\r\n「フローラ・ファターリス」から得られる効果が70%増加する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -11059,7 +11065,7 @@
       "nameJa": "レディアント アダプティブ ヘルム",
       "nameEn": "Radiant Adaptive Helm",
       "image": "tft/images/b807496f1a2aac35b4bc02cd.png",
-      "descriptionJa": "あらゆるソースから獲得するマナが追加で30%増加する。装備者は役割に応じて追加ボーナスを獲得する。\r\n\r\nタンクおよびファイター: 物理防御と魔法防御が80増加する。\r\n\r\nその他の役割: 攻撃力と魔力が40%増加する。",
+      "descriptionJa": "あらゆるソースから獲得するマナが追加で30%増加する。装備者は役割に応じて追加ボーナスを獲得する。\r\n\r\nタンクおよびファイター: 物理防御と魔法防御が80増加する。\r\n\r\nその他の役割: 攻撃力と魔力が35%増加する。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -11404,7 +11410,7 @@
       "nameJa": "レディアント サンファイア ケープ",
       "nameEn": "Radiant Sunfire Cape",
       "image": "tft/images/9a1112dab54849fb1641d568.png",
-      "descriptionJa": "最大体力が8%増加する。\r\n\r\n2秒ごとに、2マス以内にいる敵1体に10秒間、1%の燃焼と33%の負傷を付与する。\r\n\r\n燃焼: 毎秒、対象の最大体力の一定割合にあたる確定ダメージを与える。\r\n負傷: 受ける回復効果を低下させる。",
+      "descriptionJa": "最大体力が16%増加する。\r\n\r\n2秒ごとに、2マス以内にいる敵1体に10秒間、2%の燃焼と33%の負傷を付与する。\r\n\r\n燃焼: 毎秒、対象の最大体力の一定割合にあたる確定ダメージを与える。\r\n負傷: 受ける回復効果を低下させる。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -11832,7 +11838,7 @@
       "nameJa": "レディアント ハンド オブ ジャスティス",
       "nameEn": "Radiant Hand of Justice",
       "image": "tft/images/faff582ac4ae9b643e160ca5.png",
-      "descriptionJa": "2つの効果を獲得する:\r\n• 攻撃力が35%、魔力が35%増加する。\r\n• オムニヴァンプが30%増加する。\r\n\r\n体力が50%以上の場合は、攻撃力と魔力の増加量が2倍になる。体力が50%未満の場合は、オムニヴァンプの増加量が2倍になる。",
+      "descriptionJa": "2つの効果を獲得する:\r\n• 攻撃力が35%、魔力が35%増加する。\r\n• オムニヴァンプが25%増加する。\r\n\r\n体力が50%以上の場合は、攻撃力と魔力の増加量が2倍になる。体力が50%未満の場合は、オムニヴァンプの増加量が2倍になる。",
       "stats": {},
       "recipe": [],
       "restrictions": {
@@ -15632,7 +15638,7 @@
       "image": "tft/images/bad268e1bdeb3c399ba89951.png",
       "descriptionJa": "アイテムストアを開く。アイテムの価格は0～可変値ゴールド。",
       "stats": {
-        "{72eb58d9}": 15.0
+        "{72eb58d9}": 17.0
       },
       "recipe": [],
       "restrictions": {
@@ -15651,7 +15657,7 @@
       "descriptionJa": "アイテムストアを開く。アイテムの価格は0～可変値ゴールド。ゴールド可変値を獲得する。",
       "stats": {
         "{0fb627ae}": 1.0,
-        "{72eb58d9}": 15.0
+        "{72eb58d9}": 17.0
       },
       "recipe": [],
       "restrictions": {
@@ -17328,18 +17334,6 @@
   ],
   "augments": [
     {
-      "id": "DA_18_BigGrabBag",
-      "nameJa": "大きな福袋",
-      "nameEn": "Big Grab Bag",
-      "image": "tft/images/024d3b2d3759d789ccd8be4f.png",
-      "rarity": "ゴールド",
-      "descriptionJa": "ランダムな素材アイテム3個、2ゴールド、「再合成装置」を1個獲得する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "大きな福袋 big grab bag da_18_biggrabbag"
-    },
-    {
       "id": "DA_18_BlossomTraitAugment",
       "nameJa": "花の呼び声",
       "nameEn": "Blossom's Call",
@@ -17352,30 +17346,6 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "花の呼び声 blossom's call da_18_blossomtraitaugment da_18_blossom"
-    },
-    {
-      "id": "DA_18_BranchingOut",
-      "nameJa": "構成拡大",
-      "nameEn": "Branching Out",
-      "image": "tft/images/ba569a58e9488de42e75d4dc.png",
-      "rarity": "シルバー",
-      "descriptionJa": "ランダムな紋章を1個獲得する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "構成拡大 branching out da_18_branchingout"
-    },
-    {
-      "id": "DA_18_BranchingOutPlus",
-      "nameJa": "構成拡大+",
-      "nameEn": "Branching Out+",
-      "image": "tft/images/ba569a58e9488de42e75d4dc.png",
-      "rarity": "シルバー",
-      "descriptionJa": "ランダムな紋章アイテムを1個と「再合成装置」を1個獲得する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "構成拡大+ branching out+ da_18_branchingoutplus"
     },
     {
       "id": "DA_18_CaretakersAlly",
@@ -17449,7 +17419,7 @@
       "nameEn": "Embiggen",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「フェイ」の妖精が大きくなり、付与する攻撃力と魔力が50%増加する。「フェイ」チャンピオンの攻撃力と魔力が即座に10%増加する。ザヤとラカンを1体ずつ獲得する。",
+      "descriptionJa": "「フェイ」の妖精が大きくなり、付与する攻撃力と魔力が35%増加する。「フェイ」チャンピオンの攻撃力と魔力が即座に18%増加する。ザヤとラカンを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_18_Fae"
       ],
@@ -17463,7 +17433,7 @@
       "nameEn": "Consuming Flora",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「フローラ・ファターリスの紋章」を1個獲得する。この紋章を所持しているチャンピオンは、「フローラ・ファターリス」から得られる効果が50%増加する。3ゴールドを獲得する。",
+      "descriptionJa": "「フローラ・ファターリスの紋章」を1個獲得する。この紋章を所持しているチャンピオンは、「フローラ・ファターリス」から得られる効果が70%増加する。3ゴールドを獲得する。",
       "associatedTraits": [
         "DA_FloraFatalis18"
       ],
@@ -17482,18 +17452,6 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "強制四配 fourcing da_18_fourcing"
-    },
-    {
-      "id": "DA_18_GoodForSomethingI",
-      "nameJa": "有効活用 I",
-      "nameEn": "Good For Something I",
-      "image": "tft/images/80cc11a5fd800b450ddcc3df.png",
-      "rarity": "シルバー",
-      "descriptionJa": "アイテムを装備していないチャンピオンは、倒された時に40%の確率で1ゴールドをドロップする。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "有効活用 i good for something i da_18_goodforsomethingi"
     },
     {
       "id": "DA_18_InfernoTraitAugment",
@@ -17560,18 +17518,6 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "ワンワン、ツー、スリー ones two three da_18_onestwosthree"
-    },
-    {
-      "id": "DA_18_OneTwoFive",
-      "nameJa": "ワン、ツー、ファイブ！",
-      "nameEn": "One, Two, Five!",
-      "image": "tft/images/04ebd1652be7f4f8560d81a0.png",
-      "rarity": "シルバー",
-      "descriptionJa": "ランダムな素材アイテム1個、2ゴールド、ランダムなコスト5のチャンピオン1体を獲得する。",
-      "associatedTraits": [],
-      "associatedChampionIds": [],
-      "associatedItemIds": [],
-      "searchKeywords": "ワン、ツー、ファイブ！ one, two, five! da_18_onetwofive"
     },
     {
       "id": "DA_18_PrimalAugment_Nidalee",
@@ -17671,7 +17617,7 @@
       "nameEn": "Omega Riftbeast",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "2体目の「アルファ リフトビースト」を選択できるようになる。「アルファ リフトビースト」が10%の最大体力と10%の攻撃速度を獲得する。スカトルクラブ、シンダーリング、小石を1体ずつ獲得する。",
+      "descriptionJa": "2体目の「アルファ リフトビースト」を選択できるようになる。「アルファ リフトビースト」が8%の最大体力と8%の攻撃速度を獲得する。スカトルクラブ、シンダーリング、小石を1体ずつ獲得する。",
       "associatedTraits": [
         "DA_Riftbeast18"
       ],
@@ -17763,7 +17709,7 @@
       "nameEn": "Advanced Loan",
       "image": "tft/images/9ba30062ff4ab94aef75b8d3.png",
       "rarity": "ゴールド",
-      "descriptionJa": "20ゴールドを獲得する。次のオーグメントのティアが1つ低くなる。",
+      "descriptionJa": "22ゴールドを獲得する。次のオーグメントのティアが1つ低くなる。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17859,7 +17805,7 @@
       "nameEn": "Band of Thieves II",
       "image": "tft/images/fdae1c407ec1b71c4547f2b9.png",
       "rarity": "プリズム",
-      "descriptionJa": "「盗賊のグローブ」2個を獲得する。対人戦を5回行ったあとに、もう1個獲得する。",
+      "descriptionJa": "「盗賊のグローブ」2個を獲得する。対人戦を5回行うと、もう1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17871,7 +17817,7 @@
       "nameEn": "Band of Thieves II+",
       "image": "tft/images/fdae1c407ec1b71c4547f2b9.png",
       "rarity": "プリズム",
-      "descriptionJa": "「盗賊のグローブ」2個を獲得する。対人戦を5回行ったあとに、もう1個獲得する。",
+      "descriptionJa": "「盗賊のグローブ」2個を獲得する。対人戦を5回行うと、もう1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17883,7 +17829,7 @@
       "nameEn": "Band of Thieves II++",
       "image": "tft/images/fdae1c407ec1b71c4547f2b9.png",
       "rarity": "プリズム",
-      "descriptionJa": "「盗賊のグローブ」2個を獲得する。対人戦を3回行ったあとに、もう1個獲得する。",
+      "descriptionJa": "「盗賊のグローブ」2個を獲得する。対人戦を3回行うと、もう1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -17912,6 +17858,18 @@
       "associatedChampionIds": [],
       "associatedItemIds": [],
       "searchKeywords": "ベルト オーバーフロー belt overflow da_beltoverflow"
+    },
+    {
+      "id": "DA_BigGrabBag",
+      "nameJa": "大きな福袋",
+      "nameEn": "Big Grab Bag",
+      "image": "tft/images/024d3b2d3759d789ccd8be4f.png",
+      "rarity": "ゴールド",
+      "descriptionJa": "ランダムな素材アイテム3個、2ゴールド、「再合成装置」を1個獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "大きな福袋 big grab bag da_biggrabbag"
     },
     {
       "id": "DA_BirthdayPresent",
@@ -17943,7 +17901,7 @@
       "nameEn": "Item Extraction",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「ブラックソーン」のマスでチャンピオンを生贄にしたとき、最初の3回まではそのチャンピオンが装備している素材アイテムのコピーをランダムで1つ獲得する。アジール、ベイガー、レク＝サイを1体ずつ獲得する。",
+      "descriptionJa": "「ブラックソーン」のマスでチャンピオンを生贄にしたとき、最初の3回まではそのチャンピオンが装備している素材アイテムのコピーをランダムで1つ獲得する。アジールとレク＝サイを1体ずつ獲得する。",
       "associatedTraits": [
         "DA_18_Blackthorn"
       ],
@@ -18036,6 +17994,30 @@
       "searchKeywords": "ボクシングのレッスン boxing lessons da_boxinglessons"
     },
     {
+      "id": "DA_BranchingOut",
+      "nameJa": "構成拡大",
+      "nameEn": "Branching Out",
+      "image": "tft/images/ba569a58e9488de42e75d4dc.png",
+      "rarity": "シルバー",
+      "descriptionJa": "ランダムな紋章を1個獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "構成拡大 branching out da_branchingout"
+    },
+    {
+      "id": "DA_BranchingOutPlus",
+      "nameJa": "構成拡大+",
+      "nameEn": "Branching Out+",
+      "image": "tft/images/ba569a58e9488de42e75d4dc.png",
+      "rarity": "シルバー",
+      "descriptionJa": "ランダムな紋章アイテムを1個と「再合成装置」を1個獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "構成拡大+ branching out+ da_branchingoutplus"
+    },
+    {
       "id": "DA_BronzeForLifeI",
       "nameJa": "生涯ブロンズ I",
       "nameEn": "Bronze For Life I",
@@ -18053,7 +18035,7 @@
       "nameEn": "Bronze For Life II",
       "image": "tft/images/7f4b39b551b42716549cb56b.png",
       "rarity": "プリズム",
-      "descriptionJa": "ブロンズティアの特性1つごとに、味方チームが2.5%のダメージ増加効果、および3の物理防御と魔法防御を獲得する。",
+      "descriptionJa": "ブロンズティアの特性1つごとに、味方チームが2.5%のダメージ増加効果、および2.5の物理防御と魔法防御を獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18065,7 +18047,7 @@
       "nameEn": "Build A Bud",
       "image": "tft/images/ef91438723f27ec2d426a89e.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムな★3のコスト1チャンピオンを1体獲得する。6ゴールドを獲得する。",
+      "descriptionJa": "ランダムな★3のコスト1チャンピオンを1体獲得する。9ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18205,11 +18187,11 @@
     },
     {
       "id": "DA_ChallengersGrace",
-      "nameJa": "Challenger's Grace",
+      "nameJa": "挑戦者の気品",
       "nameEn": "Challenger's Grace",
       "image": "tft/images/31bc85b08ba418c96ed9a598.png",
       "rarity": "ゴールド",
-      "descriptionJa": "戦闘開始時、味方の攻撃速度が3秒間25%増加する。キルまたはアシスト獲得時に、味方チャンピオンが次の対象に向かってダッシュし、この追加効果を再度獲得する。",
+      "descriptionJa": "戦闘開始時、味方の攻撃速度が4秒間30%増加する。キルまたはアシスト獲得時に、味方チャンピオンが次の対象に向かってダッシュし、この追加効果を再度獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18269,7 +18251,7 @@
       "nameEn": "Clockwork Accelerator",
       "image": "tft/images/f19f851cc40f30af36ac7582.png",
       "rarity": "ゴールド",
-      "descriptionJa": "戦闘中3秒ごとに味方チームの攻撃速度が10%増加する。",
+      "descriptionJa": "戦闘中3秒ごとに味方チームの攻撃速度が12%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18329,7 +18311,7 @@
       "nameEn": "Comeback Story",
       "image": "tft/images/66a82126dc8b80c5ddadc214.png",
       "rarity": "プリズム",
-      "descriptionJa": "プレイヤーの体力が減少するごとに、味方チームの体力が4、攻撃速度が0.3%増加する。",
+      "descriptionJa": "プレイヤーの体力が減少するごとに、味方チームの体力が4、攻撃速度が0.4%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18365,7 +18347,7 @@
       "nameEn": "Component Quest",
       "image": "tft/images/504afca14e43a1aa20d30fcf.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムな素材アイテムを1個と1ゴールドを獲得する。対人戦で勝利するたびに、異なるランダムな素材アイテムを1個獲得する（最大7回）。その後、1ゴールドを獲得する。",
+      "descriptionJa": "ランダムな素材アイテムを1個と1ゴールドを獲得する。対人戦で勝利するたびに、異なるランダムな素材アイテムを1個獲得する(最大7回)。その後、1ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18389,7 +18371,7 @@
       "nameEn": "Cooking Pot",
       "image": "tft/images/f049102e0e9e7796c2cc4f16.png",
       "rarity": "ゴールド",
-      "descriptionJa": "各ラウンド開始時に、「フライパン」か「へら」アイテムを装備したすべての味方が最も近くにいるチャンピオンの体力を恒久的に60増加させる。「フライパン」を1個獲得する。",
+      "descriptionJa": "各ラウンド開始時に、「フライパン」か「へら」アイテムを装備したすべての味方が最も近くにいるチャンピオンの体力を恒久的に70増加させる。「フライパン」を1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18413,7 +18395,7 @@
       "nameEn": "Corrosion",
       "image": "tft/images/84ef4308f5c4e5d274f7ef93.png",
       "rarity": "シルバー",
-      "descriptionJa": "前衛2列の敵の物理防御と魔法防御が2秒ごとに4低下する。",
+      "descriptionJa": "前衛2列の敵の物理防御と魔法防御が2秒ごとに3低下する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18437,7 +18419,7 @@
       "nameEn": "Cry Me A River",
       "image": "tft/images/dbf46e63826c0b567b4197cb.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「女神の涙」を1個獲得する。味方チームが1のマナ自動回復を獲得する。戦闘開始から12秒後にこの効果は4になる。",
+      "descriptionJa": "「女神の涙」を1個獲得する。味方チームが1のマナ自動回復を獲得する。戦闘開始から12秒後にこの効果は3になる。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18509,7 +18491,7 @@
       "nameEn": "Early Learnings",
       "image": "tft/images/bdb5a2e6fcc0a0ae7d05bddf.png",
       "rarity": "ゴールド",
-      "descriptionJa": "味方チームの攻撃力と魔力が5%増加する。この効果は各対人戦終了後に1%増加する。コスト1のチャンピオンは2倍の効果を得る。",
+      "descriptionJa": "味方チームの攻撃力と魔力が3%増加する。この効果は各対人戦終了後に1%増加する。コスト1のチャンピオンは2倍の効果を得る。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18521,7 +18503,7 @@
       "nameEn": "Electrocharge I",
       "image": "tft/images/83413d82ba7fd92404626036.png",
       "rarity": "シルバー",
-      "descriptionJa": "味方が4回攻撃を受けるたびに、周囲の敵に30/90-30/90(現在のステージに応じて)の魔法ダメージを与える(クールダウン1秒)。",
+      "descriptionJa": "味方が4回攻撃を受けるたびに、周囲の敵に25/40/80-25/40/80(現在のステージに応じて)の魔法ダメージを与える(クールダウン1秒)。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18533,7 +18515,7 @@
       "nameEn": "Electrocharge II",
       "image": "tft/images/14c2f9dfe5d6fad24b7142a6.png",
       "rarity": "ゴールド",
-      "descriptionJa": "味方が4回攻撃を受けるたびに、周囲の敵に50/140-50/140(現在のステージに応じて)の魔法ダメージを与える(クールダウン1秒)。",
+      "descriptionJa": "味方が4回攻撃を受けるたびに、周囲の敵に35/65/90/120-35/65/90/120(現在のステージに応じて)の魔法ダメージを与える(クールダウン1秒)。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18689,7 +18671,7 @@
       "nameEn": "Flowing Tears",
       "image": "tft/images/66aace1604042426fd3c39cc.png",
       "rarity": "シルバー",
-      "descriptionJa": "「女神の涙」を1個獲得する。味方チャンピオンが6500マナを使用すると、さらに2個獲得する。",
+      "descriptionJa": "「女神の涙」を1個獲得する。味方チャンピオンが7000マナを使用すると、さらに2個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18701,7 +18683,7 @@
       "nameEn": "Focused Fire",
       "image": "tft/images/ecdd019bd8ce6ed0e2a3f7b9.png",
       "rarity": "シルバー",
-      "descriptionJa": "味方チームの攻撃力が10%増加する。5秒ごとにさらに5%増加する。",
+      "descriptionJa": "味方チームの攻撃力が10%増加する。5秒ごとにさらに4%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18725,7 +18707,7 @@
       "nameEn": "Forged In Strength",
       "image": "tft/images/d419e68e53b794327fae944c.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムなアーティファクトを1個獲得する。体力が35を下回ると、追加でランダムなアーティファクトを1個、ランダムな完成アイテムを1個、ランダムな素材アイテムを2個獲得する。\r\n\r\n2023 Remix Rumble Championship",
+      "descriptionJa": "ランダムなアーティファクトを1個獲得する。体力が35を下回ると、追加でランダムなアーティファクトを1個、ランダムな完成アイテムを1個、ランダムな素材アイテムを3個獲得する。\r\n\r\n2023 Remix Rumble Championship",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18749,7 +18731,7 @@
       "nameEn": "Future Focused",
       "image": "tft/images/6e56e4b72bde9703dd34a340.png",
       "rarity": "シルバー",
-      "descriptionJa": "タクティシャンは体力を20失うが、対人戦ラウンドを5回終えるとコスト4のチャンピオン3体と、8ゴールドを獲得する。",
+      "descriptionJa": "タクティシャンは体力を20失うが、対人戦を5回行うと、コスト4のチャンピオン3体と5ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18773,7 +18755,7 @@
       "nameEn": "Giant and Mighty",
       "image": "tft/images/9d2b0207a310ba961eb3a41d.png",
       "rarity": "プリズム",
-      "descriptionJa": "味方チームが大きくなり、体力が200、最大体力が10%増加する。",
+      "descriptionJa": "味方チームが大きくなり、体力が225、最大体力が10%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18900,12 +18882,24 @@
       "searchKeywords": "黄金の博打++ golden gamble++ da_goldengambleplusplus"
     },
     {
+      "id": "DA_GoodForSomethingI",
+      "nameJa": "有効活用 I",
+      "nameEn": "Good For Something I",
+      "image": "tft/images/80cc11a5fd800b450ddcc3df.png",
+      "rarity": "シルバー",
+      "descriptionJa": "アイテムを装備していないチャンピオンは、倒された時に40%の確率で1ゴールドをドロップする。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "有効活用 i good for something i da_goodforsomethingi"
+    },
+    {
       "id": "DA_GroupHugI",
       "nameJa": "みんなでハグ I",
       "nameEn": "Group Hug I",
       "image": "tft/images/f7e7c89c2cbb749a36d64065.png",
       "rarity": "シルバー",
-      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に6の物理防御と魔法防御を付与する。この効果はスタックする。",
+      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に7の物理防御と魔法防御を付与する。この効果はスタックする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18917,7 +18911,7 @@
       "nameEn": "Group Hug II",
       "image": "tft/images/bd236c7618c8498cf90427df.png",
       "rarity": "ゴールド",
-      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に9の物理防御と魔法防御を付与する。この効果はスタックする。",
+      "descriptionJa": "戦闘開始時: チャンピオンは隣接するチャンピオン(自身を除く)に10の物理防御と魔法防御を付与する。この効果はスタックする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -18989,7 +18983,7 @@
       "nameEn": "Heroic Grab Bag",
       "image": "tft/images/6fcb6559685167aeaac5d0a0.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「小型チャンピオン複製器」を2個獲得する。4ゴールドを獲得する。",
+      "descriptionJa": "「小型チャンピオン複製器」を2個獲得する。6ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19025,7 +19019,7 @@
       "nameEn": "Hold the Line",
       "image": "tft/images/3a76c4c8e90120901dddaca6.png",
       "rarity": "プリズム",
-      "descriptionJa": "前列で戦闘を開始した味方1体ごとに、後列2列の味方の魔力が10%、攻撃力が9%増加する。",
+      "descriptionJa": "前列で戦闘を開始した味方1体ごとに、後列2列の味方の魔力が11%、攻撃力が11%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19085,7 +19079,7 @@
       "nameEn": "Investment Strategy II",
       "image": "tft/images/e1eea85112b844604d2c64a2.png",
       "rarity": "プリズム",
-      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が12恒久的に増加する。最大利子が2増加する。即座に10ゴールドを獲得する。",
+      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が10恒久的に増加する。最大利子が2増加する。即座に6ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19097,7 +19091,7 @@
       "nameEn": "Investment Strategy I",
       "image": "tft/images/b163b4f02ca5231be63adf0d.png",
       "rarity": "ゴールド",
-      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が9恒久的に増加する。即座に6ゴールドを獲得する。",
+      "descriptionJa": "獲得した利子1ゴールドにつき、味方チャンピオンの最大体力が8恒久的に増加する。即座に3ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19145,7 +19139,7 @@
       "nameEn": "Jeweled Lotus I",
       "image": "tft/images/12f91f20f2d9d04ba4ae17e7.png",
       "rarity": "ゴールド",
-      "descriptionJa": "味方チームのクリティカル率が10%増加し、「正確無比」を獲得する。\r\n\r\n正確無比: スキルはクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
+      "descriptionJa": "味方チームのクリティカル率が15%増加し、「正確無比」を獲得する。\r\n\r\n正確無比: スキルはクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19301,7 +19295,7 @@
       "nameEn": "Lucky Gloves+",
       "image": "tft/images/875b8c8de2d42057a30d228c.png",
       "rarity": "プリズム",
-      "descriptionJa": "「盗賊のグローブ」が毎回、そのチャンピオンにとって理想的なアイテムを付与するようになる。即座に「スパーリング グローブ」を2個獲得し、対人戦を4回行ったあとに、もう1個獲得する。",
+      "descriptionJa": "「盗賊のグローブ」が毎回、そのチャンピオンにとって理想的なアイテムを付与するようになる。即座に「スパーリング グローブ」を2個獲得し、対人戦を4回行うと、もう1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19361,7 +19355,7 @@
       "nameEn": "Malicious Monetization",
       "image": "tft/images/b39b05021253ecd0892e8210.png",
       "rarity": "ゴールド",
-      "descriptionJa": "4ゴールドを獲得する。次の2ラウンドの間、敵チャンピオンが倒された際に2ゴールドをドロップする。",
+      "descriptionJa": "6ゴールドを獲得する。次の2ラウンドの間、敵チャンピオンが倒された際に2ゴールドをドロップする。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19445,7 +19439,7 @@
       "nameEn": "Nesting Anvils",
       "image": "tft/images/504afca14e43a1aa20d30fcf.png",
       "rarity": "プリズム",
-      "descriptionJa": "「アーティファクトの金床」を1個獲得する。開けた後、「素材アイテムの金床」を1個獲得する。それを開けた後4ゴールドを獲得する。",
+      "descriptionJa": "「アーティファクトの金床」を1個獲得する。開けた後、「素材アイテムの金床」を1個獲得する。それを開けた後6ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19488,12 +19482,24 @@
       "searchKeywords": "バフが1つ、バフが2つ one buff two buff da_onebufftwobuff"
     },
     {
+      "id": "DA_OneTwoFive",
+      "nameJa": "ワン、ツー、ファイブ！",
+      "nameEn": "One, Two, Five!",
+      "image": "tft/images/04ebd1652be7f4f8560d81a0.png",
+      "rarity": "シルバー",
+      "descriptionJa": "ランダムな素材アイテム1個、2ゴールド、ランダムなコスト5のチャンピオン1体を獲得する。",
+      "associatedTraits": [],
+      "associatedChampionIds": [],
+      "associatedItemIds": [],
+      "searchKeywords": "ワン、ツー、ファイブ！ one, two, five! da_onetwofive"
+    },
+    {
       "id": "DA_PandorasBench",
       "nameJa": "パンドラのベンチ",
       "nameEn": "Pandora's Bench",
       "image": "tft/images/995e8b29789faf1fd6d21699.png",
       "rarity": "シルバー",
-      "descriptionJa": "各ラウンドの開始時に、ベンチの右側3スロットにいるチャンピオンが、同じコストのランダムなチャンピオンに変化する。4ゴールドを獲得する。",
+      "descriptionJa": "各ラウンドの開始時に、ベンチの右側3スロットにいるチャンピオンが、同じコストのランダムなチャンピオンに変化する。1ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19529,7 +19535,7 @@
       "nameEn": "Pandora's Items II",
       "image": "tft/images/aa37deeb7b3cf66c240e4730.png",
       "rarity": "ゴールド",
-      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\n\nランダムな素材アイテムを可変値個と、可変値ゴールドを獲得する。",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\r\n\r\nランダムな素材アイテムを2個と、1ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19541,7 +19547,7 @@
       "nameEn": "Pandora's Items II+",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\n\nランダムな素材アイテムを可変値個と、可変値ゴールドを獲得する。",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\r\n\r\nランダムな素材アイテムを2個と、4ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19553,7 +19559,7 @@
       "nameEn": "Pandora's Items II++",
       "image": "tft/images/c1c81a6ee6cb937003099b76.png",
       "rarity": "ゴールド",
-      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\n\nランダムな素材アイテムを可変値個と、可変値ゴールドを獲得する。",
+      "descriptionJa": "ラウンド開始時: ベンチのアイテムがランダムに変更される。\r\n\r\nランダムな素材アイテムを2個と、7ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19577,7 +19583,7 @@
       "nameEn": "Patience Is A Virtue",
       "image": "tft/images/ad307b1126080209fa37cd74.png",
       "rarity": "シルバー",
-      "descriptionJa": "即座に4回分のリロールを獲得する。直前のラウンドでチャンピオンを購入していない場合、毎ラウンド1回分のリロールを無料で獲得する。",
+      "descriptionJa": "即座に5回分のリロールを獲得する。直前のラウンドでチャンピオンを購入していない場合、毎ラウンド1回分のリロールを無料で獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19613,7 +19619,7 @@
       "nameEn": "Plot Armor",
       "image": "tft/images/d30426af65f751b22b97d745.png",
       "rarity": "ゴールド",
-      "descriptionJa": "味方チームの物理防御と魔法防御が8増加する。自身の体力が50%未満になると、戦闘終了までこの値が40に増加する。",
+      "descriptionJa": "味方チームの物理防御と魔法防御が10増加する。自身の体力が50%未満になると、戦闘終了までこの値が40に増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19637,7 +19643,7 @@
       "nameEn": "Prismatic Destiny",
       "image": "tft/images/38db69581ddce4d138956f54.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムなプリズムオーグメントを1個と4ゴールドを獲得する。",
+      "descriptionJa": "ランダムなプリズムオーグメントを1個と2ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19673,7 +19679,7 @@
       "nameEn": "Promised Protection",
       "image": "tft/images/d2fec3dd680aaf899ce3be04.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「プロテクターの誓い」を1個獲得する。「プロテクターの誓い」の装備者は、あらゆるソースから獲得するマナが20%、最大体力が200増加する。",
+      "descriptionJa": "「プロテクターの誓い」を1個獲得する。「プロテクターの誓い」の装備者は、あらゆるソースから獲得するマナが20%、最大体力が175増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19745,7 +19751,7 @@
       "nameEn": "Retribution",
       "image": "tft/images/0b1b858c8f8308f32a2de510.png",
       "rarity": "プリズム",
-      "descriptionJa": "「ハンド オブ ジャスティス」を2個獲得する。「ハンド オブ ジャスティス」を装備した味方は「正確無比」を獲得し、クリティカル率が25%増加する。\r\n\r\n正確無比: スキルはクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
+      "descriptionJa": "「ハンド オブ ジャスティス」を2個獲得する。「ハンド オブ ジャスティス」を装備した味方は「正確無比」を獲得し、クリティカル率が15%増加する。\r\n\r\n正確無比: スキルはクリティカル判定を持つ。「正確無比」を追加で獲得すると、クリティカルダメージが10%増加する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19769,7 +19775,7 @@
       "nameEn": "Salvage Bin",
       "image": "tft/images/eeabcedde2efbf00e0a4b366.png",
       "rarity": "ゴールド",
-      "descriptionJa": "即座にランダムな完成アイテムを1個獲得する。また、対人戦を8回終えると、素材アイテムを1個獲得する。チャンピオンを売却すると、完成アイテムが素材に解体される(タクティシャンアイテムと紋章は除く)。",
+      "descriptionJa": "即座にランダムな完成アイテムを1個獲得する。また、対人戦を8回行うと、素材アイテムを1個獲得する。チャンピオンを売却すると、完成アイテムが素材に解体される(タクティシャンアイテムと紋章は除く)。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19781,7 +19787,7 @@
       "nameEn": "Salvage Bin+",
       "image": "tft/images/eeabcedde2efbf00e0a4b366.png",
       "rarity": "ゴールド",
-      "descriptionJa": "即座にランダムな完成アイテムを1個獲得する。また、対人戦を4回終えると、素材アイテムを1個獲得する。チャンピオンを売却すると、完成アイテムが素材に解体される(タクティシャンアイテムと紋章は除く)。",
+      "descriptionJa": "即座にランダムな完成アイテムを1個獲得する。また、対人戦を4回行うと、素材アイテムを1個獲得する。チャンピオンを売却すると、完成アイテムが素材に解体される(タクティシャンアイテムと紋章は除く)。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19793,7 +19799,7 @@
       "nameEn": "Seraphim's Staff",
       "image": "tft/images/11fb259457e1764d0cf4d305.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「アークエンジェル スタッフ」を1個獲得する。装備者の魔力が90%以上だった場合、「アークエンジェル スタッフ」から2のマナ自動回復を追加で獲得する。",
+      "descriptionJa": "「アークエンジェル スタッフ」を1個獲得する。装備者の魔力が110%以上だった場合、「アークエンジェル スタッフ」から2のマナ自動回復を追加で獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19805,7 +19811,7 @@
       "nameEn": "Shimmerscale Essence",
       "image": "tft/images/5a32b9c4fd49eadba867ac36.png",
       "rarity": "プリズム",
-      "descriptionJa": "「ギャンブラーの剣」を1個獲得する。対人戦を6回後に、「モーグル メイル」を1個獲得する。",
+      "descriptionJa": "「ギャンブラーの剣」を1個獲得する。対人戦を6回行うと、「モーグル メイル」を1個獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19817,7 +19823,7 @@
       "nameEn": "Shopping Spree",
       "image": "tft/images/0101122d224ccc33b5734f45.png",
       "rarity": "プリズム",
-      "descriptionJa": "レベルアップした際、自身のレベル+1と同じ数のショップのリロールを獲得する。6ゴールドを獲得する。",
+      "descriptionJa": "レベルアップした際、自身のレベル+1と同じ数のショップのリロールを獲得する。7ゴールドを獲得する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -19985,7 +19991,7 @@
       "nameEn": "Spirit Of Redemption",
       "image": "tft/images/814c9c312de57820e2216297.png",
       "rarity": "ゴールド",
-      "descriptionJa": "「スピリット ビサージュ」を1個獲得する。5秒ごとに、「スピリット ビサージュ」が1マス以内の味方を、減少体力の7.5%回復する。",
+      "descriptionJa": "「スピリット ビサージュ」を1個獲得する。5秒ごとに、「スピリット ビサージュ」が1マス以内の味方を、減少体力の9%回復する。",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],
@@ -20333,7 +20339,7 @@
       "nameEn": "We Stick Together",
       "image": "tft/images/550e44082b36f12ddfe6c1af.png",
       "rarity": "プリズム",
-      "descriptionJa": "ランダムな紋章を1個と、「完成アイテムの金床」を1個獲得する。その紋章と同じ特性を持っている味方の攻撃速度が30%増加する。戦闘中の状態に応じて変化 戦闘中の状態に応じて変化\r\n\r\n2025 Into The Arcane Tactician's Crown",
+      "descriptionJa": "ランダムな特性の紋章1つと「完成アイテムの金床」1つを獲得する。その特性を持つ味方は攻撃速度が25%増加する。\r\n戦闘中の状態に応じて変化 戦闘中の状態に応じて変化\r\n\r\n2025 Into The Arcane Tactician's Crown",
       "associatedTraits": [],
       "associatedChampionIds": [],
       "associatedItemIds": [],

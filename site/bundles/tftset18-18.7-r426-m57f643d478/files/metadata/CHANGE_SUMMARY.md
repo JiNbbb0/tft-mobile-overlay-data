@@ -1,7 +1,7 @@
 # Change Summary
 
-- Generated: 2026-11-25T21:22:24Z
-- From: tftset18-18.7-r426-mb52556b240
+- Generated: 2026-11-25T22:37:14Z
+- From: tftset18-18.7-r426-m10105ebfcc
 - To: TFTSet18 / patch 18.7 / revision 426
 
 | Category | Previous | Current | Added | Removed | Changed |
@@ -13,18 +13,18 @@
 | Compositions | 18 | 18 | 0 | 0 | 18 |
 | Images | 622 | 622 | - | - | 0 delta |
 
-- Tier changes: 1
-- Average-placement changes: 15
+- Tier changes: 0
+- Average-placement changes: 16
 - Missing names/descriptions/images: 0 / 0 / 0
 ## Composition ranks
 
 | Rank | Previous | Current | Added | Removed | Changed |
 |---|---:|---:|---:|---:|---:|
-| CHALLENGER | 18 | 18 | 0 | 0 | 3 |
+| CHALLENGER | 18 | 18 | 0 | 0 | 4 |
 | DIAMOND_PLUS | 18 | 18 | 0 | 0 | 18 |
 | EMERALD_PLUS | 18 | 18 | 0 | 0 | 18 |
 | GOLD_PLUS | 18 | 18 | 0 | 0 | 18 |
-| GRANDMASTER_PLUS | 18 | 18 | 1 | 1 | 16 |
-| MASTER_PLUS | 18 | 18 | 0 | 0 | 16 |
+| GRANDMASTER_PLUS | 18 | 18 | 1 | 1 | 15 |
+| MASTER_PLUS | 18 | 18 | 0 | 0 | 18 |
 | PLATINUM_PLUS | 18 | 18 | 0 | 0 | 18 |
 
